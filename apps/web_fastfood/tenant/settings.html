@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings - Tenant Admin</title>
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+</head>
+<body class="bg-slate-50 min-h-screen flex">
+
+    <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+    <aside class="w-64 flex-shrink-0 h-screen bg-white border-r border-slate-200 flex flex-col overflow-y-auto fixed left-0 top-0 z-30">
+
+        <!-- Tenant branding -->
+        <div class="h-16 flex items-center px-5 border-b border-slate-200 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span class="text-white text-sm font-bold select-none">T</span>
+                </div>
+                <div>
+                    <p class="text-slate-900 text-sm font-semibold leading-none" id="sidebarTenantName">Loading…</p>
+                    <p class="text-indigo-600 text-[11px] leading-none mt-0.5 font-medium" id="sidebarTenantCode">—</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 px-3 py-4 space-y-0.5">
+
+            <a href="/tenant/dashboard.html"
+               class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                Overview
+            </a>
+
+            <a href="/tenant/sales.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                Sales
+            </a>
+
+            <a href="/tenant/reports.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                Reports
+            </a>
+
+        <a href="/tenant/shifts.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Cash Shortages
+        </a>
+
+            <a href="/tenant/menu.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                Menu
+            </a>
+
+
+        <a href="/tenant/variant-options.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+            Variant Options
+        </a>
+
+        <a href="/tenant/addon-groups.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+            Add-on Groups
+        </a>
+
+            <a href="/tenant/promotions.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg>
+                Promotions
+            </a>
+
+            <a href="/tenant/deals.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+                Deals
+            </a>
+
+            <a href="/tenant/branches.html"
+               class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                Branches
+            </a>
+
+            <a href="/tenant/preparation-stations.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z"/>
+                </svg>
+                Kitchen Stations
+            </a>
+
+            <a href="/tenant/devices.html"
+               class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                Devices
+            </a>
+
+            <a href="/tenant/users.html"
+               class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                Users
+            </a>
+
+            <a href="/tenant/roles.html"
+               class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+                Roles
+            </a>
+
+            <a href="/tenant/activity.html"
+               class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0"/>
+                </svg>
+                Activity
+            </a>
+
+            <a href="/tenant/expenses.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-6 4h6m-6 4h4M5 3h14a2 2 0 012 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 012-2z"/></svg>
+                Expenses
+            </a>
+            <a href="/tenant/employees.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+                Employees
+            </a>
+            <a href="/tenant/salaries.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Salaries
+            </a>
+            <a href="/tenant/inventory.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                Inventory
+            </a>
+
+            <a href="/tenant/subscription.html"
+               class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                </svg>
+                Subscription
+            </a>
+
+            <!-- Active: Settings -->
+            <a href="/tenant/settings.html"
+               class="bg-indigo-50 text-indigo-700 font-medium rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                Settings
+            </a>
+        </nav>
+
+        <!-- User footer -->
+        <div class="border-t border-slate-200 p-4 flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                    <span class="text-indigo-700 text-sm font-semibold" id="userInitial">?</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-slate-900 truncate" id="sidebarUserName">—</p>
+                    <p class="text-xs text-slate-500 truncate" id="sidebarUserRoles">—</p>
+                </div>
+                <button onclick="logout()" title="Logout" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ── Main content ──────────────────────────────────────────────────────── -->
+    <div class="ml-64 flex-1 flex flex-col min-h-screen">
+
+        <!-- Header -->
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center px-6 sticky top-0 z-20">
+            <h1 class="text-2xl font-semibold text-slate-900">Settings</h1>
+        </header>
+
+        <!-- Page body -->
+        <main class="flex-1 p-6 max-w-2xl space-y-6">
+
+            <!-- Error banner -->
+            <div id="errorBanner" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 text-sm"></div>
+
+            <!-- ── Global loading spinner ── -->
+            <div id="loadingSpinner" class="flex items-center justify-center py-24">
+                <svg class="animate-spin w-8 h-8 text-indigo-600" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                </svg>
+            </div>
+
+            <!-- ── Content — hidden while loading ── -->
+            <div id="content" class="hidden space-y-6">
+
+                <!-- ── Card 1: Shop Information ── -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                    <h2 class="text-base font-semibold text-slate-900 mb-5">Shop Information</h2>
+
+                    <!-- Card error -->
+                    <div id="restaurantError" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm mb-4"></div>
+
+                    <form id="restaurantForm" novalidate class="space-y-4">
+                        <!-- Shop Name -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Shop Name <span class="text-red-500">*</span></label>
+                            <input id="restoName" type="text" placeholder="My Shop"
+                                   class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Receipt Logo</label>
+                            <div class="flex items-center gap-4">
+                                <img id="receiptLogoPreview" class="hidden h-16 w-28 object-contain rounded-lg border border-slate-200 bg-white p-2" alt="Current shop logo" />
+                                <input id="receiptLogo" type="file" accept="image/png,image/jpeg,image/webp"
+                                       class="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-3 file:py-2 file:text-indigo-700" />
+                            </div>
+                            <p class="text-xs text-slate-400 mt-1">PNG, JPEG, or WebP; maximum 3 MB. Saved to each POS during sync.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Receipt Tagline</label>
+                            <input id="receiptTagline" type="text" maxlength="80" placeholder="Shop smart, live better"
+                                   class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                            <p class="text-xs text-slate-400 mt-1">Maximum 4 words; printed below the shop name.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Thank-you Message</label>
+                            <input id="receiptThankYou" type="text" maxlength="120" placeholder="Thank you for shopping with us!"
+                                   class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Receipt Terms &amp; Conditions</label>
+                            <textarea id="receiptTerms" maxlength="1000" rows="3" placeholder="Returns accepted within 7 days with receipt."
+                                      class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                            <p class="text-xs text-slate-400 mt-1">Printed as a short line at the bottom of the receipt.</p>
+                        </div>
+                        <div>
+                            <label for="lowStockThreshold" class="block text-sm font-medium text-slate-700 mb-1.5">Low-stock threshold</label>
+                            <input id="lowStockThreshold" type="number" min="0" max="1000000" step="1" value="5"
+                                class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                            <p class="text-xs text-slate-500 mt-1">A tracked variant is low at a branch when its quantity is at or below this value. Untracked items are never included.</p>
+                        </div>
+
+                        <!-- Currency -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Currency</label>
+                            <input id="restoCurrency" type="text" maxlength="8" placeholder="Rs."
+                                   class="w-32 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                            <p class="text-xs text-slate-400 mt-1">Shown before every amount on the POS (e.g. Rs., $, &euro;).</p>
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="button" id="saveRestaurantBtn" onclick="saveRestaurant()"
+                                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+                                Save Shop
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- ── Card 2: My Account ── -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                    <h2 class="text-base font-semibold text-slate-900 mb-5">My Account</h2>
+
+                    <!-- Card error -->
+                    <div id="accountError" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm mb-4"></div>
+
+                    <!-- Profile form -->
+                    <form id="accountForm" novalidate class="space-y-4">
+                        <input type="hidden" id="meUserId" />
+
+                        <!-- Full Name -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Full Name</label>
+                            <input id="meFullName" type="text" placeholder="Your full name"
+                                   class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                        </div>
+
+                        <!-- Email -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+                            <input id="meEmail" type="email" placeholder="you@example.com"
+                                   class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                        </div>
+
+                        <!-- Username (read-only) -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Username</label>
+                            <input id="meUsername" type="text" readonly
+                                   class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-slate-50 text-slate-500 cursor-not-allowed" />
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="button" id="saveAccountBtn" onclick="saveAccount()"
+                                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+                                Save Account
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Divider -->
+                    <hr class="border-slate-200 my-6" />
+
+                    <!-- Change Password section -->
+                    <h3 class="text-sm font-semibold text-slate-900 mb-4">Change Password</h3>
+
+                    <!-- Password error -->
+                    <div id="passwordError" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm mb-4"></div>
+
+                    <form id="passwordForm" novalidate class="space-y-4">
+                        <!-- Current Password -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Current Password <span class="text-red-500">*</span></label>
+                            <input id="currentPassword" type="password" placeholder="••••••••"
+                                   autocomplete="current-password"
+                                   class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                        </div>
+
+                        <!-- New Password -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">New Password <span class="text-red-500">*</span></label>
+                            <input id="newPassword" type="password" placeholder="••••••••"
+                                   autocomplete="new-password"
+                                   class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                        </div>
+
+                        <!-- Confirm New Password -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Confirm New Password <span class="text-red-500">*</span></label>
+                            <input id="confirmPassword" type="password" placeholder="••••••••"
+                                   autocomplete="new-password"
+                                   class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="button" id="changePasswordBtn" onclick="changePassword()"
+                                    class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+                                Change Password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <!-- ── Card 3: Tax Rates ── -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-base font-semibold text-slate-900">Tax Rates</h2>
+                        <button onclick="toggleAddTaxForm()"
+                            class="flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            Add Rate
+                        </button>
+                    </div>
+
+                    <!-- Tax rate error -->
+                    <div id="taxError" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm mb-4"></div>
+
+                    <!-- Add form (hidden by default) -->
+                    <div id="addTaxForm" class="hidden mb-4 border border-indigo-100 rounded-lg p-4 bg-indigo-50 space-y-3">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Name <span class="text-red-500">*</span></label>
+                                <input id="taxName" type="text" placeholder="e.g. VAT 15%"
+                                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Rate (%) <span class="text-red-500">*</span></label>
+                                <input id="taxRate" type="number" min="0" max="100" step="0.0001" placeholder="e.g. 15.0000"
+                                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-6">
+                            <label class="flex items-center gap-2 text-sm text-slate-600">
+                                <input id="taxIsInclusive" type="checkbox"
+                                    class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500" />
+                                Inclusive (tax included in price)
+                            </label>
+                            <label class="flex items-center gap-2 text-sm text-slate-600">
+                                <input id="taxIsDefault" type="checkbox"
+                                    class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500" />
+                                Set as default
+                            </label>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="addTaxRate()"
+                                class="bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                                Save Rate
+                            </button>
+                            <button onclick="toggleAddTaxForm()"
+                                class="border border-slate-200 text-slate-600 text-sm font-medium px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Rates table -->
+                    <div id="taxRatesList" class="space-y-2">
+                        <p class="text-sm text-slate-400 py-4 text-center">Loading tax rates…</p>
+                    </div>
+                </div>
+
+            </div><!-- /content -->
+        </main>
+    </div>
+
+    <!-- ── Scripts ───────────────────────────────────────────────────────────── -->
+    <script>
+        // ── API helpers ──────────────────────────────────────────────────────────
+        const BASE = '/api/v1';
+        function getToken() { return localStorage.getItem('tenant_token'); }
+
+        async function apiFetch(path, opts = {}) {
+            const res = await fetch(BASE + path, {
+                ...opts,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + getToken(),
+                    ...(opts.headers || {})
+                }
+            });
+            if (res.status === 401) {
+                localStorage.removeItem('tenant_token');
+                location.href = '/tenant/login.html';
+                throw new Error('Unauthorized');
+            }
+            if (!res.ok) {
+                const e = await res.json().catch(() => ({}));
+                throw new Error(e.detail || 'Request failed');
+            }
+            if (res.status === 204) return null;
+            return res.json();
+        }
+
+        function logout() {
+            localStorage.removeItem('tenant_token');
+            localStorage.removeItem('tenant_me');
+            location.href = '/tenant/login.html';
+        }
+
+        function showToast(msg, type = 'success') {
+            const t = document.createElement('div');
+            t.className = `fixed bottom-4 right-4 z-50 px-4 py-3 rounded-lg text-sm font-medium shadow-lg ${type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`;
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        // ── Sidebar init ─────────────────────────────────────────────────────────
+        async function initSidebar() {
+            const token = localStorage.getItem('tenant_token');
+            if (!token) { location.href = '/tenant/login.html'; return false; }
+            try {
+                const me = await apiFetch('/auth/me'); window.SHOP_CCY = (me && me.currency) || 'Rs.';
+                localStorage.setItem('tenant_me', JSON.stringify(me));
+                document.getElementById('sidebarTenantName').textContent = me.tenant?.name || 'My Business';
+                document.getElementById('sidebarTenantCode').textContent = me.tenant?.code || '';
+                document.getElementById('sidebarUserName').textContent = me.full_name || me.username;
+                document.getElementById('userInitial').textContent = (me.full_name || me.username || '?')[0].toUpperCase();
+                document.getElementById('sidebarUserRoles').textContent = me.roles?.length ? me.roles.join(', ') : 'No roles';
+                return me;
+            } catch(e) { return false; }
+        }
+
+        // ── Page init ────────────────────────────────────────────────────────────
+        async function init() {
+            // initSidebar already calls /auth/me — capture the result for the account form
+            const me = await initSidebar();
+            showSpinner(true);
+            hideError();
+            try {
+                // Load the tenant's business and tax rates in parallel
+                const [business] = await Promise.all([
+                    apiFetch('/business/'),
+                    loadTaxRates(),
+                ]);
+
+                // Populate shop form
+                if (business) {
+                    document.getElementById('restoName').value      = business.name || '';
+                    document.getElementById('restoCurrency').value  = business.currency || 'Rs.';
+                    document.getElementById('receiptTagline').value = business.receipt_tagline || '';
+                    document.getElementById('receiptThankYou').value = business.receipt_thank_you || '';
+                    document.getElementById('receiptTerms').value = business.receipt_terms || '';
+                    document.getElementById('lowStockThreshold').value = business.low_stock_threshold ?? 5;
+                    const logo = document.getElementById('receiptLogoPreview');
+                    if (business.logo_path) {
+                        logo.src = business.logo_path + '?v=' + Date.now();
+                        logo.classList.remove('hidden');
+                    }
+                }
+
+                // Populate account form from sidebar /auth/me result
+                if (me) {
+                    document.getElementById('meUserId').value    = me.id;
+                    document.getElementById('meFullName').value  = me.full_name || '';
+                    document.getElementById('meEmail').value     = me.email || '';
+                    document.getElementById('meUsername').value  = me.username || '';
+                }
+
+                document.getElementById('content').classList.remove('hidden');
+            } catch(e) {
+                showError(e.message);
+            } finally {
+                showSpinner(false);
+            }
+        }
+
+        // ── Save shop ───────────────────────────────────────────────────────────
+        async function saveRestaurant() {
+            const btn   = document.getElementById('saveRestaurantBtn');
+            const errEl = document.getElementById('restaurantError');
+            errEl.classList.add('hidden');
+
+            const name        = document.getElementById('restoName').value.trim();
+            const currency    = document.getElementById('restoCurrency').value.trim() || 'Rs.';
+            const receipt_tagline = document.getElementById('receiptTagline').value.trim() || null;
+            const receipt_thank_you = document.getElementById('receiptThankYou').value.trim() || null;
+            const receipt_terms = document.getElementById('receiptTerms').value.trim() || null;
+            const low_stock_threshold = Number(document.getElementById('lowStockThreshold').value);
+            const logoFile = document.getElementById('receiptLogo').files[0];
+
+            if (!name) { errEl.textContent = 'Shop name is required.'; errEl.classList.remove('hidden'); return; }
+            if (receipt_tagline && receipt_tagline.split(/\s+/).length > 4) { errEl.textContent = 'Receipt tagline must contain no more than 4 words.'; errEl.classList.remove('hidden'); return; }
+            if (!Number.isSafeInteger(low_stock_threshold) || low_stock_threshold < 0 || low_stock_threshold > 1000000) { errEl.textContent = 'Low-stock threshold must be a whole number from 0 to 1,000,000.'; errEl.classList.remove('hidden'); return; }
+
+            btn.disabled = true;
+            btn.textContent = 'Saving…';
+            try {
+                await apiFetch(`/business/`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ name, currency, receipt_tagline, receipt_thank_you, receipt_terms, low_stock_threshold })
+                });
+                if (logoFile) {
+                    const body = new FormData();
+                    body.append('file', logoFile);
+                    const response = await fetch(BASE + '/business/logo', {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + getToken() },
+                        body,
+                    });
+                    if (!response.ok) {
+                        const e = await response.json().catch(() => ({}));
+                        throw new Error(e.detail || 'Logo upload failed');
+                    }
+                    const updated = await response.json();
+                    const preview = document.getElementById('receiptLogoPreview');
+                    preview.src = updated.logo_path + '?v=' + Date.now();
+                    preview.classList.remove('hidden');
+                    document.getElementById('receiptLogo').value = '';
+                }
+                showToast('Shop settings saved.');
+            } catch(e) {
+                errEl.textContent = e.message;
+                errEl.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Save Shop';
+            }
+        }
+
+        // ── Save account (profile) ───────────────────────────────────────────────
+        async function saveAccount() {
+            const btn   = document.getElementById('saveAccountBtn');
+            const errEl = document.getElementById('accountError');
+            errEl.classList.add('hidden');
+
+            const userId    = document.getElementById('meUserId').value;
+            const full_name = document.getElementById('meFullName').value.trim() || null;
+            const email     = document.getElementById('meEmail').value.trim() || null;
+
+            if (!userId) { errEl.textContent = 'User not identified.'; errEl.classList.remove('hidden'); return; }
+
+            btn.disabled = true;
+            btn.textContent = 'Saving…';
+            try {
+                const updated = await apiFetch(`/users/${userId}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ full_name, email })
+                });
+                // Refresh sidebar display name
+                if (updated) {
+                    document.getElementById('sidebarUserName').textContent = updated.full_name || updated.username;
+                    document.getElementById('userInitial').textContent = (updated.full_name || updated.username || '?')[0].toUpperCase();
+                    localStorage.setItem('tenant_me', JSON.stringify(updated));
+                }
+                showToast('Account updated.');
+            } catch(e) {
+                errEl.textContent = e.message;
+                errEl.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Save Account';
+            }
+        }
+
+        // ── Change password ──────────────────────────────────────────────────────
+        async function changePassword() {
+            const btn   = document.getElementById('changePasswordBtn');
+            const errEl = document.getElementById('passwordError');
+            errEl.classList.add('hidden');
+
+            const current_password = document.getElementById('currentPassword').value;
+            const new_password     = document.getElementById('newPassword').value;
+            const confirm          = document.getElementById('confirmPassword').value;
+
+            // Client-side validation
+            if (!current_password) { errEl.textContent = 'Current password is required.'; errEl.classList.remove('hidden'); return; }
+            if (!new_password)     { errEl.textContent = 'New password is required.'; errEl.classList.remove('hidden'); return; }
+            if (new_password.length < 6) { errEl.textContent = 'New password must be at least 6 characters.'; errEl.classList.remove('hidden'); return; }
+            if (new_password !== confirm) { errEl.textContent = 'Passwords do not match.'; errEl.classList.remove('hidden'); return; }
+
+            btn.disabled = true;
+            btn.textContent = 'Changing…';
+            try {
+                await apiFetch('/auth/change-password', {
+                    method: 'POST',
+                    body: JSON.stringify({ current_password, new_password })
+                });
+                // Clear fields on success
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('newPassword').value     = '';
+                document.getElementById('confirmPassword').value = '';
+                showToast('Password changed successfully.');
+            } catch(e) {
+                errEl.textContent = e.message;
+                errEl.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Change Password';
+            }
+        }
+
+        // ── UI helpers ───────────────────────────────────────────────────────────
+        function showSpinner(visible) {
+            document.getElementById('loadingSpinner').classList.toggle('hidden', !visible);
+        }
+        function showError(msg) {
+            const el = document.getElementById('errorBanner');
+            el.textContent = msg;
+            el.classList.remove('hidden');
+        }
+        function hideError() {
+            document.getElementById('errorBanner').classList.add('hidden');
+        }
+
+        // ── Tax Rates ────────────────────────────────────────────────────────────
+        let taxRates = [];
+
+        async function loadTaxRates() {
+            try {
+                taxRates = await apiFetch('/tax-rates/');
+                renderTaxRates();
+            } catch(e) {
+                document.getElementById('taxRatesList').innerHTML = `<p class="text-sm text-red-400 py-4 text-center">${e.message}</p>`;
+            }
+        }
+
+        function renderTaxRates() {
+            const el = document.getElementById('taxRatesList');
+            if (taxRates.length === 0) {
+                el.innerHTML = `<p class="text-sm text-slate-400 py-4 text-center">No tax rates configured. Click "Add Rate" to create one.</p>`;
+                return;
+            }
+            el.innerHTML = taxRates.map(r => `
+                <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
+                    <div class="flex items-center gap-3">
+                        <div>
+                            <p class="text-sm font-medium text-slate-900">${escapeHTML(r.name)}</p>
+                            <p class="text-xs text-slate-500">${parseFloat(r.rate).toFixed(4)}% &bull; ${r.is_inclusive ? 'Inclusive' : 'Exclusive'}</p>
+                        </div>
+                        ${r.is_default ? '<span class="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-full">Default</span>' : ''}
+                    </div>
+                    <div class="flex items-center gap-2">
+                        ${!r.is_default ? `<button onclick="setDefaultTaxRate('${escapeJSAttribute(r.id)}')" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium transition-colors">Set Default</button>` : ''}
+                        <button onclick="deleteTaxRate('${escapeJSAttribute(r.id)}')" class="text-xs text-red-400 hover:text-red-600 font-medium transition-colors ml-2">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleAddTaxForm() {
+            const el = document.getElementById('addTaxForm');
+            el.classList.toggle('hidden');
+            if (!el.classList.contains('hidden')) {
+                document.getElementById('taxName').value = '';
+                document.getElementById('taxRate').value = '';
+                document.getElementById('taxIsInclusive').checked = false;
+                document.getElementById('taxIsDefault').checked = false;
+                document.getElementById('taxError').classList.add('hidden');
+            }
+        }
+
+        async function addTaxRate() {
+            const errEl = document.getElementById('taxError');
+            errEl.classList.add('hidden');
+            const name = document.getElementById('taxName').value.trim();
+            const rate = parseFloat(document.getElementById('taxRate').value);
+            if (!name) { errEl.textContent = 'Name is required.'; errEl.classList.remove('hidden'); return; }
+            if (isNaN(rate) || rate < 0 || rate > 100) { errEl.textContent = 'Rate must be between 0 and 100.'; errEl.classList.remove('hidden'); return; }
+            try {
+                await apiFetch('/tax-rates/', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        name,
+                        rate,
+                        is_inclusive: document.getElementById('taxIsInclusive').checked,
+                        is_default: document.getElementById('taxIsDefault').checked,
+                        is_active: true,
+                    })
+                });
+                toggleAddTaxForm();
+                await loadTaxRates();
+                showToast('Tax rate added.');
+            } catch(e) {
+                errEl.textContent = e.message;
+                errEl.classList.remove('hidden');
+            }
+        }
+
+        async function setDefaultTaxRate(id) {
+            try {
+                await apiFetch(`/tax-rates/${id}/set-default`, { method: 'POST' });
+                await loadTaxRates();
+                showToast('Default tax rate updated.');
+            } catch(e) {
+                const errEl = document.getElementById('taxError');
+                errEl.textContent = e.message;
+                errEl.classList.remove('hidden');
+            }
+        }
+
+        async function deleteTaxRate(id) {
+            if (!confirm('Delete this tax rate?')) return;
+            try {
+                await apiFetch(`/tax-rates/${id}`, { method: 'DELETE' });
+                await loadTaxRates();
+                showToast('Tax rate deleted.');
+            } catch(e) {
+                const errEl = document.getElementById('taxError');
+                errEl.textContent = e.message;
+                errEl.classList.remove('hidden');
+            }
+        }
+
+        // ── Bootstrap ────────────────────────────────────────────────────────────
+        init();
+    </script>
+
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

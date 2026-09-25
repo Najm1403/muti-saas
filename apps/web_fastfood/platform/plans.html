@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <!--
+        Plans — STORIXX
+        =====================================
+        Manage subscription plans offered to tenants.
+
+        Data sources:
+          GET /api/platform/plans?include_inactive=true  → list[PlanResponse]
+          POST /api/platform/plans/                      → create plan (super-admin)
+          PATCH /api/platform/plans/{id}                 → update plan (super-admin)
+          GET /api/platform/subscriptions?limit=500      → to count tenants per plan
+
+        PlanResponse fields:
+          id, name, description, price_monthly, price_yearly,
+          max_restaurants, max_branches, max_users, max_devices,
+          is_active, created_at, updated_at
+
+        -1 on any max_* field means "unlimited".
+
+        Style: follows web_fastfood/STYLE_GUIDE.md
+    -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Plans - STORIXX</title>
+
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+
+    <style>
+        .rounded-card { border-radius: 10px; }
+        body { overflow: hidden; }
+        .drawer-open   { transform: translateX(0); }
+        .drawer-closed { transform: translateX(100%); }
+    </style>
+</head>
+
+<body class="flex h-screen bg-slate-50 text-slate-900">
+
+
+    <!-- ==================================================================
+         SIDEBAR
+         ================================================================== -->
+    <aside class="w-64 flex-shrink-0 h-screen bg-slate-900 flex flex-col overflow-y-auto">
+
+        <!-- Logo -->
+        <div class="h-16 flex items-center px-5 border-b border-slate-800 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <img src="/assets/logo-mark.png?v=3" alt="STORIXX" class="w-8 h-8 rounded-[6px] flex-shrink-0 object-contain" />
+                <div>
+                    <p class="text-white text-sm font-semibold leading-none">STORIXX</p>
+                    <p class="text-slate-500 text-[11px] leading-none mt-0.5">SaaS Platform</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nav -->
+        <nav class="flex-1 px-3 py-4 space-y-0.5">
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-1 pb-2">Overview</p>
+
+            <a href="/platform/dashboard.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1
+                             0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                <span class="text-sm">Dashboard</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Management</p>
+
+            <a href="/platform/tenants.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1
+                             4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                <span class="text-sm">Tenants</span>
+            </a>
+            <a href="/platform/business-templates.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M20 7h-4V5a3 3 0 00-3-3h-2a3 3 0 00-3 3v2H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM10 5a1 1 0 011-1h2a1 1 0 011 1v2h-4V5z"/>
+                </svg>
+                <span class="text-sm">Business Templates</span>
+            </a>
+            <a href="/platform/config-reference.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s4.332.477 5.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                <span class="text-sm">Config Reference</span>
+            </a>
+
+            <a href="/platform/platform_users.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857
+                             M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002
+                             5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm">Platform Users</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Billing</p>
+
+            <!-- Plans — ACTIVE -->
+            <a href="/platform/plans.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      bg-slate-800 text-white font-medium
+                      border-l-[3px] border-blue-500">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0
+                             002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+                <span class="text-sm">Plans</span>
+            </a>
+
+            <a href="/platform/subscriptions.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                </svg>
+                <span class="text-sm">Subscriptions</span>
+            </a>
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Human Resources</p>
+            <a href="/platform/employees.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm">Employees</span>
+            </a>
+            <a href="/platform/salaries.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="text-sm">Salaries</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">System</p>
+
+            <a href="/platform/activity.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2
+                             2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6
+                             0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                <span class="text-sm">Activity Logs</span>
+            </a>
+
+        </nav>
+
+        <!-- Bottom: logout -->
+        <div class="px-3 py-4 border-t border-slate-800 flex-shrink-0">
+            <button onclick="logout()"
+                    class="w-full flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                           text-slate-400 hover:bg-slate-800 hover:text-red-400
+                           border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+                <span class="text-sm">Logout</span>
+            </button>
+        </div>
+    </aside>
+
+
+    <!-- ==================================================================
+         MAIN COLUMN
+         ================================================================== -->
+    <div class="flex-1 flex flex-col h-screen overflow-hidden">
+
+        <!-- Page header -->
+        <header class="h-16 flex-shrink-0 bg-white border-b border-slate-200
+                        flex items-center justify-between px-6">
+            <div>
+                <h1 class="text-base font-semibold text-slate-900">Plans</h1>
+                <p class="text-xs text-slate-400 mt-0.5">Define features, limits and pricing for your tenants.</p>
+            </div>
+            <button onclick="openDrawer('create')"
+                    class="h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium
+                           rounded-card transition-colors flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                </svg>
+                Create Plan
+            </button>
+        </header>
+
+        <!-- Scrollable content area -->
+        <main class="flex-1 overflow-y-auto px-6 py-5">
+
+            <!-- Toolbar -->
+            <div class="flex items-center gap-3 mb-4">
+                <!-- Search -->
+                <div class="relative flex-1 max-w-xs">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+                         fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+                    </svg>
+                    <input id="searchInput" type="search" placeholder="Search plans…"
+                           oninput="applyFilters()"
+                           class="w-full h-10 pl-9 pr-3 border border-slate-200 rounded-card text-sm
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                </div>
+
+                <!-- Status filter -->
+                <select id="statusFilter" onchange="applyFilters()"
+                        class="h-10 pl-3 pr-8 border border-slate-200 rounded-card
+                               text-sm text-slate-700 bg-white
+                               focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">All Statuses</option>
+                    <option value="active">Active</option>
+                    <option value="archived">Archived</option>
+                </select>
+
+                <span id="planCount" class="text-sm text-slate-400"></span>
+            </div>
+
+            <!-- Plans table -->
+            <div class="bg-white border border-slate-200 rounded-card">
+                <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-200 bg-slate-50">
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Plan</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Monthly</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Yearly</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Limits</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Tenants</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                            <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="plansTableBody">
+                        <tr>
+                            <td colspan="7" class="px-6 py-12 text-center text-sm text-slate-400">
+                                Loading plans…
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div><!-- /overflow-x-auto -->
+            </div>
+
+        </main>
+    </div><!-- /main column -->
+
+
+    <!-- ==================================================================
+         CREATE / EDIT PLAN DRAWER
+         ================================================================== -->
+    <div id="drawerBackdrop"
+         class="hidden fixed inset-0 bg-slate-900/50 z-40 transition-opacity duration-200"
+         onclick="closeDrawer()"></div>
+
+    <div id="planDrawer"
+         class="fixed right-0 top-0 h-full w-full max-w-[520px] bg-white border-l border-slate-200
+                z-50 flex flex-col drawer-closed transition-transform duration-300">
+
+        <!-- Drawer header -->
+        <div class="h-16 flex items-center justify-between px-6 border-b border-slate-200 flex-shrink-0">
+            <h2 id="drawerTitle" class="text-base font-semibold text-slate-900">Create Plan</h2>
+            <button onclick="closeDrawer()"
+                    class="w-9 h-9 flex items-center justify-center rounded-card
+                           text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Error banner -->
+        <div id="drawerError"
+             class="hidden mx-6 mt-4 flex items-start gap-2 px-3 py-2.5
+                    bg-red-50 border border-red-200 rounded-card flex-shrink-0">
+            <svg class="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" clip-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293
+                         1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293
+                         -1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"/>
+            </svg>
+            <p id="drawerErrorText" class="text-[12px] text-red-700"></p>
+        </div>
+
+        <!-- Scrollable form -->
+        <div class="flex-1 overflow-y-auto">
+            <form id="planForm" onsubmit="return false;" class="px-6 py-5 space-y-6">
+
+                <!-- ── BASIC INFORMATION ─────────────────────────────── -->
+                <div>
+                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mb-3">
+                        Basic Information
+                    </p>
+                    <div class="space-y-3">
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                                Plan Name <span class="text-red-500">*</span>
+                            </label>
+                            <input id="f_name" type="text" placeholder="e.g. Professional"
+                                   oninput="autoGenCode()"
+                                   class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                          focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Plan Code</label>
+                            <input id="f_code" type="text" placeholder="PROFESSIONAL" readonly
+                                   class="w-full h-10 px-3 border border-slate-100 rounded-card text-sm
+                                          font-mono text-slate-500 bg-slate-50 cursor-default
+                                          focus:outline-none" />
+                            <p class="mt-1 text-[11px] text-slate-400">Auto-generated from name. Shown to tenants.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Description</label>
+                            <textarea id="f_description" rows="2" placeholder="Short description for tenants…"
+                                      class="w-full px-3 py-2 border border-slate-200 rounded-card text-sm
+                                             resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100"></div>
+
+                <!-- ── STATUS ────────────────────────────────────────── -->
+                <div>
+                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mb-3">Status</p>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-700">Active</p>
+                            <p class="text-[12px] text-slate-400 mt-0.5">Inactive plans are hidden from new tenant sign-ups.</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input id="f_is_active" type="checkbox" checked class="sr-only peer" />
+                            <div class="w-10 h-6 bg-slate-200 rounded-full peer peer-checked:bg-blue-600 transition-colors"></div>
+                            <div class="absolute left-[2px] top-[2px] w-5 h-5 bg-white rounded-full
+                                        shadow transition-transform peer-checked:translate-x-4"></div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100"></div>
+
+                <!-- ── PRICING ────────────────────────────────────────── -->
+                <div>
+                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mb-3">Pricing (PKR)</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                                Monthly Price <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">Rs</span>
+                                <input id="f_price_monthly" type="number" min="1" step="0.01" placeholder="2500.00"
+                                       class="w-full h-10 pl-9 pr-3 border border-slate-200 rounded-card text-sm
+                                              focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="block text-sm font-medium text-slate-700">
+                                    Yearly Price <span class="text-red-500">*</span>
+                                </label>
+                                <label class="flex items-center gap-1 text-[11px] text-slate-500 cursor-pointer select-none">
+                                    <input id="f_yearly_manual" type="checkbox" class="w-3 h-3 accent-blue-600" onchange="setYearlyMode(this.checked)" />
+                                    Set manually
+                                </label>
+                            </div>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">Rs</span>
+                                <input id="f_price_yearly" type="number" min="1" step="0.01" placeholder="25000.00" readonly
+                                       class="w-full h-10 pl-9 pr-3 border border-slate-200 rounded-card text-sm
+                                              read-only:bg-slate-50 read-only:text-slate-500
+                                              focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                            </div>
+                            <p class="mt-1 text-[11px] text-slate-400" id="yearlyHint">Auto: 12 × monthly. The yearly discount below is applied on top of this.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Monthly Discount</label>
+                            <div class="relative">
+                                <input id="f_discount_monthly_pct" type="number" min="0" max="100" step="0.01" value="0"
+                                       class="w-full h-10 pl-3 pr-8 border border-slate-200 rounded-card text-sm
+                                              focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">%</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Yearly Discount</label>
+                            <div class="relative">
+                                <input id="f_discount_yearly_pct" type="number" min="0" max="100" step="0.01" value="0"
+                                       class="w-full h-10 pl-3 pr-8 border border-slate-200 rounded-card text-sm
+                                              focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">%</span>
+                            </div>
+                            <p class="mt-1 text-[11px] text-slate-400">Public discount shown to tenants. Per-tenant overrides live on Subscriptions.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100"></div>
+
+                <!-- ── LIMITS ─────────────────────────────────────────── -->
+                <div>
+                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mb-3">
+                        Resource Limits <span class="ml-1 font-normal normal-case text-slate-300">(−1 = unlimited)</span>
+                    </p>
+                    <div class="space-y-3">
+
+                        <!-- Restaurants -->
+                        <div class="flex items-center gap-4">
+                            <div class="flex-1">
+                                <label class="block text-sm font-medium text-slate-700 mb-1.5">Shops</label>
+                                <input id="f_max_restaurants" type="number" min="-1" value="1"
+                                       class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                              focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            </div>
+                            <label class="flex items-center gap-2 mt-5 cursor-pointer">
+                                <input type="checkbox" onchange="toggleUnlimited('f_max_restaurants', this)"
+                                       class="w-4 h-4 accent-blue-600" />
+                                <span class="text-sm text-slate-600">Unlimited</span>
+                            </label>
+                        </div>
+
+                        <!-- Branches -->
+                        <div class="flex items-center gap-4">
+                            <div class="flex-1">
+                                <label class="block text-sm font-medium text-slate-700 mb-1.5">Branches</label>
+                                <input id="f_max_branches" type="number" min="-1" value="1"
+                                       class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                              focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            </div>
+                            <label class="flex items-center gap-2 mt-5 cursor-pointer">
+                                <input type="checkbox" onchange="toggleUnlimited('f_max_branches', this)"
+                                       class="w-4 h-4 accent-blue-600" />
+                                <span class="text-sm text-slate-600">Unlimited</span>
+                            </label>
+                        </div>
+
+                        <!-- Users -->
+                        <div class="flex items-center gap-4">
+                            <div class="flex-1">
+                                <label class="block text-sm font-medium text-slate-700 mb-1.5">Users</label>
+                                <input id="f_max_users" type="number" min="-1" value="5"
+                                       class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                              focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            </div>
+                            <label class="flex items-center gap-2 mt-5 cursor-pointer">
+                                <input type="checkbox" onchange="toggleUnlimited('f_max_users', this)"
+                                       class="w-4 h-4 accent-blue-600" />
+                                <span class="text-sm text-slate-600">Unlimited</span>
+                            </label>
+                        </div>
+
+                        <!-- Devices -->
+                        <div class="flex items-center gap-4">
+                            <div class="flex-1">
+                                <label class="block text-sm font-medium text-slate-700 mb-1.5">Devices</label>
+                                <input id="f_max_devices" type="number" min="-1" value="2"
+                                       class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                              focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            </div>
+                            <label class="flex items-center gap-2 mt-5 cursor-pointer">
+                                <input type="checkbox" onchange="toggleUnlimited('f_max_devices', this)"
+                                       class="w-4 h-4 accent-blue-600" />
+                                <span class="text-sm text-slate-600">Unlimited</span>
+                            </label>
+                        </div>
+
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- Drawer footer -->
+        <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 flex-shrink-0">
+            <button onclick="closeDrawer()"
+                    class="h-10 px-4 border border-slate-300 bg-white rounded-card cursor-pointer
+                           text-sm text-slate-700 hover:bg-slate-100 transition-colors">
+                Cancel
+            </button>
+            <button id="drawerSubmitBtn" onclick="submitPlan()"
+                    class="h-10 px-5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium
+                           rounded-card transition-colors disabled:opacity-60 disabled:cursor-not-allowed
+                           flex items-center gap-2">
+                <svg id="drawerSpinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                </svg>
+                <span id="drawerSubmitText">Create Plan</span>
+            </button>
+        </div>
+    </div><!-- /planDrawer -->
+
+
+    <!-- ==================================================================
+         VIEW PLAN MODAL (read-only detail)
+         ================================================================== -->
+    <div id="viewModal"
+         class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeViewModal()"></div>
+        <div class="relative bg-white rounded-card shadow-xl w-full max-w-lg z-10 overflow-hidden">
+
+            <!-- Header -->
+            <div class="px-6 py-5 border-b border-slate-200 flex items-center justify-between">
+                <div>
+                    <h3 id="vm_name" class="text-base font-semibold text-slate-900">—</h3>
+                    <p id="vm_code" class="text-xs text-slate-400 font-mono mt-0.5"></p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div id="vm_badge"></div>
+                    <button onclick="closeViewModal()"
+                            class="w-8 h-8 flex items-center justify-center rounded-card
+                                   text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="px-6 py-5 space-y-5">
+
+                <p id="vm_description" class="text-sm text-slate-600 hidden"></p>
+
+                <!-- Pricing -->
+                <div>
+                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mb-2">Pricing</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-slate-50 border border-slate-200 rounded-card px-4 py-3">
+                            <p class="text-[11px] text-slate-400 mb-0.5">Monthly</p>
+                            <p id="vm_monthly" class="text-lg font-semibold text-slate-900"></p>
+                        </div>
+                        <div class="bg-slate-50 border border-slate-200 rounded-card px-4 py-3">
+                            <p class="text-[11px] text-slate-400 mb-0.5">Yearly</p>
+                            <p id="vm_yearly" class="text-lg font-semibold text-slate-900"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Limits -->
+                <div>
+                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mb-2">Resource Limits</p>
+                    <div class="grid grid-cols-2 gap-2 text-sm">
+                        <div class="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-card">
+                            <span class="text-slate-500">Shops</span>
+                            <span id="vm_restaurants" class="font-medium text-slate-800"></span>
+                        </div>
+                        <div class="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-card">
+                            <span class="text-slate-500">Branches</span>
+                            <span id="vm_branches" class="font-medium text-slate-800"></span>
+                        </div>
+                        <div class="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-card">
+                            <span class="text-slate-500">Users</span>
+                            <span id="vm_users" class="font-medium text-slate-800"></span>
+                        </div>
+                        <div class="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-card">
+                            <span class="text-slate-500">Devices</span>
+                            <span id="vm_devices" class="font-medium text-slate-800"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Meta -->
+                <div class="text-xs text-slate-400 flex gap-4 border-t border-slate-100 pt-3">
+                    <span>Created: <span id="vm_created" class="text-slate-600"></span></span>
+                    <span>Updated: <span id="vm_updated" class="text-slate-600"></span></span>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                <button onclick="closeViewModal()"
+                        class="h-9 px-4 border border-slate-300 bg-white rounded-card cursor-pointer
+                               text-sm text-slate-700 hover:bg-slate-100 transition-colors">
+                    Close
+                </button>
+                <button id="vm_editBtn" onclick=""
+                        class="h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm
+                               font-medium rounded-card transition-colors">
+                    Edit Plan
+                </button>
+            </div>
+        </div>
+    </div><!-- /viewModal -->
+
+
+    <!-- ==================================================================
+         CONFIRM MODAL (archive / unarchive)
+         ================================================================== -->
+    <div id="confirmModal"
+         class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeConfirmModal()"></div>
+        <div class="relative bg-white rounded-card shadow-xl w-full max-w-sm z-10">
+            <div class="px-6 py-5">
+                <h3 id="confirmTitle" class="text-base font-semibold text-slate-900 mb-1">Archive Plan</h3>
+                <p id="confirmText" class="text-sm text-slate-500"></p>
+            </div>
+            <div class="px-6 pb-5 flex justify-end gap-3">
+                <button onclick="closeConfirmModal()"
+                        class="h-9 px-4 border border-slate-300 bg-white rounded-card cursor-pointer
+                               text-sm text-slate-700 hover:bg-slate-100 transition-colors">
+                    Cancel
+                </button>
+                <button id="confirmBtn"
+                        class="h-9 px-4 text-white text-sm font-medium rounded-card transition-colors">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div><!-- /confirmModal -->
+
+
+    <!-- ==================================================================
+         FLOATING ACTION MENU  (single shared, position:fixed — never clipped)
+         ================================================================== -->
+    <div id="floatingMenu"
+         class="hidden fixed z-[55] bg-white border border-slate-200 rounded-card shadow-lg py-1 min-w-[160px]">
+    </div>
+
+
+    <!-- ==================================================================
+         TOAST
+         ================================================================== -->
+    <div id="toast"
+         class="hidden fixed bottom-5 right-5 z-[60] flex items-center gap-3 px-4 py-3
+                bg-white border border-slate-200 rounded-card shadow-lg max-w-xs">
+        <span id="toastIcon" class="flex-shrink-0 text-lg"></span>
+        <p id="toastText" class="text-sm text-slate-700"></p>
+    </div>
+
+
+    <!-- ==================================================================
+         SCRIPTS
+         ================================================================== -->
+    <script>
+        // ── Auth guard ────────────────────────────────────────────────────
+
+        const token = localStorage.getItem('platform_token');
+        if (!token) { window.location.href = '/platform/login.html'; }
+
+        function logout() {
+            localStorage.removeItem('platform_token');
+            window.location.href = '/platform/login.html';
+        }
+
+        const API_BASE = '';
+
+        async function apiFetch(path, options = {}) {
+            const res = await fetch(API_BASE + path, {
+                ...options,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type':  'application/json',
+                    ...(options.headers || {}),
+                },
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.detail || `Request failed (${res.status})`);
+            }
+            if (res.status === 204) return null;
+            return res.json();
+        }
+
+
+        // ── State ─────────────────────────────────────────────────────────
+
+        let allPlans        = [];   // PlanResponse[]
+        let tenantCountMap  = {};   // { plan_id: number }
+        let drawerMode      = 'create';  // 'create' | 'edit'
+        let editingPlanId   = null;
+        let openMenuId      = null;
+
+
+        // ── Helpers ───────────────────────────────────────────────────────
+
+        function esc(s) {
+            if (s == null) return '';
+            return String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function fmtPrice(val) {
+            const n = parseFloat(val);
+            return isNaN(n) ? '—' : 'Rs ' + n.toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+
+        function fmtLimit(v) {
+            return v === -1 ? '<span class="text-blue-500 font-medium">∞</span>' : esc(String(v));
+        }
+
+        function netPrice(price, pct) {
+            const p = parseFloat(price), d = parseFloat(pct) || 0;
+            if (isNaN(p)) return null;
+            return p - (p * d / 100);
+        }
+
+        // "Rs 2,500  −10% → Rs 2,250"  (or just the price when no discount)
+        function priceWithDiscount(price, pct) {
+            const d = parseFloat(pct) || 0;
+            if (d <= 0) return fmtPrice(price);
+            return `<span class="line-through text-slate-400">${fmtPrice(price)}</span>
+                    <span class="text-emerald-600 font-medium"> −${d}%</span>
+                    <span class="block text-slate-900 font-semibold">${fmtPrice(netPrice(price, pct))}</span>`;
+        }
+
+        function fmtLimitText(v) {
+            return v === -1 ? 'Unlimited' : String(v);
+        }
+
+        function fmtDate(iso) {
+            if (!iso) return '—';
+            return new Date(iso).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        function badge(classes, label) {
+            return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${classes}">${label}</span>`;
+        }
+
+        function planCode(name) {
+            return name.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 20) || 'PLAN';
+        }
+
+
+        // ── Page init ─────────────────────────────────────────────────────
+
+        async function init() {
+            try {
+                // Load plans + subscriptions in parallel for tenant count
+                const [plans, subs] = await Promise.all([
+                    apiFetch('/api/platform/plans/?include_inactive=true'),
+                    apiFetch('/api/platform/subscriptions/?limit=500').catch(() => []),
+                ]);
+
+                allPlans = Array.isArray(plans) ? plans : [];
+
+                // Build plan_id → tenant count map
+                tenantCountMap = {};
+                if (Array.isArray(subs)) {
+                    subs.forEach(s => {
+                        if (s.plan_id) {
+                            tenantCountMap[s.plan_id] = (tenantCountMap[s.plan_id] || 0) + 1;
+                        }
+                    });
+                }
+
+                renderTable(allPlans);
+            } catch (err) {
+                document.getElementById('plansTableBody').innerHTML = `
+                    <tr><td colspan="7" class="px-6 py-10 text-center text-sm text-red-500">
+                        ${esc(err.message)}
+                    </td></tr>`;
+            }
+        }
+
+
+        // ── Render ────────────────────────────────────────────────────────
+
+        function renderTable(plans) {
+            const tbody = document.getElementById('plansTableBody');
+            document.getElementById('planCount').textContent =
+                plans.length ? `${plans.length} plan${plans.length !== 1 ? 's' : ''}` : '';
+
+            if (!plans.length) {
+                tbody.innerHTML = `
+                    <tr><td colspan="7" class="px-6 py-12 text-center text-sm text-slate-400">
+                        No plans found. Click <strong>Create Plan</strong> to add one.
+                    </td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = plans.map(p => `
+                <tr class="border-t border-slate-100 hover:bg-slate-50 transition-colors">
+
+                    <!-- Plan name + code — click to view -->
+                    <td class="px-6 py-4">
+                        <button onclick="viewPlan('${escapeJSAttribute(p.id)}')"
+                                class="text-sm font-medium text-slate-900 hover:text-blue-600 transition-colors text-left cursor-pointer underline-offset-2 hover:underline">
+                            ${esc(p.name)}
+                        </button>
+                        <p class="text-xs text-slate-400 font-mono mt-0.5">${planCode(p.name)}</p>
+                        ${p.description ? `<p class="text-xs text-slate-400 mt-0.5 max-w-[200px] truncate">${esc(p.description)}</p>` : ''}
+                    </td>
+
+                    <!-- Monthly price -->
+                    <td class="px-6 py-4 text-sm font-semibold text-slate-800">
+                        ${priceWithDiscount(p.price_monthly, p.discount_monthly_pct)}
+                        <span class="font-normal text-xs text-slate-400">/mo</span>
+                    </td>
+
+                    <!-- Yearly price -->
+                    <td class="px-6 py-4 text-sm text-slate-600">
+                        ${priceWithDiscount(p.price_yearly, p.discount_yearly_pct)}
+                        <span class="text-xs text-slate-400">/yr</span>
+                    </td>
+
+                    <!-- Limits chip row -->
+                    <td class="px-6 py-4">
+                        <div class="flex flex-wrap gap-1">
+                            <span class="px-1.5 py-0.5 bg-slate-100 rounded text-[11px] text-slate-600">
+                                ${fmtLimitText(p.max_branches)} br
+                            </span>
+                            <span class="px-1.5 py-0.5 bg-slate-100 rounded text-[11px] text-slate-600">
+                                ${fmtLimitText(p.max_users)} usr
+                            </span>
+                            <span class="px-1.5 py-0.5 bg-slate-100 rounded text-[11px] text-slate-600">
+                                ${fmtLimitText(p.max_devices)} dev
+                            </span>
+                        </div>
+                    </td>
+
+                    <!-- Tenant count -->
+                    <td class="px-6 py-4 text-sm text-slate-700">
+                        ${tenantCountMap[p.id] ?? 0}
+                    </td>
+
+                    <!-- Status -->
+                    <td class="px-6 py-4">
+                        ${p.is_active
+                            ? badge('bg-green-100 text-green-700', 'Active')
+                            : badge('bg-slate-100 text-slate-500', 'Archived')}
+                    </td>
+
+                    <!-- Actions -->
+                    <td class="px-4 py-4 text-right">
+                        <button onclick="toggleMenu('${escapeJSAttribute(p.id)}', event)"
+                                class="w-8 h-8 flex items-center justify-center rounded-card cursor-pointer
+                                       text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors ml-auto">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                            </svg>
+                        </button>
+                    </td>
+
+                </tr>`).join('');
+        }
+
+
+        // ── Filters ───────────────────────────────────────────────────────
+
+        function applyFilters() {
+            const q      = document.getElementById('searchInput').value.trim().toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+
+            const filtered = allPlans.filter(p => {
+                if (q) {
+                    const hay = [p.name, p.description].filter(Boolean).join(' ').toLowerCase();
+                    if (!hay.includes(q)) return false;
+                }
+                if (status === 'active'   && !p.is_active) return false;
+                if (status === 'archived' &&  p.is_active) return false;
+                return true;
+            });
+
+            renderTable(filtered);
+        }
+
+
+        // ── Actions dropdown (single floating menu, position:fixed) ──────
+
+        function toggleMenu(planId, event) {
+            event.stopPropagation();
+
+            const menu = document.getElementById('floatingMenu');
+
+            // Close if already open for this plan
+            if (openMenuId === planId) { closeMenu(); return; }
+
+            openMenuId = planId;
+            const p = allPlans.find(x => x.id === planId);
+            if (!p) return;
+
+            // Build menu contents
+            const archiveBtn = p.is_active
+                ? `<button onclick="closeMenu(); confirmArchive('${escapeJSAttribute(p.id)}', '${escapeJSAttribute(p.name)}')"
+                           class="w-full text-left px-4 py-2 text-sm text-amber-600 cursor-pointer
+                                  hover:bg-amber-100 hover:text-amber-800 transition-colors flex items-center gap-2">
+                       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                           <path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8l1 12a2 2 0 002 2h8a2 2 0 002-2l1-12"/>
+                       </svg>Archive
+                   </button>`
+                : `<button onclick="closeMenu(); confirmUnarchive('${escapeJSAttribute(p.id)}', '${escapeJSAttribute(p.name)}')"
+                           class="w-full text-left px-4 py-2 text-sm text-blue-600 cursor-pointer
+                                  hover:bg-blue-100 hover:text-blue-800 transition-colors flex items-center gap-2">
+                       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                           <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                       </svg>Unarchive
+                   </button>`;
+
+            menu.innerHTML = `
+                <button onclick="closeMenu(); openDrawer('edit', '${escapeJSAttribute(p.id)}')"
+                        class="w-full text-left px-4 py-2 text-sm text-slate-700 cursor-pointer
+                               hover:bg-slate-100 hover:text-slate-900 transition-colors flex items-center gap-2">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>Edit
+                </button>
+                <div class="border-t border-slate-100 my-1"></div>
+                ${archiveBtn}`;
+
+            // Position below the trigger button
+            const btn  = event.currentTarget;
+            const rect = btn.getBoundingClientRect();
+            menu.style.top  = `${rect.bottom + 4}px`;
+            menu.style.left = `${rect.right - 160}px`;  // align right edge
+            menu.classList.remove('hidden');
+        }
+
+        function closeMenu() {
+            document.getElementById('floatingMenu').classList.add('hidden');
+            openMenuId = null;
+        }
+
+        document.addEventListener('click', closeMenu);
+
+
+        // ── View modal ────────────────────────────────────────────────────
+
+        function viewPlan(planId) {
+            closeMenu();
+            const p = allPlans.find(x => x.id === planId);
+            if (!p) return;
+
+            document.getElementById('vm_name').textContent   = p.name;
+            document.getElementById('vm_code').textContent   = planCode(p.name);
+            document.getElementById('vm_monthly').innerHTML = priceWithDiscount(p.price_monthly, p.discount_monthly_pct);
+            document.getElementById('vm_yearly').innerHTML  = priceWithDiscount(p.price_yearly, p.discount_yearly_pct);
+            document.getElementById('vm_restaurants').innerHTML = fmtLimit(p.max_restaurants);
+            document.getElementById('vm_branches').innerHTML    = fmtLimit(p.max_branches);
+            document.getElementById('vm_users').innerHTML       = fmtLimit(p.max_users);
+            document.getElementById('vm_devices').innerHTML     = fmtLimit(p.max_devices);
+            document.getElementById('vm_created').textContent  = fmtDate(p.created_at);
+            document.getElementById('vm_updated').textContent  = fmtDate(p.updated_at);
+
+            const descEl = document.getElementById('vm_description');
+            if (p.description) {
+                descEl.textContent = p.description;
+                descEl.classList.remove('hidden');
+            } else {
+                descEl.classList.add('hidden');
+            }
+
+            document.getElementById('vm_badge').innerHTML = p.is_active
+                ? badge('bg-green-100 text-green-700', 'Active')
+                : badge('bg-slate-100 text-slate-500', 'Archived');
+
+            document.getElementById('vm_editBtn').onclick = () => {
+                closeViewModal();
+                openDrawer('edit', planId);
+            };
+
+            document.getElementById('viewModal').classList.remove('hidden');
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.add('hidden');
+        }
+
+
+        // ── Create / Edit drawer ──────────────────────────────────────────
+
+        function autoGenCode() {
+            const name = document.getElementById('f_name').value;
+            document.getElementById('f_code').value = planCode(name);
+        }
+
+        function toggleUnlimited(fieldId, checkbox) {
+            const input = document.getElementById(fieldId);
+            if (checkbox.checked) {
+                input.value    = '-1';
+                input.disabled = true;
+                input.classList.add('bg-slate-50', 'text-slate-400');
+            } else {
+                input.value    = input.value === '-1' ? '1' : input.value;
+                input.disabled = false;
+                input.classList.remove('bg-slate-50', 'text-slate-400');
+            }
+        }
+
+        function syncUnlimitedCheckboxes(p) {
+            // Called when populating the form for edit mode
+            const fields = ['max_restaurants', 'max_branches', 'max_users', 'max_devices'];
+            fields.forEach(field => {
+                const input    = document.getElementById(`f_${field}`);
+                const checkbox = input.closest('.flex').querySelector('input[type="checkbox"]');
+                if (p[field] === -1) {
+                    checkbox.checked = true;
+                    input.disabled   = true;
+                    input.classList.add('bg-slate-50', 'text-slate-400');
+                } else {
+                    checkbox.checked = false;
+                    input.disabled   = false;
+                    input.classList.remove('bg-slate-50', 'text-slate-400');
+                }
+                input.value = p[field];
+            });
+        }
+
+        // ── Yearly sticker price = 12 × monthly (unless set manually) ──────────
+        //    The "Yearly Discount" % below is applied on top of this by the
+        //    billing engine (compute_billing) and by the price display — it is
+        //    NOT baked in here, so there is never a double discount.
+        let yearlyManual = false;
+
+        function recalcYearly() {
+            if (yearlyManual) return;
+            const m = parseFloat(document.getElementById('f_price_monthly').value);
+            const out = document.getElementById('f_price_yearly');
+            out.value = (isNaN(m) || m <= 0) ? '' : (m * 12).toFixed(2);
+        }
+
+        function setYearlyMode(manual) {
+            yearlyManual = !!manual;
+            const out = document.getElementById('f_price_yearly');
+            document.getElementById('f_yearly_manual').checked = yearlyManual;
+            out.readOnly = !yearlyManual;
+            document.getElementById('yearlyHint').textContent = yearlyManual
+                ? 'Manual — enter the full 12-month sticker price. The yearly discount below still applies on top.'
+                : 'Auto: 12 × monthly. The yearly discount below is applied on top of this.';
+            if (!yearlyManual) recalcYearly();
+        }
+
+        (function wireYearlyAuto() {
+            const rebind = () => {
+                document.getElementById('f_price_monthly').addEventListener('input', recalcYearly);
+            };
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', rebind);
+            else rebind();
+        })();
+
+        function openDrawer(mode, planId = null) {
+            closeMenu();
+            drawerMode    = mode;
+            editingPlanId = planId;
+
+            document.getElementById('drawerError').classList.add('hidden');
+
+            if (mode === 'create') {
+                document.getElementById('drawerTitle').textContent     = 'Create Plan';
+                document.getElementById('drawerSubmitText').textContent = 'Create Plan';
+                document.getElementById('planForm').reset();
+                document.getElementById('f_code').value    = '';
+                document.getElementById('f_is_active').checked = true;
+                // Reset unlimited checkboxes
+                ['max_restaurants','max_branches','max_users','max_devices'].forEach(field => {
+                    const input    = document.getElementById(`f_${field}`);
+                    const checkbox = input.closest('.flex').querySelector('input[type="checkbox"]');
+                    checkbox.checked = false;
+                    input.disabled   = false;
+                    input.classList.remove('bg-slate-50','text-slate-400');
+                });
+                document.getElementById('f_max_restaurants').value = '1';
+                document.getElementById('f_max_branches').value    = '1';
+                document.getElementById('f_max_users').value       = '5';
+                document.getElementById('f_max_devices').value     = '2';
+                document.getElementById('f_discount_monthly_pct').value = '0';
+                document.getElementById('f_discount_yearly_pct').value  = '0';
+                setYearlyMode(false);   // new plans: yearly auto-derives from monthly
+
+            } else {
+                const p = allPlans.find(x => x.id === planId);
+                if (!p) return;
+                document.getElementById('drawerTitle').textContent      = 'Edit Plan';
+                document.getElementById('drawerSubmitText').textContent = 'Save Changes';
+                document.getElementById('f_name').value        = p.name;
+                document.getElementById('f_code').value        = planCode(p.name);
+                document.getElementById('f_description').value = p.description ?? '';
+                document.getElementById('f_is_active').checked = p.is_active;
+                document.getElementById('f_price_monthly').value = parseFloat(p.price_monthly).toFixed(2);
+                document.getElementById('f_price_yearly').value  = parseFloat(p.price_yearly).toFixed(2);
+                document.getElementById('f_discount_monthly_pct').value = parseFloat(p.discount_monthly_pct ?? 0);
+                document.getElementById('f_discount_yearly_pct').value  = parseFloat(p.discount_yearly_pct ?? 0);
+                // If the stored yearly price is exactly 12 × monthly, keep it on
+                // auto; otherwise treat it as a manual sticker override.
+                {
+                    const m = parseFloat(p.price_monthly) || 0;
+                    setYearlyMode(Math.abs(m * 12 - (parseFloat(p.price_yearly) || 0)) > 0.5);
+                }
+                syncUnlimitedCheckboxes(p);
+            }
+
+            document.getElementById('planDrawer').classList.replace('drawer-closed', 'drawer-open');
+            document.getElementById('drawerBackdrop').classList.remove('hidden');
+            document.getElementById('f_name').focus();
+        }
+
+        function closeDrawer() {
+            document.getElementById('planDrawer').classList.replace('drawer-open', 'drawer-closed');
+            document.getElementById('drawerBackdrop').classList.add('hidden');
+        }
+
+        async function submitPlan() {
+            const btn     = document.getElementById('drawerSubmitBtn');
+            const spinner = document.getElementById('drawerSpinner');
+            const btnText = document.getElementById('drawerSubmitText');
+            const errDiv  = document.getElementById('drawerError');
+            const errText = document.getElementById('drawerErrorText');
+
+            const name          = document.getElementById('f_name').value.trim();
+            const description   = document.getElementById('f_description').value.trim() || null;
+            const is_active     = document.getElementById('f_is_active').checked;
+            const price_monthly = parseFloat(document.getElementById('f_price_monthly').value);
+            const price_yearly  = parseFloat(document.getElementById('f_price_yearly').value);
+            const discount_monthly_pct = parseFloat(document.getElementById('f_discount_monthly_pct').value) || 0;
+            const discount_yearly_pct  = parseFloat(document.getElementById('f_discount_yearly_pct').value) || 0;
+            const max_restaurants = parseInt(document.getElementById('f_max_restaurants').value, 10);
+            const max_branches    = parseInt(document.getElementById('f_max_branches').value, 10);
+            const max_users       = parseInt(document.getElementById('f_max_users').value, 10);
+            const max_devices     = parseInt(document.getElementById('f_max_devices').value, 10);
+
+            // Validation
+            if (!name || name.length < 2) {
+                errText.textContent = 'Plan name must be at least 2 characters.';
+                errDiv.classList.remove('hidden');
+                return;
+            }
+            if (isNaN(price_monthly) || price_monthly <= 0) {
+                errText.textContent = 'Monthly price must be greater than 0.';
+                errDiv.classList.remove('hidden');
+                return;
+            }
+            if (isNaN(price_yearly) || price_yearly <= 0) {
+                errText.textContent = 'Yearly price must be greater than 0.';
+                errDiv.classList.remove('hidden');
+                return;
+            }
+            if (discount_monthly_pct < 0 || discount_monthly_pct > 100 ||
+                discount_yearly_pct  < 0 || discount_yearly_pct  > 100) {
+                errText.textContent = 'Discounts must be between 0 and 100%.';
+                errDiv.classList.remove('hidden');
+                return;
+            }
+
+            errDiv.classList.add('hidden');
+            btn.disabled        = true;
+            spinner.classList.remove('hidden');
+            btnText.textContent = drawerMode === 'create' ? 'Creating…' : 'Saving…';
+
+            const payload = {
+                name, description, is_active,
+                price_monthly, price_yearly,
+                discount_monthly_pct, discount_yearly_pct,
+                max_restaurants, max_branches, max_users, max_devices,
+            };
+
+            try {
+                let result;
+                if (drawerMode === 'create') {
+                    result = await apiFetch('/api/platform/plans/', {
+                        method: 'POST',
+                        body: JSON.stringify(payload),
+                    });
+                    allPlans.unshift(result);
+                    showToast('success', `Plan "${result.name}" created.`);
+                } else {
+                    result = await apiFetch(`/api/platform/plans/${editingPlanId}`, {
+                        method: 'PATCH',
+                        body: JSON.stringify(payload),
+                    });
+                    const idx = allPlans.findIndex(p => p.id === editingPlanId);
+                    if (idx !== -1) allPlans[idx] = result;
+                    showToast('success', `Plan "${result.name}" updated.`);
+                }
+
+                closeDrawer();
+                applyFilters();
+
+            } catch (err) {
+                errText.textContent = err.message;
+                errDiv.classList.remove('hidden');
+            } finally {
+                btn.disabled        = false;
+                spinner.classList.add('hidden');
+                btnText.textContent = drawerMode === 'create' ? 'Create Plan' : 'Save Changes';
+            }
+        }
+
+
+        // ── Archive / Unarchive ───────────────────────────────────────────
+
+        function confirmArchive(planId, planName) {
+            closeMenu();
+            const count = tenantCountMap[planId] ?? 0;
+            document.getElementById('confirmTitle').textContent = 'Archive Plan';
+            document.getElementById('confirmText').textContent  =
+                `Archive "${planName}"? It will be hidden from new tenant sign-ups.`
+                + (count > 0 ? ` ${count} existing subscription${count !== 1 ? 's' : ''} will continue unaffected.` : '');
+            const btn = document.getElementById('confirmBtn');
+            btn.className = 'h-9 px-4 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-card transition-colors';
+            btn.textContent = 'Archive';
+            btn.onclick = () => setPlanActive(planId, false);
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+
+        function confirmUnarchive(planId, planName) {
+            closeMenu();
+            document.getElementById('confirmTitle').textContent = 'Unarchive Plan';
+            document.getElementById('confirmText').textContent  =
+                `Restore "${planName}" to active status? Tenants will be able to subscribe again.`;
+            const btn = document.getElementById('confirmBtn');
+            btn.className = 'h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-card transition-colors';
+            btn.textContent = 'Unarchive';
+            btn.onclick = () => setPlanActive(planId, true);
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+
+        async function setPlanActive(planId, isActive) {
+            closeConfirmModal();
+            try {
+                const result = await apiFetch(`/api/platform/plans/${planId}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ is_active: isActive }),
+                });
+                const idx = allPlans.findIndex(p => p.id === planId);
+                if (idx !== -1) allPlans[idx] = result;
+                applyFilters();
+                showToast('success', isActive ? `Plan "${result.name}" unarchived.` : `Plan "${result.name}" archived.`);
+            } catch (err) {
+                showToast('error', err.message);
+            }
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.add('hidden');
+        }
+
+
+        // ── Utility ───────────────────────────────────────────────────────
+
+        let toastTimer = null;
+
+        function showToast(type, message) {
+            const toast = document.getElementById('toast');
+            const icon  = document.getElementById('toastIcon');
+            const text  = document.getElementById('toastText');
+
+            const icons = { success: '✓', error: '✕', info: 'ℹ' };
+            const colors = {
+                success: 'border-green-200 bg-green-50',
+                error:   'border-red-200 bg-red-50',
+                info:    'border-blue-200 bg-blue-50',
+            };
+            const textColors = { success: 'text-green-800', error: 'text-red-800', info: 'text-blue-800' };
+
+            toast.className = `fixed bottom-5 right-5 z-[60] flex items-center gap-3 px-4 py-3
+                               border rounded-card shadow-lg max-w-xs ${colors[type] || colors.info}`;
+            icon.className  = `flex-shrink-0 text-sm font-bold ${textColors[type] || ''}`;
+            icon.textContent  = icons[type] || 'ℹ';
+            text.className    = `text-sm ${textColors[type] || ''}`;
+            text.textContent  = message;
+
+            toast.classList.remove('hidden');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toast.classList.add('hidden'), 4000);
+        }
+
+
+        // ── Boot ──────────────────────────────────────────────────────────
+
+        init();
+
+    </script>
+
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Salaries - STORIXX</title>
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+    <style>
+        .rounded-card { border-radius: 10px; }
+        @media print {
+            aside, header, .rnav-bar, #filterBar, .no-print { display: none !important; }
+            .flex-1, main { overflow: visible !important; }
+            body { background: #fff; height: auto; overflow: visible; }
+            #printHead { display: block !important; }
+            table { font-size: 11px; }
+        }
+        #printHead { display: none; }
+    </style>
+</head>
+<body class="flex h-screen bg-slate-50 text-slate-900">
+
+    <aside class="w-64 flex-shrink-0 h-screen bg-slate-900 flex flex-col overflow-y-auto">
+        <div class="h-16 flex items-center px-5 border-b border-slate-800 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <img src="/assets/logo-mark.png?v=3" alt="STORIXX" class="w-8 h-8 rounded-[6px] flex-shrink-0 object-contain" />
+                <div>
+                    <p class="text-white text-sm font-semibold leading-none">STORIXX</p>
+                    <p class="text-slate-500 text-[11px] leading-none mt-0.5">SaaS Platform</p>
+                </div>
+            </div>
+        </div>
+        <nav class="flex-1 px-3 py-4 space-y-0.5" id="sidebarNav"></nav>
+        <div class="px-3 py-4 border-t border-slate-800 flex-shrink-0">
+            <button onclick="logout()" class="w-full flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card text-slate-400 hover:bg-slate-800 hover:text-red-400 border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                <span class="text-sm">Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col h-screen overflow-hidden">
+        <header class="h-16 flex-shrink-0 bg-white border-b border-slate-200 flex items-center justify-between px-6">
+            <div>
+                <h1 class="text-base font-semibold text-slate-900">Salaries</h1>
+                <p class="text-xs text-slate-400 mt-0.5">Monthly payroll for platform staff — track paid vs pending.</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="exportCsv()" class="h-9 px-3 border border-slate-300 bg-white rounded-card text-sm text-slate-700 hover:bg-slate-100">CSV</button>
+                <button onclick="window.print()" class="h-9 px-3 border border-slate-300 bg-white rounded-card text-sm text-slate-700 hover:bg-slate-100">Print / PDF</button>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto px-6 py-5">
+            <div id="printHead" class="mb-4">
+                <h2 class="text-lg font-bold" id="printTitle">Payroll Register</h2>
+                <p class="text-xs text-slate-500" id="printMeta"></p>
+            </div>
+
+            <div id="errorBanner" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-card p-4 mb-5 text-sm"></div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+                <div class="bg-white border border-slate-200 rounded-card p-4"><p class="text-xs text-slate-400 uppercase tracking-wide">Paid (month)</p><p class="text-xl font-semibold text-green-600 mt-1" id="kpiPaid">—</p></div>
+                <div class="bg-white border border-slate-200 rounded-card p-4"><p class="text-xs text-slate-400 uppercase tracking-wide">Pending (month)</p><p class="text-xl font-semibold text-amber-600 mt-1" id="kpiPending">—</p></div>
+                <div class="bg-white border border-slate-200 rounded-card p-4"><p class="text-xs text-slate-400 uppercase tracking-wide">Unpaid staff</p><p class="text-xl font-semibold text-red-600 mt-1" id="kpiUnpaid">—</p></div>
+                <div class="bg-white border border-slate-200 rounded-card p-4"><p class="text-xs text-slate-400 uppercase tracking-wide">Coverage</p><p class="text-xl font-semibold mt-1" id="kpiCoverage">—</p></div>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-card p-5 mb-5">
+                <p class="text-sm font-semibold text-slate-900 mb-2">Net paid — last 6 months</p>
+                <div id="monthBars" class="flex items-end gap-2 h-24"></div>
+            </div>
+
+            <div class="flex flex-wrap items-end gap-3 mb-4" id="filterBar">
+                <div><label class="block text-xs font-medium text-slate-500 mb-1">Month</label>
+                    <select id="fMonth" class="h-9 px-3 border border-slate-200 rounded-card text-sm bg-white"></select></div>
+                <div><label class="block text-xs font-medium text-slate-500 mb-1">Year</label>
+                    <input id="fYear" type="number" class="h-9 px-3 border border-slate-200 rounded-card text-sm w-24" /></div>
+                <div><label class="block text-xs font-medium text-slate-500 mb-1">Show</label>
+                    <select id="fStatus" class="h-9 px-3 border border-slate-200 rounded-card text-sm bg-white">
+                        <option value="">All staff</option><option value="paid">Paid only</option><option value="pending">Pending only</option><option value="unpaid">Unpaid only</option>
+                    </select></div>
+                <div><label class="block text-xs font-medium text-slate-500 mb-1">Search</label>
+                    <input id="fQ" type="search" placeholder="name / no." class="h-9 px-3 border border-slate-200 rounded-card text-sm" /></div>
+                <span id="rangeLabel" class="ml-auto text-sm text-slate-400"></span>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-card">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-slate-200 bg-slate-50">
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">No.</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Employee</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Department</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Base</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Bonus</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Deduct</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Net</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Paid on</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase no-print">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rows"></tbody>
+                        <tfoot class="bg-slate-50 border-t border-slate-200 font-semibold text-slate-800">
+                            <tr>
+                                <td class="px-4 py-3" colspan="6">Totals</td>
+                                <td class="px-4 py-3 text-right" id="tfNet">—</td>
+                                <td class="px-4 py-3" colspan="3" id="tfMeta"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <div id="empty" class="hidden p-10 text-center text-sm text-slate-400">No matching rows.</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="payModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closePay()"></div>
+        <div class="relative bg-white rounded-card shadow-xl w-full max-w-md z-10">
+            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                <h3 class="text-base font-semibold" id="payTitle">Record salary payment</h3>
+                <button onclick="closePay()" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            </div>
+            <div class="px-6 py-5 space-y-3">
+                <p class="text-sm text-slate-500" id="payWho">—</p>
+                <div class="grid grid-cols-3 gap-3">
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Base *</label>
+                        <input id="p_gross" type="number" min="0" step="0.01" class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm" /></div>
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Bonus</label>
+                        <input id="p_bonus" type="number" min="0" step="0.01" value="0" class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm" /></div>
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Deduction</label>
+                        <input id="p_deduct" type="number" min="0" step="0.01" value="0" class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm" /></div>
+                </div>
+                <p class="text-sm text-slate-600">Net: <span class="font-semibold text-slate-900" id="p_net">—</span></p>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Status</label>
+                        <select id="p_status" class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm bg-white">
+                            <option value="paid">Paid</option><option value="pending">Pending</option>
+                        </select></div>
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Payment date</label>
+                        <input id="p_date" type="date" class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm" /></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Method</label>
+                        <select id="p_method" class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm bg-white">
+                            <option>Bank</option><option>Cash</option><option>Cheque</option><option>Mobile</option><option>Other</option>
+                        </select></div>
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Reference</label>
+                        <input id="p_ref" type="text" class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm" /></div>
+                </div>
+                <div><label class="block text-xs font-medium text-slate-600 mb-1">Note</label>
+                    <textarea id="p_note" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-card text-sm"></textarea></div>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-100 flex justify-between gap-3">
+                <button id="payDelete" onclick="deletePay()" class="h-10 px-4 border border-red-200 text-red-600 rounded-card text-sm hover:bg-red-50 hidden">Delete row</button>
+                <div class="flex gap-3 ml-auto">
+                    <button onclick="closePay()" class="h-10 px-4 border border-slate-200 rounded-card text-sm text-slate-700 hover:bg-slate-50">Cancel</button>
+                    <button id="paySave" onclick="savePay()" class="h-10 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-card">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-[60] space-y-2"></div>
+
+    <script src="/platform/hr-common.js"></script>
+    <script>
+        renderPlatformSidebarNav('salaries');
+        const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        let register = null, summary = null, curRow = null, IS_SUPER = false, CAN_WRITE = true;
+
+        function selMonth() { return Number(document.getElementById('fMonth').value); }
+        function selYear() { return Number(document.getElementById('fYear').value); }
+        function initPeriodPicker() {
+            const now = new Date();
+            document.getElementById('fMonth').innerHTML = MONTHS.map((m, i) => `<option value="${i + 1}">${m}</option>`).join('');
+            document.getElementById('fMonth').value = now.getMonth() + 1;
+            document.getElementById('fYear').value = now.getFullYear();
+        }
+
+        async function loadAll() {
+            const m = selMonth(), y = selYear();
+            const [reg, sum, me] = await Promise.all([
+                apiFetch(`/api/platform/salaries/register?month=${m}&year=${y}`),
+                apiFetch('/api/platform/salaries/summary'),
+                apiFetch('/api/platform/auth/me').catch(() => ({})),
+            ]);
+            register = reg; summary = sum; IS_SUPER = !!me.is_super;
+            CAN_WRITE = (me.role || (me.is_super ? 'owner' : 'manager')) !== 'viewer';
+            renderKpis(); renderMonthBars(); renderTable();
+            document.getElementById('rangeLabel').textContent = `${reg.period} · ${reg.headcount} staff`;
+            document.getElementById('printTitle').textContent = `Payroll Register — ${MONTHS[m - 1]} ${y}`;
+            document.getElementById('printMeta').textContent = `Generated ${new Date().toLocaleString()}`;
+        }
+        function renderKpis() {
+            document.getElementById('kpiPaid').textContent = money(register.net_paid_total);
+            document.getElementById('kpiPending').textContent = money(register.net_pending_total);
+            document.getElementById('kpiUnpaid').textContent = register.unpaid_count;
+            const cov = register.headcount ? Math.round(register.paid_count / register.headcount * 100) : 0;
+            document.getElementById('kpiCoverage').textContent = `${cov}% (${register.paid_count}/${register.headcount})`;
+        }
+        function renderMonthBars() {
+            const months = summary.by_month || [];
+            const max = Math.max(1, ...months.map(m => Number(m.net_paid)));
+            document.getElementById('monthBars').innerHTML = months.length ? months.map(m => {
+                const h = Math.max(4, Math.round(Number(m.net_paid) / max * 90));
+                return `<div class="flex-1 flex flex-col items-center justify-end gap-1">
+                    <div class="w-full bg-blue-400 rounded-t" style="height:${h}px" title="${money(m.net_paid)}"></div>
+                    <span class="text-[10px] text-slate-400">${m.period.slice(2)}</span></div>`;
+            }).join('') : '<p class="text-sm text-slate-400">No data.</p>';
+        }
+        function statusPill(s) {
+            const m = { paid: 'bg-green-50 text-green-700', pending: 'bg-amber-50 text-amber-700', unpaid: 'bg-red-50 text-red-600' };
+            return `<span class="px-2 py-0.5 rounded-full text-xs font-medium ${m[s] || 'bg-slate-100 text-slate-600'}">${esc(s)}</span>`;
+        }
+        function visibleRows() {
+            const want = document.getElementById('fStatus').value;
+            const q = document.getElementById('fQ').value.trim().toLowerCase();
+            return (register.rows || []).filter(r => {
+                if (want && r.status !== want) return false;
+                if (q && !(`${r.employee_no} ${r.full_name}`.toLowerCase().includes(q))) return false;
+                return true;
+            });
+        }
+        function renderTable() {
+            const tb = document.getElementById('rows'), empty = document.getElementById('empty');
+            const rows = visibleRows();
+            if (!rows.length) { tb.innerHTML = ''; empty.classList.remove('hidden'); }
+            else {
+                empty.classList.add('hidden');
+                tb.innerHTML = rows.map(r => `
+                    <tr class="border-b border-slate-100 hover:bg-slate-50">
+                        <td class="px-4 py-3 font-mono text-xs text-slate-500 whitespace-nowrap">${esc(r.employee_no)}</td>
+                        <td class="px-4 py-3 font-medium text-slate-900">${esc(r.full_name)}</td>
+                        <td class="px-4 py-3 text-slate-600">${esc(r.department || '—')}</td>
+                        <td class="px-4 py-3 text-right text-slate-600 whitespace-nowrap">${money(r.gross_amount != null ? r.gross_amount : r.monthly_salary)}</td>
+                        <td class="px-4 py-3 text-right text-slate-600 whitespace-nowrap">${r.bonus != null ? money(r.bonus) : '—'}</td>
+                        <td class="px-4 py-3 text-right text-slate-600 whitespace-nowrap">${r.deductions != null ? money(r.deductions) : '—'}</td>
+                        <td class="px-4 py-3 text-right font-medium text-slate-900 whitespace-nowrap">${r.net_amount != null ? money(r.net_amount) : '—'}</td>
+                        <td class="px-4 py-3">${statusPill(r.status)}</td>
+                        <td class="px-4 py-3 text-slate-500 whitespace-nowrap">${esc(r.payment_date || '—')}</td>
+                        <td class="px-4 py-3 text-right whitespace-nowrap no-print">${CAN_WRITE ? `
+                            <button onclick='openPay(${JSON.stringify(r.employee_id)})' class="text-xs font-medium ${r.status === 'unpaid' ? 'text-blue-600 hover:text-blue-800' : 'text-slate-500 hover:text-slate-700'}">${r.status === 'unpaid' ? 'Record' : 'Edit'}</button>` : '<span class="text-slate-300 text-xs">—</span>'}</td>
+                    </tr>`).join('');
+            }
+            document.getElementById('tfNet').textContent = money(rows.reduce((s, r) => s + Number(r.net_amount || 0), 0));
+            document.getElementById('tfMeta').textContent =
+                `${rows.filter(r => r.status === 'paid').length} paid · ${rows.filter(r => r.status === 'pending').length} pending · ${rows.filter(r => r.status === 'unpaid').length} unpaid`;
+        }
+
+        function recalcNet() {
+            const n = Number(document.getElementById('p_gross').value || 0) + Number(document.getElementById('p_bonus').value || 0) - Number(document.getElementById('p_deduct').value || 0);
+            document.getElementById('p_net').textContent = money(n);
+        }
+        document.addEventListener('input', e => { if (['p_gross', 'p_bonus', 'p_deduct'].includes(e.target.id)) recalcNet(); });
+
+        function openPay(empId) {
+            const r = (register.rows || []).find(x => x.employee_id === empId); if (!r) return;
+            curRow = r;
+            document.getElementById('payTitle').textContent = r.status === 'unpaid' ? 'Record salary payment' : 'Edit salary payment';
+            document.getElementById('payWho').textContent = `${r.employee_no} · ${r.full_name} — ${register.period}`;
+            document.getElementById('p_gross').value = r.gross_amount != null ? r.gross_amount : r.monthly_salary;
+            document.getElementById('p_bonus').value = r.bonus != null ? r.bonus : 0;
+            document.getElementById('p_deduct').value = r.deductions != null ? r.deductions : 0;
+            document.getElementById('p_status').value = r.status === 'unpaid' ? 'paid' : r.status;
+            document.getElementById('p_date').value = r.payment_date || new Date().toISOString().slice(0, 10);
+            document.getElementById('p_method').value = r.payment_method || 'Bank';
+            document.getElementById('p_ref').value = '';
+            document.getElementById('p_note').value = '';
+            document.getElementById('payDelete').classList.toggle('hidden', !(r.payment_id && IS_SUPER));
+            recalcNet();
+            document.getElementById('payModal').classList.remove('hidden');
+        }
+        function closePay() { document.getElementById('payModal').classList.add('hidden'); curRow = null; }
+
+        async function savePay() {
+            const btn = document.getElementById('paySave'); btn.disabled = true;
+            const body = {
+                gross_amount: document.getElementById('p_gross').value || '0',
+                bonus: document.getElementById('p_bonus').value || '0',
+                deductions: document.getElementById('p_deduct').value || '0',
+                status: document.getElementById('p_status').value,
+                payment_date: document.getElementById('p_date').value || null,
+                payment_method: document.getElementById('p_method').value,
+                reference: document.getElementById('p_ref').value.trim() || null,
+                note: document.getElementById('p_note').value.trim() || null,
+            };
+            try {
+                if (curRow.payment_id) {
+                    await apiFetch(`/api/platform/salaries/${curRow.payment_id}`, { method: 'PATCH', body: JSON.stringify(body) });
+                } else {
+                    await apiFetch('/api/platform/salaries', {
+                        method: 'POST',
+                        body: JSON.stringify({ ...body, platform_employee_id: curRow.employee_id, period_month: selMonth(), period_year: selYear() }),
+                    });
+                }
+                closePay(); showToast('Saved.'); await loadAll();
+            } catch (e) { showToast(e.message, 'error'); } finally { btn.disabled = false; }
+        }
+        async function deletePay() {
+            if (!curRow?.payment_id) return;
+            try { await apiFetch(`/api/platform/salaries/${curRow.payment_id}`, { method: 'DELETE' }); closePay(); showToast('Row deleted.'); await loadAll(); }
+            catch (e) { showToast(e.message, 'error'); }
+        }
+
+        function exportCsv() {
+            const head = ['Employee No', 'Name', 'Department', 'Base', 'Bonus', 'Deductions', 'Net', 'Status', 'Paid on', 'Method'];
+            const lines = visibleRows().map(r => [
+                r.employee_no, r.full_name, r.department || '',
+                r.gross_amount != null ? r.gross_amount : r.monthly_salary,
+                r.bonus ?? '', r.deductions ?? '', r.net_amount ?? '', r.status, r.payment_date || '', r.payment_method || '',
+            ]);
+            downloadCsv(`platform-payroll-${register.period}`, head, lines);
+        }
+
+        (async () => {
+            initPeriodPicker();
+            document.getElementById('fMonth').addEventListener('change', () => loadAll().catch(e => showToast(e.message, 'error')));
+            document.getElementById('fYear').addEventListener('change', () => loadAll().catch(e => showToast(e.message, 'error')));
+            document.getElementById('fStatus').addEventListener('change', renderTable);
+            document.getElementById('fQ').addEventListener('input', renderTable);
+            try { await loadAll(); }
+            catch (e) {
+                if (e && e.message === 'Unauthorized') return;
+                const b = document.getElementById('errorBanner');
+                b.textContent = 'Failed to load: ' + ((e && e.message) || e);
+                b.classList.remove('hidden');
+            }
+        })();
+    </script>
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

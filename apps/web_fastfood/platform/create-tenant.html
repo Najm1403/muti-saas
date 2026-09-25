@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <!--
+        Create Tenant Wizard
+        ====================
+        4-step guided onboarding flow for the platform super-admin.
+
+        Step 1 — Business Info    (name, tenant_code, country, timezone)
+        Step 2 — Owner Account    (full_name, username, email)
+        Step 3 — Subscription     (plan, billing_cycle, trial_days)
+        Step 4 — Initial Branch   (branch_name, branch_code)
+        Review — Summary + Submit
+        Success — Credentials display + send recovery email
+
+        API:
+          GET  /api/platform/plans               → populate plan select
+          POST /api/platform/onboard/            → create all entities atomically
+          POST /api/platform/tenants/{id}/account-recovery → send recovery OTP
+    -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create Tenant - STORIXX</title>
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+    <style>
+        .rounded-card { border-radius: 10px; }
+        body { overflow: hidden; }
+
+        /* Step connector line */
+        .step-line { flex: 1; height: 2px; background: #E2E8F0; }
+        .step-line.done { background: #2563EB; }
+
+        /* Field label + input */
+        .field-label { display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 6px; }
+        .field-input {
+            width: 100%; height: 40px; padding: 0 12px;
+            border: 1px solid #E2E8F0; border-radius: 10px; font-size: 0.875rem;
+            outline: none; transition: box-shadow .15s, border-color .15s;
+        }
+        .field-input:focus { box-shadow: 0 0 0 2px #3B82F6; border-color: transparent; }
+        .field-input.mono { font-family: ui-monospace, monospace; text-transform: uppercase; }
+
+        /* Billing cycle toggle */
+        .cycle-btn { flex: 1; padding: 8px; border-radius: 8px; font-size: 0.875rem; font-weight: 500;
+                     text-align: center; cursor: pointer; transition: all .15s; }
+        .cycle-btn.active { background: #2563EB; color: white; }
+        .cycle-btn.inactive { background: #F8FAFC; color: #64748B; border: 1px solid #E2E8F0; }
+        .cycle-btn.inactive:hover { background: #F1F5F9; }
+
+        /* Trial chip buttons */
+        .trial-chip { padding: 6px 14px; border-radius: 20px; font-size: 0.8125rem; font-weight: 500;
+                      cursor: pointer; transition: all .15s; border: 1px solid #E2E8F0; }
+        .trial-chip.active { background: #EFF6FF; border-color: #BFDBFE; color: #1D4ED8; }
+        .trial-chip.inactive { background: white; color: #64748B; }
+        .trial-chip.inactive:hover { background: #F8FAFC; }
+
+        /* Review table */
+        .review-row { display: grid; grid-template-columns: 160px 1fr;
+                      gap: 8px 16px; align-items: start; padding: 10px 0; }
+        .review-row + .review-row { border-top: 1px solid #F1F5F9; }
+        .review-key { font-size: .8125rem; color: #94A3B8; padding-top: 1px; }
+        .review-val { font-size: .875rem; color: #1E293B; }
+    </style>
+</head>
+
+<body class="flex h-screen bg-slate-50 text-slate-900">
+
+    <!-- ================================================================
+         SIDEBAR
+         ================================================================ -->
+    <aside class="w-64 flex-shrink-0 h-screen bg-slate-900 flex flex-col overflow-y-auto">
+
+        <div class="h-16 flex items-center px-5 border-b border-slate-800 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <img src="/assets/logo-mark.png?v=3" alt="STORIXX" class="w-8 h-8 rounded-[6px] flex-shrink-0 object-contain" />
+                <div>
+                    <p class="text-white text-sm font-semibold leading-none">STORIXX</p>
+                    <p class="text-slate-500 text-[11px] leading-none mt-0.5">SaaS Platform</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="flex-1 px-3 py-4 space-y-0.5">
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-1 pb-2">Overview</p>
+            <a href="/platform/dashboard.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                <span class="text-sm">Dashboard</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Management</p>
+
+            <!-- Tenants — active (this wizard is part of tenant management) -->
+            <a href="/platform/tenants.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      bg-slate-800 text-white font-medium border-l-[3px] border-blue-500">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                <span class="text-sm">Tenants</span>
+            </a>
+            <a href="/platform/business-templates.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M20 7h-4V5a3 3 0 00-3-3h-2a3 3 0 00-3 3v2H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM10 5a1 1 0 011-1h2a1 1 0 011 1v2h-4V5z"/>
+                </svg>
+                <span class="text-sm">Business Templates</span>
+            </a>
+            <a href="/platform/config-reference.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s4.332.477 5.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                <span class="text-sm">Config Reference</span>
+            </a>
+
+            <a href="/platform/platform_users.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm">Platform Users</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Billing</p>
+
+            <a href="/platform/plans.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+                <span class="text-sm">Plans</span>
+            </a>
+
+            <a href="/platform/subscriptions.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                </svg>
+                <span class="text-sm">Subscriptions</span>
+            </a>
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Human Resources</p>
+            <a href="/platform/employees.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm">Employees</span>
+            </a>
+            <a href="/platform/salaries.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="text-sm">Salaries</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Monitoring</p>
+
+            <a href="/platform/sync-health.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
+                </svg>
+                <span class="text-sm">Sync Health</span>
+            </a>
+
+            <a href="/platform/activity.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                <span class="text-sm">Activity Logs</span>
+            </a>
+
+        </nav>
+
+        <div class="px-3 py-4 border-t border-slate-800 space-y-0.5 flex-shrink-0">
+            <a href="/platform/settings.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm">Settings</span>
+            </a>
+            <button id="sidebarLogout"
+                    class="w-full flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                           text-slate-300 hover:bg-slate-800 hover:text-white
+                           border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+                <span class="text-sm">Logout</span>
+            </button>
+        </div>
+
+    </aside>
+
+
+    <!-- ================================================================
+         MAIN COLUMN
+         ================================================================ -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+
+        <!-- Header -->
+        <header class="h-16 flex-shrink-0 bg-white border-b border-slate-200
+                        flex items-center justify-between px-6 z-10">
+            <div class="flex items-center gap-3">
+                <a href="/platform/tenants.html"
+                   class="w-8 h-8 flex items-center justify-center rounded-card
+                          text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                </a>
+                <div>
+                    <h1 class="text-base font-semibold text-slate-900 leading-tight">Create New Tenant</h1>
+                    <p class="text-xs text-slate-400 leading-tight">Guided setup — completes in under a minute</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="relative">
+                    <button id="userMenuBtn"
+                            class="flex items-center gap-2 pl-2 pr-3 h-9 rounded-card
+                                   text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                        <div class="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center">
+                            <span id="avatarInitial" class="text-white text-xs font-semibold select-none">S</span>
+                        </div>
+                        <span id="usernameDisplay">SuperAdmin</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+
+        <!-- Wizard content -->
+        <main class="flex-1 overflow-y-auto bg-slate-50">
+            <div class="max-w-2xl mx-auto py-8 px-4">
+
+                <!-- ════════════════════════════════════════════
+                     STEP INDICATOR
+                     ════════════════════════════════════════════ -->
+                <div id="stepIndicator" class="flex items-center mb-8">
+
+                    <!-- Step 1 -->
+                    <div class="step-node flex flex-col items-center" data-step="1">
+                        <div class="step-circle w-8 h-8 rounded-full flex items-center justify-center
+                                    text-xs font-semibold border-2 transition-all bg-blue-600 border-blue-600 text-white">
+                            1
+                        </div>
+                        <span class="step-label mt-1.5 text-[11px] font-medium text-blue-600 whitespace-nowrap">Business</span>
+                    </div>
+
+                    <div class="step-line flex-1 mx-3 mt-[-14px]"></div>
+
+                    <div class="step-node flex flex-col items-center" data-step="2">
+                        <div class="step-circle w-8 h-8 rounded-full flex items-center justify-center
+                                    text-xs font-semibold border-2 transition-all bg-white border-slate-300 text-slate-400">
+                            2
+                        </div>
+                        <span class="step-label mt-1.5 text-[11px] font-medium text-slate-400 whitespace-nowrap">Owner</span>
+                    </div>
+
+                    <div class="step-line flex-1 mx-3 mt-[-14px]"></div>
+
+                    <div class="step-node flex flex-col items-center" data-step="3">
+                        <div class="step-circle w-8 h-8 rounded-full flex items-center justify-center
+                                    text-xs font-semibold border-2 transition-all bg-white border-slate-300 text-slate-400">
+                            3
+                        </div>
+                        <span class="step-label mt-1.5 text-[11px] font-medium text-slate-400 whitespace-nowrap">Subscription</span>
+                    </div>
+
+                    <div class="step-line flex-1 mx-3 mt-[-14px]"></div>
+
+                    <div class="step-node flex flex-col items-center" data-step="4">
+                        <div class="step-circle w-8 h-8 rounded-full flex items-center justify-center
+                                    text-xs font-semibold border-2 transition-all bg-white border-slate-300 text-slate-400">
+                            4
+                        </div>
+                        <span class="step-label mt-1.5 text-[11px] font-medium text-slate-400 whitespace-nowrap">Branch</span>
+                    </div>
+
+                </div><!-- /step indicator -->
+
+
+                <!-- ════════════════════════════════════════════
+                     STEP 1 — BUSINESS INFORMATION
+                     ════════════════════════════════════════════ -->
+                <div id="panel-1" class="step-panel bg-white border border-slate-200 rounded-card shadow-sm">
+
+                    <div class="px-6 pt-6 pb-2 border-b border-slate-100">
+                        <h2 class="text-base font-semibold text-slate-900">Business Information</h2>
+                        <p class="text-sm text-slate-500 mt-0.5">Legal name and identifier for this tenant account.</p>
+                    </div>
+
+                    <div class="px-6 py-5 space-y-4">
+
+                        <div>
+                            <label class="field-label">Business Name <span class="text-red-500">*</span></label>
+                            <input id="f_name" type="text" placeholder="ABC Shop"
+                                   class="field-input" oninput="onNameInput()" autocomplete="organization" />
+                            <p id="f_name_err" class="hidden mt-1 text-xs text-red-500"></p>
+                        </div>
+
+                        <div>
+                            <label class="field-label">Tenant Code <span class="text-red-500">*</span></label>
+                            <input id="f_tenant_code" type="text" placeholder="ABC001" maxlength="20"
+                                   class="field-input mono" />
+                            <p class="mt-1 text-xs text-slate-400">Auto-generated · letters and numbers only · must be unique</p>
+                            <p id="f_code_err" class="hidden mt-1 text-xs text-red-500"></p>
+                        </div>
+
+                        <div>
+                            <label class="field-label">Business Template <span class="text-red-500">*</span></label>
+                            <select id="f_business_template_id" class="field-input bg-white">
+                                <option value="">— Select a business type —</option>
+                                <!-- Populated by JS -->
+                            </select>
+                            <p class="mt-1 text-xs text-slate-400">Drives which Variant/Add-on groups, inventory rules and POS layout this tenant starts with. Manage presets in <a href="/platform/business-templates.html" class="text-blue-600 hover:underline">Business Templates</a>.</p>
+                            <p id="f_template_err" class="hidden mt-1 text-xs text-red-500"></p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="field-label">Country</label>
+                                <select id="f_country" class="field-input bg-white">
+                                    <option value="Pakistan" selected>Pakistan</option>
+                                    <option value="United Arab Emirates">United Arab Emirates</option>
+                                    <option value="Saudi Arabia">Saudi Arabia</option>
+                                    <option value="United Kingdom">United Kingdom</option>
+                                    <option value="United States">United States</option>
+                                    <option value="India">India</option>
+                                    <option value="Bangladesh">Bangladesh</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="field-label">Timezone</label>
+                                <select id="f_timezone" class="field-input bg-white">
+                                    <option value="Asia/Karachi" selected>Asia/Karachi (PKT)</option>
+                                    <option value="Asia/Dubai">Asia/Dubai (GST)</option>
+                                    <option value="Asia/Riyadh">Asia/Riyadh (AST)</option>
+                                    <option value="Europe/London">Europe/London (GMT)</option>
+                                    <option value="America/New_York">America/New_York (EST)</option>
+                                    <option value="America/Los_Angeles">America/Los_Angeles (PST)</option>
+                                    <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                                    <option value="Asia/Dhaka">Asia/Dhaka (BST)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 w-40">
+                            <label class="field-label">Currency</label>
+                            <input id="f_currency" type="text" maxlength="8" value="Rs."
+                                   class="field-input" />
+                            <p class="mt-1 text-xs text-slate-400">Shown on the shop's POS.</p>
+                        </div>
+
+                    </div>
+
+                    <div class="px-6 py-4 border-t border-slate-100 flex justify-end">
+                        <button onclick="nextStep()"
+                                class="h-10 px-6 bg-blue-600 hover:bg-blue-700 text-white text-sm
+                                       font-medium rounded-card transition-colors flex items-center gap-2">
+                            Continue
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                </div><!-- /panel-1 -->
+
+
+                <!-- ════════════════════════════════════════════
+                     STEP 2 — OWNER ACCOUNT
+                     ════════════════════════════════════════════ -->
+                <div id="panel-2" class="step-panel hidden bg-white border border-slate-200 rounded-card shadow-sm">
+
+                    <div class="px-6 pt-6 pb-2 border-b border-slate-100">
+                        <h2 class="text-base font-semibold text-slate-900">Owner Account</h2>
+                        <p class="text-sm text-slate-500 mt-0.5">The primary administrator for this tenant.</p>
+                    </div>
+
+                    <div class="px-6 py-5 space-y-4">
+
+                        <div>
+                            <label class="field-label">Full Name <span class="text-red-500">*</span></label>
+                            <input id="f_owner_name" type="text" placeholder="Muhammad Ali"
+                                   class="field-input" />
+                            <p id="f_oname_err" class="hidden mt-1 text-xs text-red-500"></p>
+                        </div>
+
+                        <div>
+                            <label class="field-label">Username <span class="text-red-500">*</span></label>
+                            <input id="f_owner_username" type="text" placeholder="abcadmin"
+                                   class="field-input" autocomplete="off" spellcheck="false"
+                                   oninput="this.dataset.touched='1'" />
+                            <p class="mt-1 text-xs text-slate-400">Lowercase letters and numbers · used to log in</p>
+                            <p id="f_uname_err" class="hidden mt-1 text-xs text-red-500"></p>
+                        </div>
+
+                        <div>
+                            <label class="field-label">Email <span class="text-red-500">*</span></label>
+                            <input id="f_owner_email" type="email" placeholder="admin@abc.com"
+                                   class="field-input" />
+                            <p id="f_email_err" class="hidden mt-1 text-xs text-red-500"></p>
+                        </div>
+
+                        <div class="flex items-start gap-2.5 px-3 py-3 bg-blue-50 border border-blue-100 rounded-card">
+                            <svg class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                            </svg>
+                            <p class="text-xs text-blue-700 leading-snug">
+                                A temporary password is auto-generated. After creation, use
+                                <strong>Send Recovery Email</strong> so the owner can set their own password.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div class="px-6 py-4 border-t border-slate-100 flex justify-between">
+                        <button onclick="prevStep()"
+                                class="h-10 px-5 border border-slate-200 bg-white rounded-card
+                                       text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                            Back
+                        </button>
+                        <button onclick="nextStep()"
+                                class="h-10 px-6 bg-blue-600 hover:bg-blue-700 text-white text-sm
+                                       font-medium rounded-card transition-colors flex items-center gap-2">
+                            Continue
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                </div><!-- /panel-2 -->
+
+
+                <!-- ════════════════════════════════════════════
+                     STEP 3 — SUBSCRIPTION
+                     ════════════════════════════════════════════ -->
+                <div id="panel-3" class="step-panel hidden bg-white border border-slate-200 rounded-card shadow-sm">
+
+                    <div class="px-6 pt-6 pb-2 border-b border-slate-100">
+                        <h2 class="text-base font-semibold text-slate-900">Subscription Plan</h2>
+                        <p class="text-sm text-slate-500 mt-0.5">Optional — can be assigned later from Subscriptions.</p>
+                    </div>
+
+                    <div class="px-6 py-5 space-y-5">
+
+                        <div>
+                            <label class="field-label">Plan</label>
+                            <select id="f_plan_id" class="field-input bg-white">
+                                <option value="">— No plan yet —</option>
+                                <!-- Populated by JS -->
+                            </select>
+                        </div>
+
+                        <!-- Billing Cycle — hidden when no plan selected -->
+                        <div id="billingSection">
+                            <label class="field-label">Billing Cycle</label>
+                            <div class="flex gap-2 p-1 bg-slate-100 rounded-card">
+                                <button id="cycleMonthly" onclick="setCycle('MONTHLY')"
+                                        class="cycle-btn active">Monthly</button>
+                                <button id="cycleYearly" onclick="setCycle('YEARLY')"
+                                        class="cycle-btn inactive">Yearly <span id="cycleYearlySave" class="text-xs opacity-75 ml-1 hidden"></span></button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="field-label">Trial Period</label>
+                            <div class="flex flex-wrap gap-2">
+                                <button onclick="setTrial(0)"   class="trial-chip inactive" id="trial-0">No Trial</button>
+                                <button onclick="setTrial(7)"   class="trial-chip inactive" id="trial-7">7 days</button>
+                                <button onclick="setTrial(14)"  class="trial-chip active"   id="trial-14">14 days</button>
+                                <button onclick="setTrial(30)"  class="trial-chip inactive" id="trial-30">30 days</button>
+                                <button onclick="setTrial(60)"  class="trial-chip inactive" id="trial-60">60 days</button>
+                                <button onclick="setTrial(90)"  class="trial-chip inactive" id="trial-90">90 days</button>
+                                <button onclick="setTrialCustom()" class="trial-chip inactive" id="trial-custom">Custom…</button>
+                            </div>
+                            <div id="trialCustomWrap" class="hidden mt-2 flex items-center gap-2">
+                                <input id="trialCustomDays" type="number" min="0" max="365" step="1" placeholder="Days"
+                                       oninput="onTrialCustomInput()"
+                                       class="w-28 h-9 px-3 border border-slate-200 rounded-card text-sm
+                                              focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                <span class="text-xs text-slate-400">days (0–365; more than the presets above cover if needed)</span>
+                            </div>
+                            <p class="mt-2 text-xs text-slate-400">
+                                Trial period delays billing. Tenant gets full access immediately.
+                                <span id="trialStatusNote" class="font-medium text-amber-600">
+                                    Subscription will start in TRIAL status.
+                                </span>
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div class="px-6 py-4 border-t border-slate-100 flex justify-between">
+                        <button onclick="prevStep()"
+                                class="h-10 px-5 border border-slate-200 bg-white rounded-card
+                                       text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                            Back
+                        </button>
+                        <button onclick="nextStep()"
+                                class="h-10 px-6 bg-blue-600 hover:bg-blue-700 text-white text-sm
+                                       font-medium rounded-card transition-colors flex items-center gap-2">
+                            Continue
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                </div><!-- /panel-3 -->
+
+
+                <!-- ════════════════════════════════════════════
+                     STEP 4 — INITIAL BRANCH
+                     ════════════════════════════════════════════ -->
+                <div id="panel-4" class="step-panel hidden bg-white border border-slate-200 rounded-card shadow-sm">
+
+                    <div class="px-6 pt-6 pb-2 border-b border-slate-100">
+                        <h2 class="text-base font-semibold text-slate-900">Initial Branch</h2>
+                        <p class="text-sm text-slate-500 mt-0.5">Every tenant needs at least one branch to record sales.</p>
+                    </div>
+
+                    <div class="px-6 py-5 space-y-4">
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="field-label">Branch Name <span class="text-red-500">*</span></label>
+                                <input id="f_branch_name" type="text" placeholder="Main Branch"
+                                       class="field-input" oninput="onBranchNameInput()" />
+                                <p id="f_bname_err" class="hidden mt-1 text-xs text-red-500"></p>
+                            </div>
+                            <div>
+                                <label class="field-label">Branch Code <span class="text-red-500">*</span></label>
+                                <input id="f_branch_code" type="text" placeholder="MAIN01" maxlength="10"
+                                       class="field-input mono" />
+                                <p id="f_bcode_err" class="hidden mt-1 text-xs text-red-500"></p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-2.5 px-3 py-3 bg-amber-50 border border-amber-100 rounded-card">
+                            <svg class="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                            <p class="text-xs text-amber-700 leading-snug">
+                                You can add more branches later from the tenant detail page.
+                                Branch code cannot be changed after creation.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div class="px-6 py-4 border-t border-slate-100 flex justify-between">
+                        <button onclick="prevStep()"
+                                class="h-10 px-5 border border-slate-200 bg-white rounded-card
+                                       text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                            Back
+                        </button>
+                        <button onclick="nextStep()"
+                                class="h-10 px-6 bg-blue-600 hover:bg-blue-700 text-white text-sm
+                                       font-medium rounded-card transition-colors flex items-center gap-2">
+                            Review &amp; Create
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                </div><!-- /panel-4 -->
+
+
+                <!-- ════════════════════════════════════════════
+                     REVIEW
+                     ════════════════════════════════════════════ -->
+                <div id="panel-review" class="step-panel hidden">
+
+                    <!-- Error banner -->
+                    <div id="reviewError"
+                         class="hidden mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-card
+                                flex items-start gap-2.5">
+                        <svg class="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                        <p id="reviewErrorText" class="text-sm text-red-600"></p>
+                    </div>
+
+                    <div class="bg-white border border-slate-200 rounded-card shadow-sm overflow-hidden">
+
+                        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+                            <div>
+                                <h2 class="text-base font-semibold text-slate-900">Review & Confirm</h2>
+                                <p class="text-sm text-slate-500 mt-0.5">Check everything before creating the tenant.</p>
+                            </div>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full
+                                         text-xs font-medium bg-green-100 text-green-700">
+                                Ready to create
+                            </span>
+                        </div>
+
+                        <div class="divide-y divide-slate-50">
+
+                            <!-- Business section -->
+                            <div class="px-6 py-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Business</p>
+                                    <button onclick="goToStep(1)"
+                                            class="text-xs text-blue-600 hover:text-blue-700 hover:underline">Edit</button>
+                                </div>
+                                <div id="rv_business" class="space-y-0"></div>
+                            </div>
+
+                            <!-- Owner section -->
+                            <div class="px-6 py-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Owner</p>
+                                    <button onclick="goToStep(2)"
+                                            class="text-xs text-blue-600 hover:text-blue-700 hover:underline">Edit</button>
+                                </div>
+                                <div id="rv_owner" class="space-y-0"></div>
+                            </div>
+
+                            <!-- Subscription section -->
+                            <div class="px-6 py-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Subscription</p>
+                                    <button onclick="goToStep(3)"
+                                            class="text-xs text-blue-600 hover:text-blue-700 hover:underline">Edit</button>
+                                </div>
+                                <div id="rv_sub" class="space-y-0"></div>
+                            </div>
+
+                            <!-- Branch section -->
+                            <div class="px-6 py-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Initial Branch</p>
+                                    <button onclick="goToStep(4)"
+                                            class="text-xs text-blue-600 hover:text-blue-700 hover:underline">Edit</button>
+                                </div>
+                                <div id="rv_branch" class="space-y-0"></div>
+                            </div>
+
+                        </div>
+
+                        <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+                            <button onclick="goToStep(4)"
+                                    class="h-10 px-5 border border-slate-200 bg-white rounded-card
+                                           text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                                Back
+                            </button>
+                            <button id="submitBtn" onclick="submitOnboarding()"
+                                    class="h-10 px-6 bg-blue-600 hover:bg-blue-700 text-white text-sm
+                                           font-medium rounded-card transition-colors
+                                           disabled:opacity-60 disabled:cursor-not-allowed
+                                           flex items-center gap-2">
+                                <svg id="submitSpinner" class="hidden w-4 h-4 animate-spin"
+                                     fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                                </svg>
+                                <span id="submitText">Create Tenant</span>
+                            </button>
+                        </div>
+
+                    </div>
+                </div><!-- /panel-review -->
+
+
+                <!-- ════════════════════════════════════════════
+                     SUCCESS
+                     ════════════════════════════════════════════ -->
+                <div id="panel-success" class="step-panel hidden">
+                    <div class="bg-white border border-slate-200 rounded-card shadow-sm overflow-hidden">
+
+                        <!-- Green header -->
+                        <div class="bg-green-50 px-6 py-5 border-b border-green-100 flex items-center gap-4">
+                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor"
+                                     stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-xs text-green-600 font-semibold uppercase tracking-wider">Tenant Created Successfully</p>
+                                <h3 id="sc_title" class="text-lg font-bold text-slate-900 mt-0.5"></h3>
+                            </div>
+                        </div>
+
+                        <!-- Status chips -->
+                        <div class="px-6 pt-4 pb-2 flex flex-wrap gap-2">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Tenant Active
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Owner Created
+                            </span>
+                            <span id="sc_sub_badge" class="hidden inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Subscription Active
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Branch Ready
+                            </span>
+                        </div>
+
+                        <!-- Details grid -->
+                        <div class="px-6 py-4">
+                            <dl class="space-y-0">
+                                <div class="review-row">
+                                    <dt class="review-key">Tenant Code</dt>
+                                    <dd id="sc_code" class="review-val font-mono font-semibold text-blue-700 tracking-wide"></dd>
+                                </div>
+                                <div class="review-row">
+                                    <dt class="review-key">Owner Name</dt>
+                                    <dd id="sc_owner_name" class="review-val font-medium"></dd>
+                                </div>
+                                <div class="review-row">
+                                    <dt class="review-key">Username</dt>
+                                    <dd id="sc_username" class="review-val font-mono"></dd>
+                                </div>
+                                <div class="review-row">
+                                    <dt class="review-key">Email</dt>
+                                    <dd id="sc_email" class="review-val break-all"></dd>
+                                </div>
+                                <div class="review-row" id="sc_plan_row">
+                                    <dt class="review-key">Plan</dt>
+                                    <dd id="sc_plan" class="review-val"></dd>
+                                </div>
+                                <div class="review-row">
+                                    <dt class="review-key">Branch</dt>
+                                    <dd id="sc_branch" class="review-val"></dd>
+                                </div>
+                            </dl>
+
+                            <!-- Temp password -->
+                            <div class="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-card">
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-widest">Temporary Password</p>
+                                    <span class="text-[11px] text-slate-400">Shown once only</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <code id="sc_temp_pass"
+                                          class="flex-1 text-sm font-mono bg-white border border-slate-200
+                                                 rounded-card px-3 py-2 text-slate-900 select-all">
+                                    </code>
+                                    <button onclick="copyTempPass()" title="Copy password"
+                                            class="w-9 h-9 flex items-center justify-center rounded-card
+                                                   border border-slate-200 text-slate-500 hover:text-slate-800
+                                                   hover:bg-slate-100 transition-colors flex-shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <p class="mt-2 text-[11px] text-amber-700 flex items-center gap-1.5">
+                                    <svg class="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                    </svg>
+                                    Copy now — this password is never shown again.
+                                    Send the recovery email so the owner can set their own.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between gap-3 flex-wrap">
+                            <button id="sendRecoveryBtn" onclick="sendRecoveryEmail()"
+                                    class="h-10 px-4 border border-slate-200 bg-white rounded-card text-sm
+                                           text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                                Send Recovery Email
+                            </button>
+                            <div class="flex items-center gap-3">
+                                <button onclick="window.location='/platform/tenants.html'"
+                                        class="h-10 px-4 border border-slate-200 bg-white rounded-card
+                                               text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    Back to Tenants
+                                </button>
+                                <a id="sc_view_link" href="#"
+                                   class="h-10 px-5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium
+                                          rounded-card transition-colors flex items-center gap-2">
+                                    View Tenant
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div><!-- /panel-success -->
+
+            </div><!-- /max-w-2xl -->
+        </main>
+    </div><!-- /main column -->
+
+
+    <!-- Toast -->
+    <div id="toast"
+         class="hidden fixed bottom-6 right-6 z-50 flex items-center gap-3
+                px-4 py-3 rounded-card shadow-lg border text-sm font-medium">
+        <svg id="toastIcon" class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"></svg>
+        <span id="toastText"></span>
+    </div>
+
+
+    <!-- ================================================================
+         JAVASCRIPT
+         ================================================================ -->
+    <script>
+        const API_BASE  = window.API_BASE_URL ?? '';
+        const TOKEN_KEY = 'platform_token';
+
+        // Auth guard
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (!token) window.location.replace('/platform/login.html');
+
+        // ── API helper ─────────────────────────────────────────────────
+        async function apiFetch(path, options = {}) {
+            const res = await fetch(API_BASE + path, {
+                ...options,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type':  'application/json',
+                    ...(options.headers ?? {}),
+                },
+            });
+            if (res.status === 401) {
+                localStorage.removeItem(TOKEN_KEY);
+                window.location.replace('/platform/login.html');
+                return null;
+            }
+            if (!res.ok) {
+                const body = await res.json().catch(() => ({}));
+                throw new Error(body.detail ?? `API ${res.status}`);
+            }
+            return res.json();
+        }
+
+        function esc(v) {
+            if (v == null) return '—';
+            return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                            .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // STATE
+        // ════════════════════════════════════════════════════════════════
+
+        let currentStep      = 1;
+        const TOTAL_STEPS    = 4;
+        let plans            = [];
+        let businessTemplates = [];
+        let billingCycle     = 'MONTHLY';
+        let trialDays        = 14;
+        let createdResult    = null;   // OnboardingResponse
+
+        // ════════════════════════════════════════════════════════════════
+        // BOOT
+        // ════════════════════════════════════════════════════════════════
+
+        async function boot() {
+            try {
+                const me = await apiFetch('/api/platform/auth/me');
+                if (me) {
+                    const d = me.full_name || me.email;
+                    document.getElementById('usernameDisplay').textContent = d;
+                    document.getElementById('avatarInitial').textContent   = d.charAt(0).toUpperCase();
+                }
+            } catch { /* keep placeholder */ }
+
+            try {
+                plans = await apiFetch('/api/platform/plans');
+                const sel = document.getElementById('f_plan_id');
+                for (const p of plans) {
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = `${p.name} — PKR ${Number(p.price_monthly).toLocaleString()}/mo`;
+                    sel.appendChild(opt);
+                }
+                sel.addEventListener('change', updateYearlySavings);
+                updateYearlySavings();
+            } catch { /* plans optional — continue */ }
+
+            try {
+                businessTemplates = await apiFetch('/api/platform/business-templates/');
+                const sel = document.getElementById('f_business_template_id');
+                for (const t of businessTemplates) {
+                    const opt = document.createElement('option');
+                    opt.value = t.id;
+                    opt.textContent = t.name;
+                    sel.appendChild(opt);
+                }
+            } catch { /* if this fails, submission will surface the error */ }
+        }
+
+        // Real yearly saving for the selected plan — driven by the plan's own
+        // discount_yearly_pct, falling back to (12×monthly − yearly)/12×monthly.
+        function updateYearlySavings() {
+            const span = document.getElementById('cycleYearlySave');
+            if (!span) return;
+            const p = (plans || []).find(x => x.id === document.getElementById('f_plan_id').value);
+            let pct = 0;
+            if (p) {
+                pct = Number(p.discount_yearly_pct) || 0;
+                if (pct <= 0) {
+                    const m = Number(p.price_monthly) || 0, y = Number(p.price_yearly) || 0;
+                    if (m > 0 && y > 0 && y < m * 12) pct = Math.round((1 - y / (m * 12)) * 100);
+                }
+            }
+            if (pct > 0) { span.textContent = `Save ${pct}%`; span.classList.remove('hidden'); }
+            else span.classList.add('hidden');
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // STEP NAVIGATION
+        // ════════════════════════════════════════════════════════════════
+
+        function showStep(n) {
+            // Hide all panels
+            document.querySelectorAll('.step-panel').forEach(p => p.classList.add('hidden'));
+
+            if (n === 'review') {
+                document.getElementById('panel-review').classList.remove('hidden');
+                buildReview();
+                updateStepIndicator(5); // "past all" state
+                return;
+            }
+            if (n === 'success') {
+                document.getElementById('panel-success').classList.remove('hidden');
+                document.getElementById('stepIndicator').classList.add('hidden');
+                return;
+            }
+            document.getElementById(`panel-${n}`).classList.remove('hidden');
+            updateStepIndicator(n);
+            // Focus first input in step
+            const panel = document.getElementById(`panel-${n}`);
+            const first = panel.querySelector('input:not([readonly]), select');
+            if (first) setTimeout(() => first.focus(), 50);
+        }
+
+        function updateStepIndicator(active) {
+            const nodes = document.querySelectorAll('.step-node');
+            const lines = document.querySelectorAll('.step-line');
+
+            nodes.forEach((node, i) => {
+                const stepNum  = i + 1;
+                const circle   = node.querySelector('.step-circle');
+                const label    = node.querySelector('.step-label');
+
+                if (stepNum < active) {
+                    // Completed
+                    circle.className = 'step-circle w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold border-2 transition-all bg-blue-600 border-blue-600 text-white';
+                    circle.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>`;
+                    label.className  = 'step-label mt-1.5 text-[11px] font-medium text-blue-600 whitespace-nowrap';
+                } else if (stepNum === active) {
+                    // Active
+                    circle.className = 'step-circle w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold border-2 transition-all bg-blue-600 border-blue-600 text-white';
+                    circle.textContent = stepNum;
+                    label.className  = 'step-label mt-1.5 text-[11px] font-medium text-blue-600 whitespace-nowrap';
+                } else {
+                    // Upcoming
+                    circle.className = 'step-circle w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold border-2 transition-all bg-white border-slate-300 text-slate-400';
+                    circle.textContent = stepNum;
+                    label.className  = 'step-label mt-1.5 text-[11px] font-medium text-slate-400 whitespace-nowrap';
+                }
+            });
+
+            lines.forEach((line, i) => {
+                line.classList.toggle('done', (i + 1) < active);
+            });
+        }
+
+        function nextStep() {
+            if (!validateStep(currentStep)) return;
+            if (currentStep === TOTAL_STEPS) {
+                showStep('review');
+            } else {
+                currentStep++;
+                showStep(currentStep);
+            }
+        }
+
+        function prevStep() {
+            if (currentStep <= 1) {
+                window.location.href = '/platform/tenants.html';
+            } else {
+                currentStep--;
+                showStep(currentStep);
+            }
+        }
+
+        function goToStep(n) {
+            currentStep = n;
+            showStep(n);
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // VALIDATION
+        // ════════════════════════════════════════════════════════════════
+
+        function showErr(id, msg) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.textContent = msg;
+            el.classList.toggle('hidden', !msg);
+        }
+
+        function validateStep(n) {
+            let ok = true;
+
+            if (n === 1) {
+                const name = document.getElementById('f_name').value.trim();
+                const code = document.getElementById('f_tenant_code').value.trim();
+                const templateId = document.getElementById('f_business_template_id').value;
+                showErr('f_name_err', name ? '' : 'Business name is required.');
+                if (!name) ok = false;
+                if (!code) { showErr('f_code_err', 'Tenant code is required.'); ok = false; }
+                else if (!/^[A-Za-z0-9_-]+$/.test(code)) { showErr('f_code_err', 'Only letters, numbers, hyphens and underscores.'); ok = false; }
+                else showErr('f_code_err', '');
+                if (!templateId) { showErr('f_template_err', 'Select a business template.'); ok = false; }
+                else showErr('f_template_err', '');
+            }
+
+            if (n === 2) {
+                const name     = document.getElementById('f_owner_name').value.trim();
+                const username = document.getElementById('f_owner_username').value.trim();
+                const email    = document.getElementById('f_owner_email').value.trim();
+                showErr('f_oname_err', name ? '' : 'Full name is required.');
+                if (!name) ok = false;
+                if (!username) { showErr('f_uname_err', 'Username is required.'); ok = false; }
+                else if (username.length < 3) { showErr('f_uname_err', 'At least 3 characters.'); ok = false; }
+                else if (!/^[a-zA-Z0-9_]+$/.test(username)) { showErr('f_uname_err', 'Only letters, numbers and underscores.'); ok = false; }
+                else showErr('f_uname_err', '');
+                if (!email) { showErr('f_email_err', 'Email is required.'); ok = false; }
+                else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('f_email_err', 'Enter a valid email address.'); ok = false; }
+                else showErr('f_email_err', '');
+            }
+
+            if (n === 4) {
+                const bname = document.getElementById('f_branch_name').value.trim();
+                const bcode = document.getElementById('f_branch_code').value.trim();
+                showErr('f_bname_err', bname ? '' : 'Branch name is required.');
+                if (!bname) ok = false;
+                if (!bcode) { showErr('f_bcode_err', 'Branch code is required.'); ok = false; }
+                else showErr('f_bcode_err', '');
+            }
+
+            return ok;
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // AUTO-GENERATE CODES
+        // ════════════════════════════════════════════════════════════════
+
+        function onNameInput() {
+            const name = document.getElementById('f_name').value;
+            const code = name.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 3).padEnd(3, 'X') + '001';
+            document.getElementById('f_tenant_code').value = code;
+
+            const slug = name.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 6);
+            const uField = document.getElementById('f_owner_username');
+            if (!uField.dataset.touched) {
+                uField.value = slug + 'admin';
+            }
+        }
+
+        function onBranchNameInput() {
+            const name = document.getElementById('f_branch_name').value;
+            const code = name.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 4).padEnd(4, 'X') + '01';
+            document.getElementById('f_branch_code').value = code;
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // BILLING CYCLE + TRIAL CHIPS
+        // ════════════════════════════════════════════════════════════════
+
+        function setCycle(cycle) {
+            billingCycle = cycle;
+            document.getElementById('cycleMonthly').className = `cycle-btn ${cycle === 'MONTHLY' ? 'active' : 'inactive'}`;
+            document.getElementById('cycleYearly').className  = `cycle-btn ${cycle === 'YEARLY'  ? 'active' : 'inactive'}`;
+        }
+
+        function setTrial(days) {
+            trialDays = days;
+            [0, 7, 14, 30, 60, 90].forEach(d => {
+                const el = document.getElementById(`trial-${d}`);
+                if (el) el.className = `trial-chip ${d === days ? 'active' : 'inactive'}`;
+            });
+            document.getElementById('trial-custom').className = 'trial-chip inactive';
+            document.getElementById('trialCustomWrap').classList.add('hidden');
+            updateTrialNote(days);
+        }
+
+        function setTrialCustom() {
+            [0, 7, 14, 30, 60, 90].forEach(d => {
+                document.getElementById(`trial-${d}`).className = 'trial-chip inactive';
+            });
+            document.getElementById('trial-custom').className = 'trial-chip active';
+            document.getElementById('trialCustomWrap').classList.remove('hidden');
+            document.getElementById('trialCustomDays').focus();
+            onTrialCustomInput();
+        }
+
+        function onTrialCustomInput() {
+            const raw = document.getElementById('trialCustomDays').value;
+            const days = Math.max(0, Math.min(365, parseInt(raw, 10) || 0));
+            trialDays = days;
+            updateTrialNote(days);
+        }
+
+        function updateTrialNote(days) {
+            const note = document.getElementById('trialStatusNote');
+            if (days === 0) {
+                note.textContent = 'Subscription starts as ACTIVE immediately.';
+                note.className = 'font-medium text-green-600';
+            } else {
+                note.textContent = `Subscription starts in TRIAL status for ${days} days.`;
+                note.className = 'font-medium text-amber-600';
+            }
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // REVIEW
+        // ════════════════════════════════════════════════════════════════
+
+        function reviewRow(key, val) {
+            return `<div class="review-row"><dt class="review-key">${esc(key)}</dt><dd class="review-val">${esc(val)}</dd></div>`;
+        }
+        function reviewRowMono(key, val) {
+            return `<div class="review-row"><dt class="review-key">${esc(key)}</dt><dd class="review-val font-mono text-blue-700">${esc(val)}</dd></div>`;
+        }
+
+        function buildReview() {
+            const planSel  = document.getElementById('f_plan_id');
+            const planName = planSel.selectedIndex > 0
+                ? planSel.options[planSel.selectedIndex].text
+                : '— No plan yet —';
+
+            const templateSel  = document.getElementById('f_business_template_id');
+            const templateName = templateSel.selectedIndex > 0
+                ? templateSel.options[templateSel.selectedIndex].text
+                : '— None selected —';
+
+            document.getElementById('rv_business').innerHTML =
+                reviewRow('Business Name', document.getElementById('f_name').value.trim()) +
+                reviewRowMono('Tenant Code', document.getElementById('f_tenant_code').value.trim().toUpperCase()) +
+                reviewRow('Business Template', templateName) +
+                reviewRow('Country', document.getElementById('f_country').value) +
+                reviewRow('Timezone', document.getElementById('f_timezone').value) +
+                reviewRow('Currency', document.getElementById('f_currency').value.trim() || 'Rs.');
+
+            document.getElementById('rv_owner').innerHTML =
+                reviewRow('Full Name', document.getElementById('f_owner_name').value.trim()) +
+                reviewRow('Username', document.getElementById('f_owner_username').value.trim().toLowerCase()) +
+                reviewRow('Email', document.getElementById('f_owner_email').value.trim());
+
+            const trialLabel = trialDays === 0 ? 'No Trial — ACTIVE immediately' : `${trialDays} days trial`;
+            document.getElementById('rv_sub').innerHTML =
+                reviewRow('Plan', planName) +
+                reviewRow('Billing Cycle', billingCycle === 'MONTHLY' ? 'Monthly' : 'Yearly') +
+                reviewRow('Trial', trialLabel);
+
+            document.getElementById('rv_branch').innerHTML =
+                reviewRow('Branch Name', document.getElementById('f_branch_name').value.trim()) +
+                reviewRowMono('Branch Code', document.getElementById('f_branch_code').value.trim().toUpperCase());
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // SUBMIT ONBOARDING
+        // ════════════════════════════════════════════════════════════════
+
+        async function submitOnboarding() {
+            const btn     = document.getElementById('submitBtn');
+            const spinner = document.getElementById('submitSpinner');
+            const btnText = document.getElementById('submitText');
+            const errEl   = document.getElementById('reviewError');
+            const errText = document.getElementById('reviewErrorText');
+
+            const payload = {
+                name:                 document.getElementById('f_name').value.trim(),
+                tenant_code:          document.getElementById('f_tenant_code').value.trim().toUpperCase(),
+                business_template_id: document.getElementById('f_business_template_id').value,
+                country:        document.getElementById('f_country').value || null,
+                timezone:       document.getElementById('f_timezone').value || null,
+                currency:       document.getElementById('f_currency').value.trim() || 'Rs.',
+                owner_name:     document.getElementById('f_owner_name').value.trim(),
+                owner_username: document.getElementById('f_owner_username').value.trim().toLowerCase(),
+                owner_email:    document.getElementById('f_owner_email').value.trim(),
+                plan_id:        document.getElementById('f_plan_id').value || null,
+                billing_cycle:  billingCycle,
+                trial_days:     trialDays,
+                branch_name:    document.getElementById('f_branch_name').value.trim(),
+                branch_code:    document.getElementById('f_branch_code').value.trim().toUpperCase(),
+            };
+
+            errEl.classList.add('hidden');
+            btn.disabled        = true;
+            spinner.classList.remove('hidden');
+            btnText.textContent = 'Creating…';
+
+            try {
+                createdResult = await apiFetch('/api/platform/onboard/', {
+                    method: 'POST',
+                    body:   JSON.stringify(payload),
+                });
+                showSuccess(createdResult);
+            } catch (err) {
+                errText.textContent = err.message;
+                errEl.classList.remove('hidden');
+                errEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } finally {
+                btn.disabled        = false;
+                spinner.classList.add('hidden');
+                btnText.textContent = 'Create Tenant';
+            }
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // SUCCESS SCREEN
+        // ════════════════════════════════════════════════════════════════
+
+        function showSuccess(r) {
+            document.getElementById('sc_title').textContent      = r.tenant_name;
+            document.getElementById('sc_code').textContent       = r.tenant_code;
+            document.getElementById('sc_owner_name').textContent = r.owner_name;
+            document.getElementById('sc_username').textContent   = r.owner_username;
+            document.getElementById('sc_email').textContent      = r.owner_email;
+            document.getElementById('sc_branch').textContent     = `${r.branch_name} (${r.branch_code})`;
+            document.getElementById('sc_temp_pass').textContent  = r.owner_temp_password || '—';
+            document.getElementById('sc_view_link').href         = `/platform/tenant-detail.html?id=${r.tenant_id}`;
+
+            if (r.plan_name) {
+                document.getElementById('sc_plan').textContent = r.trial_days
+                    ? `${r.plan_name} · ${r.trial_days}-day trial`
+                    : r.plan_name;
+                document.getElementById('sc_plan_row').classList.remove('hidden');
+                document.getElementById('sc_sub_badge').classList.remove('hidden');
+            } else {
+                document.getElementById('sc_plan_row').classList.add('hidden');
+            }
+
+            showStep('success');
+        }
+
+        function copyTempPass() {
+            const pass = document.getElementById('sc_temp_pass').textContent.trim();
+            if (!pass || pass === '—') return;
+            navigator.clipboard.writeText(pass)
+                .then(() => showToast('success', 'Temp password copied to clipboard.'))
+                .catch(() => showToast('error', 'Copy failed — please select and copy manually.'));
+        }
+
+        async function sendRecoveryEmail() {
+            if (!createdResult) return;
+            const btn = document.getElementById('sendRecoveryBtn');
+            btn.disabled = true;
+            btn.textContent = 'Sending…';
+            try {
+                await apiFetch(`/api/platform/tenants/${createdResult.tenant_id}/account-recovery`, {
+                    method: 'POST',
+                });
+                showToast('success', `Recovery OTP sent to ${createdResult.owner_email}.`);
+                btn.textContent = 'Email Sent ✓';
+            } catch (err) {
+                showToast('error', err.message);
+                btn.disabled = false;
+                btn.textContent = 'Send Recovery Email';
+            }
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // TOAST
+        // ════════════════════════════════════════════════════════════════
+
+        let toastTimer = null;
+
+        function showToast(type, message) {
+            const toast = document.getElementById('toast');
+            const icon  = document.getElementById('toastIcon');
+            const text  = document.getElementById('toastText');
+            const s = {
+                success: { cls: 'border-green-200 bg-green-50 text-green-800', fill: '#16A34A',
+                    d: 'M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' },
+                error:   { cls: 'border-red-200 bg-red-50 text-red-800', fill: '#DC2626',
+                    d: 'M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z' },
+                info:    { cls: 'border-blue-200 bg-blue-50 text-blue-800', fill: '#2563EB',
+                    d: 'M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z' },
+            }[type] ?? { cls: 'border-blue-200 bg-blue-50 text-blue-800', fill: '#2563EB', d: '' };
+
+            toast.className = `fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-card shadow-lg border text-sm font-medium ${s.cls}`;
+            icon.setAttribute('fill', s.fill);
+            icon.innerHTML = `<path fill-rule="evenodd" d="${s.d}" clip-rule="evenodd"/>`;
+            text.textContent = message;
+            toast.classList.remove('hidden');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toast.classList.add('hidden'), 4000);
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // LOGOUT
+        // ════════════════════════════════════════════════════════════════
+
+        document.getElementById('sidebarLogout').addEventListener('click', () => {
+            localStorage.removeItem(TOKEN_KEY);
+            window.location.replace('/platform/login.html');
+        });
+
+        boot();
+    </script>
+
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

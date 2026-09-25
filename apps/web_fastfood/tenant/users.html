@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Users - Tenant Admin</title>
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+</head>
+<body class="bg-slate-50 min-h-screen flex">
+
+    <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+    <aside class="w-64 flex-shrink-0 h-screen bg-white border-r border-slate-200 flex flex-col overflow-y-auto fixed left-0 top-0 z-30">
+
+        <!-- Tenant branding -->
+        <div class="h-16 flex items-center px-5 border-b border-slate-200 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span class="text-white text-sm font-bold select-none">T</span>
+                </div>
+                <div>
+                    <p class="text-slate-900 text-sm font-semibold leading-none" id="sidebarTenantName">Loading…</p>
+                    <p class="text-indigo-600 text-[11px] leading-none mt-0.5 font-medium" id="sidebarTenantCode">—</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 px-3 py-4 space-y-0.5">
+
+            <a href="/tenant/dashboard.html"
+               class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                Overview
+            </a>
+
+            <a href="/tenant/sales.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                Sales
+            </a>
+
+            <a href="/tenant/reports.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                Reports
+            </a>
+
+        <a href="/tenant/shifts.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Cash Shortages
+        </a>
+
+            <a href="/tenant/menu.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                Menu
+            </a>
+
+
+        <a href="/tenant/variant-options.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+            Variant Options
+        </a>
+
+        <a href="/tenant/addon-groups.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+            Add-on Groups
+        </a>
+
+            <a href="/tenant/promotions.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg>
+                Promotions
+            </a>
+
+            <a href="/tenant/deals.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+                Deals
+            </a>
+
+            <a href="/tenant/branches.html"
+               class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                Branches
+            </a>
+
+            <a href="/tenant/preparation-stations.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z"/>
+                </svg>
+                Kitchen Stations
+            </a>
+
+            <a href="/tenant/devices.html"
+               class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                Devices
+            </a>
+
+            <!-- Active: Users -->
+            <a href="/tenant/users.html"
+               class="bg-indigo-50 text-indigo-700 font-medium rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                Users
+            </a>
+
+            <a href="/tenant/roles.html"
+               class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+                Roles
+            </a>
+
+            <a href="/tenant/activity.html"
+               class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0"/>
+                </svg>
+                Activity
+            </a>
+
+            <a href="/tenant/expenses.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-6 4h6m-6 4h4M5 3h14a2 2 0 012 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 012-2z"/></svg>
+                Expenses
+            </a>
+            <a href="/tenant/employees.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+                Employees
+            </a>
+            <a href="/tenant/salaries.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Salaries
+            </a>
+            <a href="/tenant/inventory.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                Inventory
+            </a>
+
+            <a href="/tenant/subscription.html"
+               class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                </svg>
+                Subscription
+            </a>
+
+            <a href="/tenant/settings.html"
+               class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                Settings
+            </a>
+        </nav>
+
+        <!-- User footer -->
+        <div class="border-t border-slate-200 p-4 flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                    <span class="text-indigo-700 text-sm font-semibold" id="userInitial">?</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-slate-900 truncate" id="sidebarUserName">—</p>
+                    <p class="text-xs text-slate-500 truncate" id="sidebarUserRoles">—</p>
+                </div>
+                <button onclick="logout()" title="Logout" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ── Main content ──────────────────────────────────────────────────────── -->
+    <div class="ml-64 flex-1 flex flex-col min-h-screen">
+
+        <!-- Header -->
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-20">
+            <h1 class="text-2xl font-semibold text-slate-900">Users</h1>
+            <button onclick="openDrawer(null)"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Add User
+            </button>
+        </header>
+
+        <!-- Page body -->
+        <main class="flex-1 p-6">
+
+            <!-- Error banner -->
+            <div id="errorBanner" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-5 text-sm"></div>
+
+            <!-- Loading spinner -->
+            <div id="loadingSpinner" class="flex items-center justify-center py-24">
+                <svg class="animate-spin w-8 h-8 text-indigo-600" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                </svg>
+            </div>
+
+            <!-- Search / Filter bar -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mb-4 flex flex-wrap items-center gap-3">
+                <div class="flex-1 min-w-48">
+                    <input id="searchInput" type="text" placeholder="Search name, username, or email…"
+                           oninput="applyFilters()"
+                           class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+                <div>
+                    <select id="filterStatus" onchange="applyFilters()"
+                            class="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All Statuses</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <p id="filterCount" class="text-xs text-slate-400 ml-auto"></p>
+            </div>
+
+            <!-- Users table card -->
+            <div id="tableCard" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Full Name</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Username</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Email</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Branches</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Roles</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody" class="divide-y divide-slate-200 bg-white">
+                        <!-- Rows injected by JS -->
+                    </tbody>
+                </table>
+
+                <!-- Empty state -->
+                <div id="emptyState" class="hidden text-center py-16 text-slate-400">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                    <p class="text-sm font-medium text-slate-500">No users yet</p>
+                    <p class="text-xs mt-1">Click "Add User" to create the first one.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ── Right Drawer ──────────────────────────────────────────────────────── -->
+    <!-- Overlay -->
+    <div id="drawerOverlay"
+         onclick="closeDrawer()"
+         class="hidden fixed inset-0 bg-black/30 z-40 transition-opacity"></div>
+
+    <!-- Drawer panel -->
+    <div id="drawer"
+         class="fixed right-0 top-0 h-full w-[560px] max-w-full bg-white border-l border-slate-200 shadow-xl z-50 flex flex-col transform translate-x-full transition-transform duration-300">
+
+        <!-- Drawer header -->
+        <div class="h-16 flex items-center justify-between px-6 border-b border-slate-200 flex-shrink-0">
+            <h2 class="text-lg font-semibold text-slate-900" id="drawerTitle">Add User</h2>
+            <button onclick="closeDrawer()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Drawer body — scrollable -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-5">
+
+            <!-- Drawer error -->
+            <div id="drawerError" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm"></div>
+
+            <!-- User form -->
+            <form id="userForm" novalidate>
+                <input type="hidden" id="editingUserId" />
+
+                <div class="space-y-4">
+                    <!-- Employee — only on create. A User can only be an existing,
+                         active employee promoted to a login; this is what links
+                         Employee.user_id so attendance and everything else stays
+                         consistent. -->
+                    <div id="employeeGroup">
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Employee <span class="text-red-500">*</span></label>
+                        <select id="fieldEmployeeId"
+                                class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="">Select an active employee…</option>
+                        </select>
+                        <p id="employeeEmptyNote" class="hidden text-xs text-amber-600 mt-1">
+                            No active, unlinked employees. Add one on the Employees page first.
+                        </p>
+                        <p class="text-xs text-slate-400 mt-1">Only active employees not already linked to a user are listed.</p>
+                    </div>
+
+                    <!-- Full Name — only on edit (renaming an existing account). -->
+                    <div id="fullNameGroup">
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Full Name <span class="text-red-500">*</span></label>
+                        <input id="fieldFullName" type="text" placeholder="Jane Doe"
+                               class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    </div>
+
+                    <!-- Username -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Username <span class="text-red-500">*</span></label>
+                        <input id="fieldUsername" type="text" placeholder="janedoe"
+                               class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                        <p id="usernameReadonlyNote" class="hidden text-xs text-slate-400 mt-1">Changing username will update the login credential.</p>
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Email <span class="text-slate-400 font-normal">(optional)</span></label>
+                        <input id="fieldEmail" type="email" placeholder="jane@example.com"
+                               class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    </div>
+
+                    <!-- Password — only on create -->
+                    <div id="passwordGroup">
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Password <span class="text-red-500">*</span></label>
+                        <input id="fieldPassword" type="password" placeholder="••••••••"
+                               class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    </div>
+
+                    <!-- POS PIN — only on create (optional) -->
+                    <div id="pinGroup">
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">POS PIN <span class="text-slate-400 font-normal">(optional)</span></label>
+                        <input id="fieldPin" type="text" inputmode="numeric" maxlength="6" placeholder="4–6 digits"
+                               class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                        <p class="text-xs text-slate-400 mt-1">Used for quick sign-in on the POS tablet staff screen.</p>
+                    </div>
+
+                    <!-- Is Active -->
+                    <div class="flex items-center gap-3">
+                        <input id="fieldIsActive" type="checkbox" checked
+                               class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500" />
+                        <label for="fieldIsActive" class="text-sm font-medium text-slate-700">Active</label>
+                    </div>
+
+                    <!-- Max discount % — ceiling on this cashier's manual POS
+                         discount. Only takes effect once they also hold the
+                         "sales.discount" permission via a Role below; empty
+                         means uncapped. -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Max discount % <span class="text-slate-400 font-normal">(optional)</span></label>
+                        <input id="fieldMaxDiscountPercent" type="number" min="0" max="100" step="0.01" placeholder="Uncapped"
+                               class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                        <p class="text-xs text-slate-400 mt-1">Caps how much this cashier may discount an order at checkout. Requires the "sales.discount" permission (assign a Role below) to give any discount at all.</p>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Divider -->
+            <hr class="border-slate-200" />
+
+            <!-- ── Role Assignment section ── -->
+            <div id="roleSection">
+                <h3 class="text-sm font-semibold text-slate-900 mb-3">Roles</h3>
+
+                <!-- Current roles chips -->
+                <div id="currentRolesChips" class="flex flex-wrap gap-2 mb-3 min-h-[28px]">
+                    <span class="text-slate-400 text-xs italic" id="noRolesMsg">No roles assigned</span>
+                </div>
+
+                <!-- Add role row -->
+                <div class="flex gap-2">
+                    <select id="roleDropdown"
+                            class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">Select a role…</option>
+                    </select>
+                    <button id="assignRoleBtn" onclick="assignRole()"
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap">
+                        Add Role
+                    </button>
+                </div>
+            </div>
+
+            <div id="permissionSection" class="hidden border-t border-slate-100 pt-4">
+                <div class="flex items-start justify-between gap-3 mb-3">
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-900">Effective Permissions</h3>
+                        <p id="permissionHelp" class="text-xs text-slate-400 mt-1">Checked permissions are available to this user.</p>
+                    </div>
+                    <button id="savePermissionsBtn" onclick="saveUserPermissions()"
+                            class="hidden bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium disabled:opacity-60">
+                        Apply permissions
+                    </button>
+                </div>
+                <div id="userPermissionsContainer" class="space-y-4">
+                    <p class="text-xs text-slate-400">Loading permissions…</p>
+                </div>
+            </div>
+
+            <!-- ── Branch Availability section ── -->
+            <div class="border-t border-slate-100 pt-4 mt-2">
+                <h4 class="text-sm font-medium text-slate-700 mb-3">Branch Availability</h4>
+                <label class="flex items-center gap-2 mb-3 cursor-pointer">
+                    <input type="checkbox" id="chkAllBranches"
+                           class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                           onchange="toggleBranchPicker(this.checked)">
+                    <span class="text-sm text-slate-600">Available at <strong>all branches</strong></span>
+                </label>
+                <div id="branchPickerSection">
+                    <p class="text-xs text-slate-500 mb-2">Select specific branches:</p>
+                    <div id="branchCheckboxList" class="space-y-1 max-h-36 overflow-y-auto border border-slate-200 rounded-lg p-2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Drawer footer -->
+        <div class="border-t border-slate-200 px-6 py-4 flex justify-end gap-3 flex-shrink-0">
+            <button onclick="closeDrawer()"
+                    class="px-4 py-2 rounded-lg text-sm font-medium border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors">
+                Cancel
+            </button>
+            <button id="saveUserBtn" onclick="saveUser()"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+                Save
+            </button>
+        </div>
+    </div>
+
+    <!-- ── Scripts ───────────────────────────────────────────────────────────── -->
+    <script>
+        // ── API helpers ──────────────────────────────────────────────────────────
+        const BASE = '/api/v1';
+        function getToken() { return localStorage.getItem('tenant_token'); }
+
+        async function apiFetch(path, opts = {}) {
+            const res = await fetch(BASE + path, {
+                ...opts,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + getToken(),
+                    ...(opts.headers || {})
+                }
+            });
+            if (res.status === 401) {
+                localStorage.removeItem('tenant_token');
+                location.href = '/tenant/login.html';
+                throw new Error('Unauthorized');
+            }
+            if (!res.ok) {
+                const e = await res.json().catch(() => ({}));
+                throw new Error(e.detail || 'Request failed');
+            }
+            // 204 No Content has no body
+            if (res.status === 204) return null;
+            return res.json();
+        }
+
+        function logout() {
+            localStorage.removeItem('tenant_token');
+            localStorage.removeItem('tenant_me');
+            location.href = '/tenant/login.html';
+        }
+
+        function showToast(msg, type = 'success') {
+            const t = document.createElement('div');
+            t.className = `fixed bottom-4 right-4 z-50 px-4 py-3 rounded-lg text-sm font-medium shadow-lg ${type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`;
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        // ── Sidebar init ─────────────────────────────────────────────────────────
+        async function initSidebar() {
+            const token = localStorage.getItem('tenant_token');
+            if (!token) { location.href = '/tenant/login.html'; return false; }
+            try {
+                const me = await apiFetch('/auth/me'); window.SHOP_CCY = (me && me.currency) || 'Rs.';
+                localStorage.setItem('tenant_me', JSON.stringify(me));
+                document.getElementById('sidebarTenantName').textContent = me.tenant?.name || 'My Business';
+                document.getElementById('sidebarTenantCode').textContent = me.tenant?.code || '';
+                document.getElementById('sidebarUserName').textContent = me.full_name || me.username;
+                document.getElementById('userInitial').textContent = (me.full_name || me.username || '?')[0].toUpperCase();
+                document.getElementById('sidebarUserRoles').textContent = me.roles?.length ? me.roles.join(', ') : 'No roles';
+                return me;
+            } catch(e) { return false; }
+        }
+
+        // ── State ────────────────────────────────────────────────────────────────
+        let allUsers   = [];   // cached user list
+        let allRoles   = [];   // cached roles list (for dropdown)
+        let userRoles  = {};   // map userId -> [roleObjects]
+        let editingUser = null; // null = creating, object = editing
+        let cachedBranches = [];
+        let currentMe = null;
+        let userPermissionStates = [];
+
+        function canAdministerPermissions() {
+            const allowed = new Set(['admin', 'owner', 'superadmin', 'super admin']);
+            return !!currentMe && (currentMe.roles || []).some(r => allowed.has(String(r).trim().toLowerCase()));
+        }
+
+        async function loadCachedBranches() {
+            if (cachedBranches.length) return cachedBranches;
+            cachedBranches = await apiFetch(`/branches/`);
+            return cachedBranches;
+        }
+
+        function toggleBranchPicker(checked) {
+            document.getElementById('branchPickerSection').classList.toggle('hidden', checked);
+        }
+
+        async function renderBranchPicker(selectedIds = []) {
+            const branches = await loadCachedBranches();
+            document.getElementById('branchCheckboxList').innerHTML = branches.map(b => `
+                <label class="flex items-center gap-2 py-0.5 cursor-pointer">
+                    <input type="checkbox" value="${b.id}" ${selectedIds.includes(b.id) ? 'checked' : ''}
+                           class="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 branch-cb">
+                    <span class="text-sm text-slate-700">${escapeHTML(b.name)}</span>
+                    <span class="text-xs text-slate-400">${escapeHTML(b.branch_code)}</span>
+                </label>`).join('');
+        }
+
+        function getSelectedBranchIds() {
+            return [...document.querySelectorAll('.branch-cb:checked')].map(cb => cb.value);
+        }
+
+        // ── Page init ────────────────────────────────────────────────────────────
+        async function init() {
+            currentMe = await initSidebar();
+            await loadPageData();
+        }
+
+        async function loadPageData() {
+            showSpinner(true);
+            hideError();
+            try {
+                // Load users and roles in parallel
+                const [users, roles] = await Promise.all([
+                    apiFetch('/users/'),
+                    apiFetch('/roles/')
+                ]);
+                allUsers = users;
+                allRoles = roles;
+                // Must re-apply the active search/status filter, not just
+                // render everything — otherwise the filter controls keep
+                // showing a selected value while the table silently reverts
+                // to listing every user, which no longer matches what the
+                // dropdown claims to be showing.
+                applyFilters();
+            } catch(e) {
+                showError(e.message);
+            } finally {
+                showSpinner(false);
+            }
+        }
+
+        // ── Filter users ─────────────────────────────────────────────────────────
+        function applyFilters() {
+            const q      = (document.getElementById('searchInput').value || '').toLowerCase();
+            const status = document.getElementById('filterStatus').value;
+
+            const filtered = allUsers.filter(u => {
+                const matchQ = !q || [u.full_name, u.username, u.email].some(f => f && f.toLowerCase().includes(q));
+                const matchS = !status || (status === 'active' ? u.is_active : !u.is_active);
+                return matchQ && matchS;
+            });
+
+            renderTable(filtered);
+        }
+
+        // ── Render table ─────────────────────────────────────────────────────────
+        function renderTable(users) {
+            if (users === undefined) users = allUsers;
+            const tbody = document.getElementById('usersTableBody');
+            const empty = document.getElementById('emptyState');
+            const card  = document.getElementById('tableCard');
+            const countEl = document.getElementById('filterCount');
+            card.classList.remove('hidden');
+
+            if (countEl) {
+                countEl.textContent = users.length !== allUsers.length
+                    ? `${users.length} of ${allUsers.length} users`
+                    : `${allUsers.length} users`;
+            }
+
+            if (!users.length) {
+                tbody.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
+            }
+            empty.classList.add('hidden');
+
+            tbody.innerHTML = users.map(u => {
+                // Status badge
+                const badge = u.is_active
+                    ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Active</span>`
+                    : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Inactive</span>`;
+
+                // Role chips (populated lazily when drawer opens; show placeholder until loaded)
+                const rolesKey = u.id;
+                const rolesHtml = userRoles[rolesKey]
+                    ? (userRoles[rolesKey].length
+                        ? userRoles[rolesKey].map(r =>
+                            `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">${escHtml(r.name)}</span>`
+                          ).join(' ')
+                        : '<span class="text-slate-400">—</span>')
+                    : `<span class="text-slate-400 text-xs italic">—</span>`;
+
+                // Toggle button label
+                const toggleLabel = u.is_active ? 'Deactivate' : 'Activate';
+                const toggleClass = u.is_active
+                    ? 'text-amber-600 hover:text-amber-800'
+                    : 'text-green-600 hover:text-green-800';
+
+                const branchBadge = u.all_branches === false
+                    ? `<span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">Specific branches</span>`
+                    : `<span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full font-medium">All branches</span>`;
+
+                const pinBadge = u.has_pin
+                    ? `<span class="ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">PIN set</span>`
+                    : '';
+
+                return `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-4 py-3 text-sm text-slate-900 font-medium">${escHtml(u.full_name || '—')}${pinBadge}</td>
+                    <td class="px-4 py-3 text-sm text-slate-700">${escHtml(u.username)}</td>
+                    <td class="px-4 py-3 text-sm text-slate-500">${escHtml(u.email || '—')}</td>
+                    <td class="px-4 py-3">${badge}</td>
+                    <td class="px-4 py-3">${branchBadge}</td>
+                    <td class="px-4 py-3"><div class="flex flex-wrap gap-1">${rolesHtml}</div></td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-3">
+                            <button onclick='openDrawer(${JSON.stringify(u)})'
+                                    class="text-indigo-600 hover:text-indigo-800 text-sm font-medium transition-colors">
+                                Edit
+                            </button>
+                            <button onclick="toggleActive('${escapeJSAttribute(u.id)}', ${escapeJSAttribute(u.is_active)})"
+                                    class="${toggleClass} text-sm font-medium transition-colors">
+                                ${toggleLabel}
+                            </button>
+                            <button onclick="promptResetPassword('${escapeJSAttribute(u.id)}', '${escapeJSAttribute(u.username)}')"
+                                    class="text-slate-500 hover:text-slate-700 text-sm font-medium transition-colors">
+                                Reset Pwd
+                            </button>
+                            <button onclick="promptSetPin('${escapeJSAttribute(u.id)}', '${escapeJSAttribute(u.username)}')"
+                                    class="text-slate-500 hover:text-slate-700 text-sm font-medium transition-colors">
+                                Set PIN
+                            </button>
+                            <button onclick="deleteUser('${escapeJSAttribute(u.id)}', '${escapeJSAttribute(u.username)}')"
+                                    class="text-red-600 hover:text-red-800 text-sm font-medium transition-colors">
+                                Delete
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        // ── Escape HTML helper ───────────────────────────────────────────────────
+        function escHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        // ── Drawer open/close ────────────────────────────────────────────────────
+        async function openDrawer(user) {
+            editingUser = user;
+            clearDrawerError();
+
+            // Toggle form fields for create vs edit
+            const isEdit = !!user;
+            document.getElementById('drawerTitle').textContent = isEdit ? 'Edit User' : 'Add User';
+            document.getElementById('passwordGroup').style.display = isEdit ? 'none' : 'block';
+            document.getElementById('pinGroup').style.display = isEdit ? 'none' : 'block';
+            document.getElementById('employeeGroup').style.display = isEdit ? 'none' : 'block';
+            document.getElementById('fullNameGroup').style.display = isEdit ? 'block' : 'none';
+            document.getElementById('usernameReadonlyNote').classList.toggle('hidden', !isEdit);
+
+            // Role section: only show when editing existing user
+            document.getElementById('roleSection').style.display = isEdit ? 'block' : 'none';
+            document.getElementById('permissionSection').classList.toggle('hidden', !isEdit);
+
+            if (isEdit) {
+                // Pre-fill form
+                document.getElementById('editingUserId').value = user.id;
+                document.getElementById('fieldFullName').value  = user.full_name || '';
+                document.getElementById('fieldUsername').value  = user.username || '';
+                document.getElementById('fieldEmail').value     = user.email || '';
+                document.getElementById('fieldIsActive').checked = !!user.is_active;
+                document.getElementById('fieldMaxDiscountPercent').value =
+                    user.max_discount_percent === null || user.max_discount_percent === undefined
+                        ? '' : user.max_discount_percent;
+                // Load roles for this user
+                await loadUserRolesForDrawer(user.id);
+                await loadUserPermissions(user.id);
+                // Load branch assignment
+                try {
+                    const assignment = await apiFetch(`/users/${user.id}/branches`);
+                    document.getElementById('chkAllBranches').checked = assignment.all_branches;
+                    toggleBranchPicker(assignment.all_branches);
+                    await renderBranchPicker(assignment.branches.map(b => b.id));
+                } catch(e) {
+                    document.getElementById('chkAllBranches').checked = false;
+                    toggleBranchPicker(false);
+                    await renderBranchPicker([]);
+                }
+            } else {
+                // Reset form
+                document.getElementById('editingUserId').value = '';
+                document.getElementById('fieldFullName').value  = '';
+                document.getElementById('fieldUsername').value  = '';
+                document.getElementById('fieldEmail').value     = '';
+                document.getElementById('fieldPassword').value  = '';
+                document.getElementById('fieldPin').value       = '';
+                document.getElementById('fieldIsActive').checked = true;
+                document.getElementById('fieldMaxDiscountPercent').value = '';
+                await loadUnlinkedEmployeesForDrawer();
+                // Default: all branches — a new user with no branch assignment
+                // and this left unchecked is invisible on every POS staff
+                // picker (silently, with no error), which is easy to miss.
+                // Defaulting to "all branches" means a new user is usable
+                // immediately; the admin can still restrict it explicitly.
+                document.getElementById('chkAllBranches').checked = true;
+                toggleBranchPicker(true);
+                await renderBranchPicker([]);
+            }
+
+            // Populate roles dropdown
+            populateRoleDropdown();
+
+            // Show drawer
+            document.getElementById('drawerOverlay').classList.remove('hidden');
+            document.getElementById('drawer').classList.remove('translate-x-full');
+        }
+
+        // Populates the Employee picker with active employees who aren't
+        // already a User — the pool a new login can be promoted from.
+        async function loadUnlinkedEmployeesForDrawer() {
+            const sel = document.getElementById('fieldEmployeeId');
+            const emptyNote = document.getElementById('employeeEmptyNote');
+            sel.innerHTML = '<option value="">Loading…</option>';
+            try {
+                const employees = await apiFetch('/employees?status=active&unlinked=true&limit=500');
+                sel.innerHTML = '<option value="">Select an active employee…</option>' +
+                    employees.map(e => `<option value="${escHtml(e.id)}">${escHtml(e.full_name)}${e.designation ? ' — ' + escHtml(e.designation) : ''}</option>`).join('');
+                emptyNote.classList.toggle('hidden', employees.length > 0);
+            } catch (e) {
+                sel.innerHTML = '<option value="">Select an active employee…</option>';
+                showDrawerError(e.message);
+            }
+        }
+
+        async function loadUserPermissions(userId) {
+            const container = document.getElementById('userPermissionsContainer');
+            container.innerHTML = '<p class="text-xs text-slate-400">Loading permissions…</p>';
+            try {
+                userPermissionStates = await apiFetch(`/users/${userId}/permissions`);
+                renderUserPermissions();
+            } catch (e) {
+                userPermissionStates = [];
+                container.innerHTML = `<p class="text-xs text-red-500">${escHtml(e.message)}</p>`;
+            }
+        }
+
+        function renderUserPermissions() {
+            const container = document.getElementById('userPermissionsContainer');
+            const editable = canAdministerPermissions();
+            const fullAccess = userPermissionStates.length > 0 && userPermissionStates.every(p => p.inherited && p.checked);
+            const grouped = {};
+            userPermissionStates.forEach(p => (grouped[p.module || 'other'] ||= []).push(p));
+            container.innerHTML = Object.entries(grouped).map(([module, permissions]) => `
+                <section>
+                    <h4 class="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">${escHtml(module)}</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        ${permissions.map(p => `
+                            <label class="flex items-start gap-2 rounded-lg border border-slate-100 p-2 ${editable && !fullAccess ? 'cursor-pointer hover:bg-slate-50' : 'bg-slate-50'}">
+                                <input type="checkbox" class="user-permission-cb mt-0.5 w-4 h-4 rounded border-slate-300 text-indigo-600"
+                                       value="${p.id}" ${p.checked ? 'checked' : ''} ${editable && !fullAccess ? '' : 'disabled'}>
+                                <span class="min-w-0">
+                                    <span class="block text-xs font-medium text-slate-700">${escHtml(p.name)}</span>
+                                    <span class="block text-[11px] font-mono text-slate-400">${escHtml(p.code)}</span>
+                                </span>
+                            </label>`).join('')}
+                    </div>
+                </section>`).join('') || '<p class="text-xs text-slate-400">No active permissions are configured.</p>';
+
+            const button = document.getElementById('savePermissionsBtn');
+            button.classList.toggle('hidden', !editable || fullAccess);
+            document.getElementById('permissionHelp').textContent = fullAccess
+                ? 'This user has full access through an Admin, Owner, or Manager role. Change the role before applying individual permissions.'
+                : editable
+                    ? 'Role permissions are pre-checked. Changes here apply only to this user and do not modify shared roles.'
+                    : 'Permissions are read-only. Only a tenant Super Admin or Admin may change them.';
+        }
+
+        async function saveUserPermissions() {
+            if (!editingUser || !canAdministerPermissions()) return;
+            const button = document.getElementById('savePermissionsBtn');
+            const permission_ids = [...document.querySelectorAll('.user-permission-cb:checked')].map(cb => cb.value);
+            button.disabled = true;
+            try {
+                userPermissionStates = await apiFetch(`/users/${editingUser.id}/permissions`, {
+                    method: 'PUT', body: JSON.stringify({ permission_ids })
+                });
+                renderUserPermissions();
+                showToast('User permissions updated.');
+            } catch (e) {
+                showToast(e.message, 'error');
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        function closeDrawer() {
+            document.getElementById('drawerOverlay').classList.add('hidden');
+            document.getElementById('drawer').classList.add('translate-x-full');
+            editingUser = null;
+        }
+
+        // ── Load user roles for drawer ───────────────────────────────────────────
+        async function loadUserRolesForDrawer(userId) {
+            try {
+                const roles = await apiFetch(`/users/${userId}/roles`);
+                userRoles[userId] = roles;
+                renderCurrentRoleChips(userId);
+            } catch(e) {
+                userRoles[userId] = [];
+                renderCurrentRoleChips(userId);
+            }
+        }
+
+        // ── Render removable role chips inside drawer ────────────────────────────
+        function renderCurrentRoleChips(userId) {
+            const container = document.getElementById('currentRolesChips');
+            const noMsg     = document.getElementById('noRolesMsg');
+            const roles     = userRoles[userId] || [];
+
+            // Remove existing chips (keep noRolesMsg)
+            Array.from(container.querySelectorAll('.role-chip')).forEach(c => c.remove());
+
+            if (!roles.length) {
+                noMsg.classList.remove('hidden');
+                return;
+            }
+            noMsg.classList.add('hidden');
+            roles.forEach(r => {
+                const chip = document.createElement('span');
+                chip.className = 'role-chip inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700';
+                chip.innerHTML = `${escHtml(r.name)}
+                    ${canAdministerPermissions() ? `<button onclick="removeRole('${escapeJSAttribute(userId)}','${escapeJSAttribute(r.id)}')" class="ml-0.5 text-indigo-400 hover:text-indigo-700 transition-colors" title="Remove role">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>` : ''}`;
+                container.appendChild(chip);
+            });
+        }
+
+        // ── Populate roles dropdown ──────────────────────────────────────────────
+        function populateRoleDropdown() {
+            const select = document.getElementById('roleDropdown');
+            select.innerHTML = '<option value="">Select a role…</option>';
+            allRoles.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r.id;
+                opt.textContent = r.name;
+                select.appendChild(opt);
+            });
+            select.disabled = !canAdministerPermissions();
+            document.getElementById('assignRoleBtn').disabled = !canAdministerPermissions();
+            document.getElementById('assignRoleBtn').classList.toggle('opacity-50', !canAdministerPermissions());
+        }
+
+        // ── Assign role ──────────────────────────────────────────────────────────
+        async function assignRole() {
+            if (!editingUser || !canAdministerPermissions()) return;
+            const select = document.getElementById('roleDropdown');
+            const roleId = select.value;
+            if (!roleId) { showToast('Select a role first.', 'error'); return; }
+
+            // Prevent duplicates
+            const current = userRoles[editingUser.id] || [];
+            if (current.some(r => r.id === roleId)) {
+                showToast('Role already assigned.', 'error');
+                return;
+            }
+
+            try {
+                await apiFetch(`/users/${editingUser.id}/roles`, {
+                    method: 'POST',
+                    body: JSON.stringify({ role_id: roleId })
+                });
+                // Refresh user roles
+                await loadUserRolesForDrawer(editingUser.id);
+                await loadUserPermissions(editingUser.id);
+                select.value = '';
+                showToast('Role assigned.');
+                // Refresh table row roles
+                renderTable();
+            } catch(e) {
+                showToast(e.message, 'error');
+            }
+        }
+
+        // ── Remove role ──────────────────────────────────────────────────────────
+        async function removeRole(userId, roleId) {
+            if (!canAdministerPermissions()) return;
+            try {
+                await apiFetch(`/users/${userId}/roles/${roleId}`, { method: 'DELETE' });
+                await loadUserRolesForDrawer(userId);
+                await loadUserPermissions(userId);
+                showToast('Role removed.');
+                renderTable();
+            } catch(e) {
+                showToast(e.message, 'error');
+            }
+        }
+
+        // ── Save user (create or update) ─────────────────────────────────────────
+        async function saveUser() {
+            clearDrawerError();
+            const btn = document.getElementById('saveUserBtn');
+            const isEdit = !!editingUser;
+
+            // Gather field values
+            const full_name  = document.getElementById('fieldFullName').value.trim();
+            const employee_id = document.getElementById('fieldEmployeeId').value;
+            const username  = document.getElementById('fieldUsername').value.trim();
+            const email     = document.getElementById('fieldEmail').value.trim() || null;
+            const is_active = document.getElementById('fieldIsActive').checked;
+            const maxDiscountRaw = document.getElementById('fieldMaxDiscountPercent').value.trim();
+            const max_discount_percent = maxDiscountRaw === '' ? null : Number(maxDiscountRaw);
+            const password  = isEdit ? undefined : document.getElementById('fieldPassword').value;
+            const pin       = isEdit ? undefined : document.getElementById('fieldPin').value.trim();
+
+            // Validate
+            if (isEdit && !full_name) { showDrawerError('Full Name is required.'); return; }
+            if (!isEdit && !employee_id) { showDrawerError('Select the employee to promote to a user.'); return; }
+            if (!username)  { showDrawerError('Username is required.'); return; }
+            if (!isEdit && !password) { showDrawerError('Password is required.'); return; }
+            if (pin && !/^\d{4,6}$/.test(pin)) { showDrawerError('PIN must be 4–6 digits.'); return; }
+            if (max_discount_percent !== null && (Number.isNaN(max_discount_percent) || max_discount_percent < 0 || max_discount_percent > 100)) {
+                showDrawerError('Max discount % must be between 0 and 100.'); return;
+            }
+
+            const payload = isEdit
+                ? { full_name, username, email, is_active, max_discount_percent }
+                : { employee_id, username, email, is_active, max_discount_percent, password, ...(pin ? { pin } : {}) };
+
+            btn.disabled = true;
+            btn.textContent = 'Saving…';
+            try {
+                let savedId;
+                if (isEdit) {
+                    await apiFetch(`/users/${editingUser.id}`, {
+                        method: 'PATCH',
+                        body: JSON.stringify(payload)
+                    });
+                    savedId = editingUser.id;
+                    showToast('User updated.');
+                } else {
+                    const created = await apiFetch('/users/', {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                    savedId = created.id;
+                    showToast('User created.');
+                }
+                // Save branch assignment
+                await apiFetch(`/users/${savedId}/branches`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        all_branches: document.getElementById('chkAllBranches').checked,
+                        branch_ids: getSelectedBranchIds()
+                    })
+                });
+                closeDrawer();
+                await loadPageData();
+            } catch(e) {
+                showDrawerError(e.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Save';
+            }
+        }
+
+        // ── Toggle active/inactive ───────────────────────────────────────────────
+        async function toggleActive(userId, currentlyActive) {
+            const action = currentlyActive ? 'deactivate' : 'activate';
+            try {
+                await apiFetch(`/users/${userId}/${action}`, { method: 'POST' });
+                showToast(`User ${action}d.`);
+                await loadPageData();
+                notifyIfFilteredOut(userId);
+            } catch(e) {
+                showToast(e.message, 'error');
+            }
+        }
+
+        // ── Delete user ──────────────────────────────────────────────────────────
+        async function deleteUser(userId, username) {
+            if (!window.confirm(`Are you sure you want to delete "${username}"? This cannot be undone.`)) return;
+            try {
+                await apiFetch(`/users/${userId}`, { method: 'DELETE' });
+                showToast('User deleted.');
+                await loadPageData();
+            } catch(e) {
+                showToast(e.message, 'error');
+            }
+        }
+
+        // Activating/deactivating commonly moves a user out of the active
+        // Status filter now that loadPageData() correctly re-applies it —
+        // say so, or the status change looks like it deleted the user.
+        function notifyIfFilteredOut(userId) {
+            const status = document.getElementById('filterStatus').value;
+            if (!status) return;
+            const stillThere = allUsers.some(u => u.id === userId);
+            if (!stillThere) return;
+            const q = (document.getElementById('searchInput').value || '').toLowerCase();
+            const user = allUsers.find(u => u.id === userId);
+            const matchS = status === 'active' ? user.is_active : !user.is_active;
+            if (!matchS) {
+                const filterLabel = document.getElementById('filterStatus').selectedOptions[0]?.text || status;
+                showToast(`This user no longer matches "${filterLabel}", so they're hidden from this view.`);
+            }
+        }
+
+        // ── UI helpers ───────────────────────────────────────────────────────────
+        function showSpinner(visible) {
+            document.getElementById('loadingSpinner').classList.toggle('hidden', !visible);
+        }
+        function showError(msg) {
+            const el = document.getElementById('errorBanner');
+            el.textContent = msg;
+            el.classList.remove('hidden');
+        }
+        function hideError() {
+            document.getElementById('errorBanner').classList.add('hidden');
+        }
+        function showDrawerError(msg) {
+            const el = document.getElementById('drawerError');
+            el.textContent = msg;
+            el.classList.remove('hidden');
+        }
+        function clearDrawerError() {
+            document.getElementById('drawerError').classList.add('hidden');
+        }
+
+        // ── Reset Password ───────────────────────────────────────────────────────
+        let resetTargetId = null;
+
+        function promptResetPassword(userId, username) {
+            resetTargetId = userId;
+            document.getElementById('resetPwdUsername').textContent = username;
+            document.getElementById('resetPwdInput').value = '';
+            document.getElementById('resetPwdError').classList.add('hidden');
+            document.getElementById('resetPwdModal').classList.remove('hidden');
+        }
+
+        function closeResetPwdModal() {
+            resetTargetId = null;
+            document.getElementById('resetPwdModal').classList.add('hidden');
+        }
+
+        async function confirmResetPassword() {
+            const newPassword = document.getElementById('resetPwdInput').value;
+            if (!newPassword || newPassword.length < 6) {
+                document.getElementById('resetPwdError').textContent = 'Password must be at least 6 characters.';
+                document.getElementById('resetPwdError').classList.remove('hidden');
+                return;
+            }
+            const btn = document.getElementById('resetPwdBtn');
+            btn.disabled = true;
+            btn.textContent = 'Saving…';
+            try {
+                await apiFetch(`/users/${resetTargetId}/reset-password`, {
+                    method: 'POST',
+                    body: JSON.stringify(newPassword),
+                });
+                showToast('Password reset successfully.');
+                closeResetPwdModal();
+            } catch(e) {
+                document.getElementById('resetPwdError').textContent = e.message;
+                document.getElementById('resetPwdError').classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Reset Password';
+            }
+        }
+
+        // ── Set POS PIN ─────────────────────────────────────────────────────────
+        let setPinTargetId = null;
+
+        function promptSetPin(userId, username) {
+            setPinTargetId = userId;
+            document.getElementById('setPinUsername').textContent = username;
+            document.getElementById('setPinInput').value = '';
+            document.getElementById('setPinError').classList.add('hidden');
+            document.getElementById('setPinModal').classList.remove('hidden');
+        }
+
+        function closeSetPinModal() {
+            setPinTargetId = null;
+            document.getElementById('setPinModal').classList.add('hidden');
+        }
+
+        async function confirmSetPin() {
+            const pin = document.getElementById('setPinInput').value.trim();
+            const errEl = document.getElementById('setPinError');
+            if (!/^\d{4,6}$/.test(pin)) {
+                errEl.textContent = 'PIN must be 4–6 digits.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+            const btn = document.getElementById('setPinBtn');
+            btn.disabled = true;
+            btn.textContent = 'Saving…';
+            try {
+                await apiFetch(`/users/${setPinTargetId}/set-pin`, {
+                    method: 'POST',
+                    body: JSON.stringify({ pin }),
+                });
+                showToast('PIN updated.');
+                closeSetPinModal();
+                await loadPageData();
+            } catch(e) {
+                errEl.textContent = e.message;
+                errEl.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Set PIN';
+            }
+        }
+
+        // ── Bootstrap ────────────────────────────────────────────────────────────
+        init();
+    </script>
+
+    <!-- Set PIN Modal -->
+    <div id="setPinModal" class="hidden fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-xl w-full max-w-sm p-6">
+            <h3 class="text-base font-semibold text-slate-900 mb-1">Set POS PIN</h3>
+            <p class="text-sm text-slate-500 mb-4">Quick sign-in PIN for <strong id="setPinUsername" class="text-slate-900"></strong> on the POS tablet.</p>
+            <div id="setPinError" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm mb-3"></div>
+            <input id="setPinInput" type="text" inputmode="numeric" maxlength="6" placeholder="4–6 digits"
+                   class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <div class="flex justify-end gap-3">
+                <button onclick="closeSetPinModal()"
+                        class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors">
+                    Cancel
+                </button>
+                <button id="setPinBtn" onclick="confirmSetPin()"
+                        class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition-colors">
+                    Set PIN
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Password Modal -->
+    <div id="resetPwdModal" class="hidden fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-xl w-full max-w-sm p-6">
+            <h3 class="text-base font-semibold text-slate-900 mb-1">Reset Password</h3>
+            <p class="text-sm text-slate-500 mb-4">Set a new password for <strong id="resetPwdUsername" class="text-slate-900"></strong>.</p>
+            <div id="resetPwdError" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm mb-3"></div>
+            <input id="resetPwdInput" type="password" placeholder="New password (min 6 chars)"
+                   class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <div class="flex justify-end gap-3">
+                <button onclick="closeResetPwdModal()"
+                        class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors">
+                    Cancel
+                </button>
+                <button id="resetPwdBtn" onclick="confirmResetPassword()"
+                        class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition-colors">
+                    Reset Password
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

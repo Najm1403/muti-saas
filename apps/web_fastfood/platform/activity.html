@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <!--
+        Activity Logs — STORIXX
+        ============================================
+        Cross-tenant audit log for platform admins.
+
+        API:
+          GET /api/platform/activity
+              ?tenant_id=  (optional UUID)
+              &action=     (optional: LOGIN | CREATE | UPDATE | DELETE | FAILED_LOGIN)
+              &skip=N
+              &limit=100   (max 500)
+
+        ActivityLogResponse fields:
+          id, tenant_id, tenant_name, user_id, username,
+          action, module, entity_type, entity_id,
+          description, ip_address, created_at
+    -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Activity Logs - STORIXX</title>
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+    <style>
+        .rounded-card { border-radius: 10px; }
+        body { overflow: hidden; }
+    </style>
+</head>
+
+<body class="flex h-screen bg-slate-50 text-slate-900">
+
+    <!-- ================================================================
+         SIDEBAR
+         ================================================================ -->
+    <aside class="w-64 flex-shrink-0 h-screen bg-slate-900 flex flex-col overflow-y-auto">
+        <div class="h-16 flex items-center px-5 border-b border-slate-800 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <img src="/assets/logo-mark.png?v=3" alt="STORIXX" class="w-8 h-8 rounded-[6px] flex-shrink-0 object-contain" />
+                <div>
+                    <p class="text-white text-sm font-semibold leading-none">STORIXX</p>
+                    <p class="text-slate-500 text-[11px] leading-none mt-0.5">SaaS Platform</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="flex-1 px-3 py-4 space-y-0.5">
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-1 pb-2">Overview</p>
+            <a href="/platform/dashboard.html" class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card text-slate-300 hover:bg-slate-800 hover:text-white border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                <span class="text-sm">Dashboard</span>
+            </a>
+            <a href="/platform/reports.html" class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card text-slate-300 hover:bg-slate-800 hover:text-white border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                <span class="text-sm">Reports</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Management</p>
+            <a href="/platform/tenants.html" class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card text-slate-300 hover:bg-slate-800 hover:text-white border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                <span class="text-sm">Tenants</span>
+            </a>
+            <a href="/platform/business-templates.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M20 7h-4V5a3 3 0 00-3-3h-2a3 3 0 00-3 3v2H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM10 5a1 1 0 011-1h2a1 1 0 011 1v2h-4V5z"/>
+                </svg>
+                <span class="text-sm">Business Templates</span>
+            </a>
+            <a href="/platform/config-reference.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s4.332.477 5.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                <span class="text-sm">Config Reference</span>
+            </a>
+            <a href="/platform/platform_users.html" class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card text-slate-300 hover:bg-slate-800 hover:text-white border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span class="text-sm">Platform Users</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Billing</p>
+            <a href="/platform/plans.html" class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card text-slate-300 hover:bg-slate-800 hover:text-white border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                <span class="text-sm">Plans</span>
+            </a>
+            <a href="/platform/subscriptions.html" class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card text-slate-300 hover:bg-slate-800 hover:text-white border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                <span class="text-sm">Subscriptions</span>
+            </a>
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Human Resources</p>
+            <a href="/platform/employees.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm">Employees</span>
+            </a>
+            <a href="/platform/salaries.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="text-sm">Salaries</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Monitoring</p>
+            <a href="/platform/sync-health.html" class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card text-slate-300 hover:bg-slate-800 hover:text-white border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
+                <span class="text-sm">Sync Health</span>
+            </a>
+            <!-- Activity Logs — ACTIVE -->
+            <a href="/platform/activity.html" class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card bg-slate-800 text-white font-medium border-l-[3px] border-blue-500">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                <span class="text-sm">Activity Logs</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">System</p>
+            <a href="/platform/settings.html" class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card text-slate-300 hover:bg-slate-800 hover:text-white border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span class="text-sm">Settings</span>
+            </a>
+        </nav>
+
+        <div class="px-3 py-4 border-t border-slate-800 flex-shrink-0">
+            <button onclick="logout()" class="w-full flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card text-slate-400 hover:bg-slate-800 hover:text-red-400 border-l-[3px] border-transparent transition-colors cursor-pointer">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                <span class="text-sm">Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ================================================================
+         MAIN
+         ================================================================ -->
+    <div class="flex-1 flex flex-col h-screen overflow-hidden">
+
+        <header class="h-16 flex-shrink-0 bg-white border-b border-slate-200 flex items-center justify-between px-6">
+            <div>
+                <h1 class="text-base font-semibold text-slate-900">Activity Logs</h1>
+                <p class="text-xs text-slate-400 mt-0.5">Cross-tenant audit trail — every significant action recorded.</p>
+            </div>
+            <button onclick="reload()"
+                    class="h-9 px-4 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700
+                           text-sm font-medium rounded-card transition-colors flex items-center gap-2 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Refresh
+            </button>
+        </header>
+
+        <main class="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-4">
+
+            <!-- Filters -->
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Search -->
+                <div class="relative flex-1 min-w-[200px] max-w-xs">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+                    </svg>
+                    <input id="searchInput" type="search" placeholder="Search description, user, module…"
+                           oninput="applyFilters()"
+                           class="w-full h-10 pl-9 pr-3 border border-slate-200 rounded-card text-sm
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                </div>
+
+                <!-- Action filter -->
+                <select id="actionFilter" onchange="fetchLogs(true)"
+                        class="h-10 pl-3 pr-8 border border-slate-200 rounded-card text-sm text-slate-700
+                               bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                    <option value="">All actions</option>
+                    <option value="LOGIN">Login</option>
+                    <option value="FAILED_LOGIN">Failed Login</option>
+                    <option value="CREATE">Create</option>
+                    <option value="UPDATE">Update</option>
+                    <option value="DELETE">Delete</option>
+                </select>
+
+                <!-- Tenant filter -->
+                <select id="tenantFilter" onchange="fetchLogs(true)"
+                        class="h-10 pl-3 pr-8 border border-slate-200 rounded-card text-sm text-slate-700
+                               bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                    <option value="">All tenants</option>
+                </select>
+
+                <span id="countLabel" class="ml-auto text-xs text-slate-400"></span>
+            </div>
+
+            <!-- Table card -->
+            <div class="bg-white border border-slate-200 rounded-card flex-1 flex flex-col min-h-0">
+                <div class="overflow-auto flex-1">
+                    <table class="w-full text-sm">
+                        <thead class="sticky top-0 z-10">
+                            <tr class="border-b border-slate-100 bg-slate-50">
+                                <th class="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide whitespace-nowrap">Time</th>
+                                <th class="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Action</th>
+                                <th class="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Module</th>
+                                <th class="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Tenant</th>
+                                <th class="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">User</th>
+                                <th class="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Description</th>
+                                <th class="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide whitespace-nowrap">IP Address</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logBody">
+                            <tr><td colspan="7" class="px-5 py-12 text-center text-sm text-slate-400">Loading…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Load more footer -->
+                <div id="loadMoreBar"
+                     class="hidden flex-shrink-0 px-5 py-3 border-t border-slate-100 flex items-center justify-between">
+                    <span id="loadMoreLabel" class="text-xs text-slate-400"></span>
+                    <button onclick="loadMore()"
+                            class="h-8 px-4 border border-slate-200 rounded-card text-xs text-slate-600
+                                   hover:bg-slate-50 transition-colors cursor-pointer">
+                        Load more
+                    </button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ================================================================
+         SCRIPT
+         ================================================================ -->
+    <script>
+        'use strict';
+
+        const PAGE_SIZE = 100;
+
+        let allLogs      = [];   // all fetched so far
+        let displayLogs  = [];   // after client-side search filter
+        let totalFetched = 0;
+        let hasMore      = false;
+
+        // ── Auth ─────────────────────────────────────────────────────────
+
+        function logout() {
+            localStorage.removeItem('platform_token');
+            window.location.href = '/platform/login.html';
+        }
+
+        async function apiFetch(path) {
+            const token = localStorage.getItem('platform_token');
+            if (!token) { logout(); return; }
+            const res = await fetch(path, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+            if (res.status === 401) { logout(); return; }
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.detail || `HTTP ${res.status}`);
+            }
+            return res.json();
+        }
+
+        // ── Helpers ───────────────────────────────────────────────────────
+
+        function esc(s) {
+            return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function fmtDatetime(iso) {
+            if (!iso) return '—';
+            const d = new Date(iso);
+            return d.toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })
+                + ' ' + d.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', hour12: true });
+        }
+
+        const ACTION_BADGE = {
+            'CREATE':       'bg-green-100 text-green-700',
+            'UPDATE':       'bg-blue-100 text-blue-700',
+            'DELETE':       'bg-red-100 text-red-700',
+            'LOGIN':        'bg-violet-100 text-violet-700',
+            'FAILED_LOGIN': 'bg-amber-100 text-amber-700',
+            'LOGOUT':       'bg-slate-100 text-slate-600',
+        };
+
+        function actionBadge(action) {
+            const cls = ACTION_BADGE[action] || 'bg-slate-100 text-slate-600';
+            return `<span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold ${cls}">${esc(action)}</span>`;
+        }
+
+        function moduleBadge(module) {
+            if (!module) return '—';
+            return `<span class="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600">${esc(module)}</span>`;
+        }
+
+        // ── Data fetching ─────────────────────────────────────────────────
+
+        function buildUrl(skip) {
+            const action   = document.getElementById('actionFilter').value;
+            const tenantId = document.getElementById('tenantFilter').value;
+            let url = `/api/platform/activity?skip=${skip}&limit=${PAGE_SIZE}`;
+            if (action)   url += `&action=${encodeURIComponent(action)}`;
+            if (tenantId) url += `&tenant_id=${encodeURIComponent(tenantId)}`;
+            return url;
+        }
+
+        async function fetchLogs(reset = false) {
+            if (reset) {
+                allLogs      = [];
+                totalFetched = 0;
+                hasMore      = false;
+                document.getElementById('logBody').innerHTML =
+                    `<tr><td colspan="7" class="px-5 py-12 text-center text-sm text-slate-400">Loading…</td></tr>`;
+                document.getElementById('loadMoreBar').classList.add('hidden');
+            }
+
+            try {
+                const data = await apiFetch(buildUrl(totalFetched));
+                const rows = data || [];
+                allLogs      = allLogs.concat(rows);
+                totalFetched += rows.length;
+                hasMore       = rows.length === PAGE_SIZE;
+                applyFilters();
+            } catch (e) {
+                document.getElementById('logBody').innerHTML =
+                    `<tr><td colspan="7" class="px-5 py-12 text-center text-sm text-red-500">
+                        Failed to load: ${esc(e.message)}
+                    </td></tr>`;
+            }
+        }
+
+        async function loadMore() {
+            await fetchLogs(false);
+        }
+
+        function reload() {
+            fetchLogs(true);
+        }
+
+        // ── Client-side search filter ─────────────────────────────────────
+
+        function applyFilters() {
+            const q = document.getElementById('searchInput').value.trim().toLowerCase();
+
+            displayLogs = q
+                ? allLogs.filter(l =>
+                    [l.description, l.username, l.module, l.tenant_name, l.ip_address]
+                        .filter(Boolean)
+                        .join(' ')
+                        .toLowerCase()
+                        .includes(q)
+                  )
+                : allLogs;
+
+            document.getElementById('countLabel').textContent =
+                displayLogs.length !== allLogs.length
+                    ? `${displayLogs.length} of ${allLogs.length} shown`
+                    : `${allLogs.length} entries`;
+
+            renderTable();
+
+            const bar   = document.getElementById('loadMoreBar');
+            const label = document.getElementById('loadMoreLabel');
+            if (hasMore && !q) {
+                bar.classList.remove('hidden');
+                label.textContent = `Showing ${allLogs.length} entries — more available`;
+            } else {
+                bar.classList.add('hidden');
+            }
+        }
+
+        // ── Render ────────────────────────────────────────────────────────
+
+        function renderTable() {
+            const tbody = document.getElementById('logBody');
+
+            if (!displayLogs.length) {
+                tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-12 text-center text-sm text-slate-400">No log entries found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = displayLogs.map(l => `
+                <tr class="border-b border-slate-50 hover:bg-slate-50/60 transition-colors">
+                    <td class="px-5 py-3 text-xs text-slate-400 whitespace-nowrap">${fmtDatetime(l.created_at)}</td>
+                    <td class="px-5 py-3">${actionBadge(l.action)}</td>
+                    <td class="px-5 py-3">${moduleBadge(l.module)}</td>
+                    <td class="px-5 py-3">
+                        ${l.tenant_name
+                            ? `<span class="text-sm text-slate-800">${esc(l.tenant_name)}</span>`
+                            : '<span class="text-slate-400 text-xs">—</span>'}
+                    </td>
+                    <td class="px-5 py-3 text-sm text-slate-700 font-mono text-xs">${esc(l.username ?? '—')}</td>
+                    <td class="px-5 py-3 text-sm text-slate-600 max-w-[320px] truncate" title="${esc(l.description ?? '')}">${esc(l.description ?? '—')}</td>
+                    <td class="px-5 py-3 text-xs text-slate-400 font-mono">${esc(l.ip_address ?? '—')}</td>
+                </tr>`).join('');
+        }
+
+        // ── Init ─────────────────────────────────────────────────────────
+
+        async function init() {
+            // Load tenants for filter dropdown
+            try {
+                const tenants = await apiFetch('/api/platform/tenants?limit=500') || [];
+                const sel = document.getElementById('tenantFilter');
+                tenants.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t.id;
+                    opt.textContent = `${t.name} (${t.tenant_code})`;
+                    sel.appendChild(opt);
+                });
+            } catch (_) { /* non-fatal */ }
+
+            fetchLogs(true);
+        }
+
+        init();
+    </script>
+
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

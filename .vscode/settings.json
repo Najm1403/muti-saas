@@ -1,0 +1,18 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/apps/backend_fastfood/.venv/Scripts/python.exe",
+  "python.analysis.extraPaths": ["${workspaceFolder}/apps/backend_fastfood"],
+  "python.terminal.activateEnvironment": true,
+
+  // The backend loads apps/backend_fastfood/.env itself via pydantic-settings,
+  // so VS Code does not need to manage or inject it. Empty value silences the
+  // "environment file is configured but terminal injection is disabled" notice.
+  "python.envFile": "",
+
+  // Open http://localhost:8000 links in the OS default browser (Chrome),
+  // not VS Code's built-in Simple Browser tab.
+  "workbench.externalUriOpeners": {
+    "localhost:8000": "default",
+    "127.0.0.1:8000": "default"
+  },
+  "cmake.sourceDirectory": "D:/muti-saas/apps/flutter_app_fastfood/windows"
+}

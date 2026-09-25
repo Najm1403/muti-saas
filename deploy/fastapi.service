@@ -1,0 +1,25 @@
+[Unit]
+Description=Multi-SaaS FastFood — FastAPI backend (uvicorn)
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/multi-saas/apps/backend_fastfood
+EnvironmentFile=/var/www/multi-saas/apps/backend_fastfood/.env
+ExecStartPre=/var/www/multi-saas/apps/backend_fastfood/.venv/bin/python /var/www/multi-saas/apps/backend_fastfood/scripts/prepare_database.py
+# On Linux uvicorn runs directly — run.py is only a Windows event-loop shim.
+ExecStart=/var/www/multi-saas/apps/backend_fastfood/.venv/bin/uvicorn app.main:app \
+    --host 127.0.0.1 --port 8000 --workers 3 --proxy-headers --forwarded-allow-ips='127.0.0.1'
+Restart=on-failure
+RestartSec=3
+# hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=/var/www/multi-saas/apps/backend_fastfood/media
+
+[Install]
+WantedBy=multi-user.target

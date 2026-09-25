@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Menu - Tenant Admin</title>
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+</head>
+<body class="bg-slate-50 min-h-screen flex">
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     SIDEBAR
+════════════════════════════════════════════════════════════════════════ -->
+<aside class="w-64 flex-shrink-0 h-screen bg-white border-r border-slate-200 flex flex-col overflow-y-auto fixed left-0 top-0 z-30">
+
+    <!-- Brand / Tenant -->
+    <div class="h-16 flex items-center px-5 border-b border-slate-200 flex-shrink-0">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span class="text-white text-sm font-bold select-none">T</span>
+            </div>
+            <div>
+                <p class="text-slate-900 text-sm font-semibold leading-none" id="sidebarTenantName">Loading…</p>
+                <p class="text-indigo-600 text-[11px] leading-none mt-0.5 font-medium" id="sidebarTenantCode">—</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nav -->
+    <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+
+        <!-- Overview -->
+        <a href="/tenant/dashboard.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            Overview
+        </a>
+
+        <!-- Sales -->
+        <a href="/tenant/sales.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+            Sales
+        </a>
+
+        <!-- Reports -->
+        <a href="/tenant/reports.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            Reports
+        </a>
+
+        <a href="/tenant/shifts.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Cash Shortages
+        </a>
+
+        <!-- Menu — ACTIVE -->
+        <a href="/tenant/menu.html" class="bg-indigo-50 text-indigo-700 font-medium rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+            Menu
+        </a>
+
+
+        <a href="/tenant/variant-options.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+            Variant Options
+        </a>
+
+        <a href="/tenant/addon-groups.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+            Add-on Groups
+        </a>
+
+        <!-- Promotions -->
+        <a href="/tenant/promotions.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg>
+            Promotions
+        </a>
+
+        <!-- Deals -->
+        <a href="/tenant/deals.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+            Deals
+        </a>
+
+        <!-- Branches -->
+        <a href="/tenant/branches.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            Branches
+        </a>
+
+        <!-- Devices -->
+        <a href="/tenant/preparation-stations.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z"/></svg>
+            Kitchen Stations
+        </a>
+
+        <a href="/tenant/devices.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+            Devices
+        </a>
+
+        <!-- Users -->
+        <a href="/tenant/users.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+            Users
+        </a>
+
+        <!-- Roles -->
+        <a href="/tenant/roles.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            Roles
+        </a>
+
+        <!-- Activity -->
+        <a href="/tenant/activity.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Activity
+        </a>
+
+        <!-- Inventory -->
+            <a href="/tenant/expenses.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-6 4h6m-6 4h4M5 3h14a2 2 0 012 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 012-2z"/></svg>
+                Expenses
+            </a>
+            <a href="/tenant/employees.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+                Employees
+            </a>
+            <a href="/tenant/salaries.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Salaries
+            </a>
+        <a href="/tenant/inventory.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            Inventory
+        </a>
+
+        <!-- Subscription -->
+        <a href="/tenant/subscription.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            Subscription
+        </a>
+
+        <!-- Settings -->
+        <a href="/tenant/settings.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Settings
+        </a>
+
+    </nav>
+
+    <!-- User footer -->
+    <div class="border-t border-slate-200 p-4 flex-shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                <span class="text-indigo-700 text-sm font-semibold" id="userInitial">?</span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-slate-900 truncate" id="sidebarUserName">—</p>
+                <p class="text-xs text-slate-500 truncate" id="sidebarUserRoles">—</p>
+            </div>
+            <button onclick="logout()" title="Logout" class="text-slate-400 hover:text-slate-600 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            </button>
+        </div>
+    </div>
+</aside>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════════════════════════════════════ -->
+<main class="ml-64 flex-1 min-h-screen overflow-y-auto flex flex-col">
+
+    <!-- Page header -->
+    <div class="h-16 flex items-center px-6 bg-white border-b border-slate-200 flex-shrink-0 gap-3">
+        <h1 class="text-slate-900 text-lg font-semibold">Menu</h1>
+        <span id="restaurantBadge" class="hidden text-xs text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full font-medium"></span>
+        <div id="pageSpinner" class="ml-auto">
+            <svg class="w-5 h-5 animate-spin text-indigo-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+        </div>
+    </div>
+
+    <!-- Split panel body -->
+    <div class="flex flex-1 overflow-hidden">
+
+        <!-- ── LEFT PANEL: Categories ── -->
+        <div class="w-72 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col overflow-hidden">
+
+            <!-- Category panel header -->
+            <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200 flex-shrink-0">
+                <span class="text-sm font-semibold text-slate-700">Categories</span>
+                <button id="btnShowCatForm" onclick="toggleCatForm()" title="Add category"
+                    class="w-7 h-7 flex items-center justify-center rounded-lg text-indigo-600 hover:bg-indigo-50 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                </button>
+            </div>
+
+            <!-- Inline Create Category Form -->
+            <div id="catCreateForm" class="hidden border-b border-slate-200 bg-slate-50 p-3 flex-shrink-0">
+                <p class="text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">New Category</p>
+                <input id="catName" type="text" placeholder="Name *" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-2" />
+                <input id="catDesc" type="text" placeholder="Description (optional)" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-2" />
+                <label class="block text-[11px] font-medium text-slate-500 mb-1">Sort position — order in the list. <b>1</b> = first, <b>2</b> = second, and so on. <b>0 = unpositioned</b> (no fixed place; falls back to creation order). Leave blank to add it last. Each category must have a different number.</label>
+                <input id="catOrder" type="number" placeholder="e.g. 1, 2, 3 …" min="0"
+                    class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-3" />
+                <div class="flex gap-2">
+                    <button onclick="saveCategory()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">Save</button>
+                    <button onclick="toggleCatForm()" class="flex-1 border border-slate-300 text-slate-600 hover:bg-slate-100 px-3 py-2 rounded-lg text-sm font-medium transition-colors">Cancel</button>
+                </div>
+            </div>
+
+            <!-- Category list -->
+            <div id="catList" class="flex-1 overflow-y-auto divide-y divide-slate-100">
+                <!-- Items rendered by JS -->
+            </div>
+        </div>
+
+        <!-- ── RIGHT PANEL: Products ── -->
+        <div class="flex-1 overflow-y-auto flex flex-col">
+
+            <!-- Empty state (no category selected) -->
+            <div id="productEmptyState" class="flex-1 flex flex-col items-center justify-center text-center p-12">
+                <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                </div>
+                <p class="text-slate-700 font-medium text-sm">Select a category to view its products</p>
+                <p class="text-slate-400 text-xs mt-1">Choose a category from the left panel</p>
+            </div>
+
+            <!-- Product panel (shown when category selected) -->
+            <div id="productPanel" class="hidden flex-1 flex flex-col">
+                <!-- Product sub-header -->
+                <div class="flex items-center justify-between px-6 py-4 flex-shrink-0">
+                    <div>
+                        <h2 class="text-slate-900 font-semibold text-base" id="selectedCatName">—</h2>
+                        <p class="text-slate-500 text-xs mt-0.5" id="selectedCatDesc"></p>
+                    </div>
+                    <button onclick="openProductDrawer(null)"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Add Product
+                    </button>
+                </div>
+
+                <!-- Product spinner -->
+                <div id="productSpinner" class="hidden flex justify-center py-8">
+                    <svg class="w-6 h-6 animate-spin text-indigo-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                </div>
+
+                <!-- Product cards grid -->
+                <div id="productGrid" class="flex-1 px-6 pb-6 grid grid-cols-2 gap-4 content-start">
+                    <!-- Rendered by JS -->
+                </div>
+
+                <!-- Product empty state within panel -->
+                <div id="productPanelEmpty" class="hidden flex-1 flex flex-col items-center justify-center text-center py-16 px-6">
+                    <div class="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center mb-3">
+                        <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    </div>
+                    <p class="text-slate-600 font-medium text-sm">No products in this category</p>
+                    <p class="text-slate-400 text-xs mt-1">Click "Add Product" to create the first one</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     PRODUCT DRAWER (Create / Edit)
+════════════════════════════════════════════════════════════════════════ -->
+<!-- Backdrop -->
+<div id="drawerBackdrop" class="hidden fixed inset-0 bg-black/30 z-40" onclick="closeProductDrawer()"></div>
+
+<!-- Drawer panel -->
+<div id="productDrawer" class="fixed top-0 right-0 h-full w-[560px] bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 flex-shrink-0">
+        <h3 class="text-slate-900 font-semibold" id="drawerTitle">Add Product</h3>
+        <button onclick="closeProductDrawer()" class="text-slate-400 hover:text-slate-600 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+    </div>
+    <div class="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+        <input type="hidden" id="drawerProductId" />
+        <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Product Name <span class="text-red-500">*</span></label>
+            <input id="drawerProdName" type="text" placeholder="e.g. Beef Burger"
+                class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                oninput="autoGenCode()" />
+        </div>
+        <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Product Code <span class="text-red-500">*</span></label>
+            <input id="drawerProdCode" type="text" placeholder="e.g. BEEF_BURGER"
+                class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono" />
+            <p class="text-xs text-slate-400 mt-1">Auto-generated from name — you may override</p>
+        </div>
+        <div id="drawerDescField">
+            <label class="block text-xs font-medium text-slate-600 mb-1">Description <span class="text-slate-400">(optional)</span></label>
+            <textarea id="drawerProdDesc" rows="3" placeholder="Brief description…"
+                class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
+        </div>
+        <div id="drawerSkuField" class="hidden">
+            <label class="block text-xs font-medium text-slate-600 mb-1">SKU <span class="text-slate-400">(optional)</span></label>
+            <div class="flex gap-2">
+                <input id="drawerProdSku" type="text" placeholder="e.g. LAPTOP-14-BLK"
+                    class="flex-1 min-w-0 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono" />
+                <button type="button" id="drawerSkuAutoBtn" onclick="generateProductSku()"
+                    class="shrink-0 px-3 py-2 text-sm font-medium border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50">Auto</button>
+            </div>
+            <p id="drawerSkuAutoError" class="hidden text-xs text-red-500 mt-1"></p>
+        </div>
+        <div id="drawerWarrantyField" class="hidden">
+            <label class="block text-xs font-medium text-slate-600 mb-1">Warranty <span class="text-slate-400">(optional)</span></label>
+            <input id="drawerProdWarranty" type="text" placeholder="e.g. 1 year"
+                class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div id="drawerPriceField">
+            <label class="block text-xs font-medium text-slate-600 mb-1">Price <span class="text-red-500">*</span></label>
+            <input id="drawerProdPrice" type="number" placeholder="0.00" min="0" step="0.01"
+                class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <p class="text-xs text-slate-400 mt-1">Seeds this product's default price.</p>
+        </div>
+        <div id="drawerCostPriceField" class="hidden">
+            <label class="block text-xs font-medium text-slate-600 mb-1">Cost Price <span id="drawerCostPriceRequiredMark" class="hidden text-red-500">*</span><span id="drawerCostPriceOptionalMark" class="text-slate-400">(optional)</span></label>
+            <input id="drawerProdCostPrice" type="number" placeholder="0.00" min="0" step="0.01"
+                class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Photo <span class="text-slate-400">(optional — shown on the POS)</span></label>
+            <img id="drawerProdImgPreview" alt="" class="hidden w-full h-32 object-cover rounded-lg bg-slate-100 mb-2" />
+            <input id="drawerProdImgFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif"
+                onchange="previewChosenProductImage(this)"
+                class="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+            <div class="mt-1.5 text-[11px] text-slate-400 leading-relaxed">
+                <p><b>Recommended:</b> square (1:1), <b>800&nbsp;&times;&nbsp;800&nbsp;px</b> (600&ndash;1000&nbsp;px works). JPG or PNG, up to 5&nbsp;MB.</p>
+                <p>Larger images are resized automatically to a max of 900&nbsp;px and compressed &mdash; you don't need to prepare them.</p>
+            </div>
+            <div class="mt-1">
+                <button type="button" id="drawerProdImgRemove" onclick="markProductImageRemoval()"
+                    class="hidden text-[11px] font-medium text-red-600 hover:text-red-700">Remove photo</button>
+            </div>
+        </div>
+        <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Sort position</label>
+            <input id="drawerProdOrder" type="number" placeholder="auto" min="0"
+                class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <p class="text-[11px] text-slate-400 mt-1"><b>1</b> = first in the list, <b>2</b> = next, … <b>0 = unpositioned</b>. Auto-set to the next free number — change it to reorder. Must differ from every other product in this category.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <input id="drawerProdActive" type="checkbox" checked class="w-4 h-4 rounded accent-indigo-600" />
+            <label for="drawerProdActive" class="text-sm text-slate-700">Active</label>
+        </div>
+        <div class="flex items-center gap-3">
+            <input id="drawerAllowInventoryTracking" type="checkbox" class="w-4 h-4 rounded accent-indigo-600"
+                   onchange="toggleOpeningStockField(this.checked)" />
+            <label for="drawerAllowInventoryTracking" class="text-sm text-slate-700">This product is trackable</label>
+        </div>
+        <div id="drawerOpeningStockField" class="hidden">
+            <label class="block text-xs font-medium text-slate-600 mb-1">Opening stock <span class="text-slate-400">(optional)</span></label>
+            <input id="drawerOpeningStock" type="number" min="0" step="1" placeholder="0"
+                class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <p class="text-xs text-slate-400 mt-1">Applied to every branch this product is assigned to below.</p>
+        </div>
+
+        <!-- Colors — create-time only. Picks from a shared, extensible
+             "Colors" library; each checked color gets its own full price
+             (and stock, replacing the single Opening Stock field above
+             while this is checked) — never configured later on the
+             product detail page. -->
+        <div class="flex items-center gap-3">
+            <input id="drawerHasColors" type="checkbox" class="w-4 h-4 rounded accent-indigo-600" onchange="toggleColorsSection(this.checked)" />
+            <label for="drawerHasColors" class="text-sm text-slate-700">This product has colors</label>
+        </div>
+        <div id="drawerColorsSection" class="hidden">
+            <p class="text-xs text-slate-500 mb-3">Check the colors this product comes in. Each starts with the Price (and Cost Price) above as its own default — change it per color as needed — plus its own opening stock.</p>
+            <div id="drawerColorsNoGroup" class="hidden mb-3">
+                <button type="button" onclick="createColorsGroup()" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">+ Create a "Colors" list</button>
+            </div>
+            <div id="drawerColorsList" class="space-y-2"></div>
+            <div class="flex gap-2 mt-2">
+                <input id="drawerNewColorName" type="text" placeholder="e.g. Red"
+                    class="flex-1 min-w-0 border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm" />
+                <button type="button" onclick="addNewColorOption()" class="shrink-0 px-3 py-1.5 text-sm font-medium border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50">+ Add color</button>
+            </div>
+        </div>
+
+        <div class="border-t border-slate-100 pt-4 mt-2">
+            <h4 class="text-sm font-medium text-slate-700 mb-3">Branch Availability</h4>
+            <label class="flex items-center gap-2 mb-3 cursor-pointer">
+                <input type="checkbox" id="chkAllBranches" checked
+                       class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                       onchange="toggleBranchPicker(this.checked)">
+                <span class="text-sm text-slate-600">Available at <strong>all branches</strong></span>
+            </label>
+            <div id="branchPickerSection" class="hidden">
+                <p class="text-xs text-slate-500 mb-2">Select specific branches:</p>
+                <div id="branchCheckboxList" class="space-y-1 max-h-36 overflow-y-auto border border-slate-200 rounded-lg p-2"></div>
+            </div>
+        </div>
+    </div>
+    <div class="px-6 py-4 border-t border-slate-200 flex gap-3 flex-shrink-0">
+        <button onclick="saveProduct()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">Save Product</button>
+        <button onclick="closeProductDrawer()" class="flex-1 border border-slate-300 text-slate-600 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors">Cancel</button>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     CATEGORY VARIANT SELECTIONS MODAL — attach a shared group (e.g. RAM)
+     to a category once and every product in it picks it up automatically,
+     instead of attaching it product by product. A product can still
+     customize or remove it individually on its own Edit Variants page.
+     One shared modal reused for whichever category's icon was clicked
+     (catVariantsCategoryId), not one per category — both simpler and lets
+     this whole feature disappear in one place when the tenant's plan/
+     Business Template has Variant Option Groups turned off.
+════════════════════════════════════════════════════════════════════════ -->
+<div id="catVariantsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+    <div class="absolute inset-0 bg-slate-900/50" onclick="closeCatVariantsModal()"></div>
+    <div class="relative bg-white rounded-xl shadow-xl w-full max-w-sm z-10 flex flex-col max-h-[80vh]">
+        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
+            <div>
+                <h3 class="text-sm font-semibold text-slate-900">Variant Selections</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Applies to every product in <span id="catVariantsCatName" class="font-medium"></span> automatically.</p>
+            </div>
+            <button onclick="closeCatVariantsModal()" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        </div>
+        <div class="px-5 py-4 overflow-y-auto flex-1">
+            <div id="catVariantsBody"><p class="text-xs text-slate-400">Loading…</p></div>
+        </div>
+        <div class="px-5 py-3 border-t border-slate-100 flex-shrink-0">
+            <button onclick="closeCatVariantsModal()" class="w-full border border-slate-300 text-slate-600 hover:bg-slate-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════════════════════════════════════════ -->
+<script>
+// ── Auth helpers ──────────────────────────────────────────────────────────
+const BASE = '/api/v1';
+function getToken() { return localStorage.getItem('tenant_token'); }
+async function apiFetch(path, opts = {}) {
+    const res = await fetch(BASE + path, {
+        ...opts,
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken(), ...(opts.headers || {}) }
+    });
+    if (res.status === 401) { localStorage.removeItem('tenant_token'); location.href = '/tenant/login.html'; throw new Error('Unauthorized'); }
+    if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.detail || 'Request failed'); }
+    return res.json();
+}
+// multipart upload — do NOT set Content-Type; the browser adds the boundary.
+async function apiUpload(path, formData) {
+    const res = await fetch(BASE + path, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + getToken() },
+        body: formData
+    });
+    if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.detail || 'Upload failed'); }
+    return res.json();
+}
+function logout() { localStorage.removeItem('tenant_token'); localStorage.removeItem('tenant_me'); location.href = '/tenant/login.html'; }
+function showToast(msg, type = 'success') {
+    const t = document.createElement('div');
+    t.className = `fixed bottom-4 right-4 z-50 px-4 py-3 rounded-lg text-sm font-medium shadow-lg ${type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+}
+
+// ── Sidebar init ─────────────────────────────────────────────────────────
+async function initSidebar() {
+    const token = localStorage.getItem('tenant_token');
+    if (!token) { location.href = '/tenant/login.html'; return false; }
+    try {
+        const me = await apiFetch('/auth/me'); window.SHOP_CCY = (me && me.currency) || 'Rs.';
+        localStorage.setItem('tenant_me', JSON.stringify(me));
+        document.getElementById('sidebarTenantName').textContent = me.tenant?.name || 'My Business';
+        document.getElementById('sidebarTenantCode').textContent = me.tenant?.code || '';
+        document.getElementById('sidebarUserName').textContent = me.full_name || me.username;
+        document.getElementById('userInitial').textContent = (me.full_name || me.username || '?')[0].toUpperCase();
+        document.getElementById('sidebarUserRoles').textContent = me.roles?.length ? me.roles.join(', ') : 'No roles';
+        return me;
+    } catch(e) { return false; }
+}
+
+// ── State ────────────────────────────────────────────────────────────────
+let businessName = '';
+let categories = [];
+let products = [];
+let selectedCategoryId = null;
+let cachedBranches = [];
+// Optional fields (sku / specs / warranty / description) are shown or
+// hidden per the tenant's Business Template — never required (spec G2).
+// Fails open (all shown) if the config can't be loaded, so nothing
+// silently disappears on a transient error.
+let productFields = { sku: true, specs: true, warranty: true, description: true };
+let pricingConfig = { show_cost_price: false };
+let inventoryConfig = { tracking_default_on: false, tracking_forced_on: false };
+// Mirror for the opposite case (spec D-config addons.enabled) — business
+// types priced via Variant Options only (e.g. Laptops) can turn Add-on
+// Groups off entirely; matches the gating in menu/product-detail.html.
+let addonsEnabled = true;
+// Some Business Templates (e.g. Fast Food) turn Variant Option Groups off
+// entirely (spec D-config variants.enabled) — hides the per-category
+// Variant Selections icon/modal below and the equivalent section in
+// menu/product-detail.html, matching the server-side enforcement in
+// services/business_policy.py::enforce_variants_enabled.
+let variantsEnabled = true;
+// Colors section (Add Product drawer, create-time only) — the shared
+// "Colors" VariantOptionGroup, auto-detected by name, and its current
+// values. null colorsGroupId means the tenant hasn't created one yet.
+let colorsGroupId = null;
+let colorsOptions = [];
+
+function applyProductFieldGating() {
+    document.getElementById('drawerDescField').classList.toggle('hidden', productFields.description === false);
+    document.getElementById('drawerSkuField').classList.toggle('hidden', !productFields.sku);
+    document.getElementById('drawerWarrantyField').classList.toggle('hidden', !productFields.warranty);
+    // Cost Price is collected only while creating the product and its
+    // initial color SKUs.
+    const showCost = pricingConfig.show_cost_price;
+    document.getElementById('drawerCostPriceField').classList.toggle('hidden', !showCost);
+    document.getElementById('drawerCostPriceRequiredMark').classList.add('hidden');
+    document.getElementById('drawerCostPriceOptionalMark').classList.remove('hidden');
+}
+
+async function loadCachedBranches() {
+    if (cachedBranches.length) return cachedBranches;
+    cachedBranches = await apiFetch(`/branches/`);
+    return cachedBranches;
+}
+
+function toggleBranchPicker(checked) {
+    document.getElementById('branchPickerSection').classList.toggle('hidden', checked);
+}
+
+async function renderBranchPicker(selectedIds = []) {
+    const branches = await loadCachedBranches();
+    document.getElementById('branchCheckboxList').innerHTML = branches.map(b => `
+        <label class="flex items-center gap-2 py-0.5 cursor-pointer">
+            <input type="checkbox" value="${b.id}" ${selectedIds.includes(b.id) ? 'checked' : ''}
+                   class="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 branch-cb">
+            <span class="text-sm text-slate-700">${escapeHTML(b.name)}</span>
+            <span class="text-xs text-slate-400">${escapeHTML(b.branch_code)}</span>
+        </label>`).join('');
+}
+
+function getSelectedBranchIds() {
+    return [...document.querySelectorAll('.branch-cb:checked')].map(cb => cb.value);
+}
+
+// ── Colors (Add Product drawer, create-time only) ──────────────────────────
+// Picks from a shared, extensible "Colors" library (auto-detected by name;
+// created on first use) — each checked color seeds its own priced, stocked
+// combination Variant at product-creation time. Only shown while "This
+// product has colors" is checked; while it's checked, the single Opening
+// Stock field above is replaced by each color's own opening stock instead
+// (a colored product's own zero-option Variant is never the sellable one).
+// Adding/editing colors on an existing product never happens on the detail
+// page afterward.
+function toggleColorsSection(hasColors) {
+    document.getElementById('drawerColorsSection').classList.toggle('hidden', !hasColors);
+    toggleOpeningStockField(document.getElementById('drawerAllowInventoryTracking').checked);
+    if (hasColors) loadColorsSection();
+}
+
+async function loadColorsSection() {
+    const list = document.getElementById('drawerColorsList');
+    list.innerHTML = '<p class="text-xs text-slate-400">Loading…</p>';
+    document.getElementById('drawerColorsNoGroup').classList.add('hidden');
+    try {
+        const groups = await apiFetch('/variant-option-groups/');
+        const colorNames = new Set(['color', 'colors', 'colour', 'colours']);
+        const found = groups.find(g => colorNames.has((g.name || '').trim().toLowerCase()));
+        colorsGroupId = found ? found.id : null;
+        if (!colorsGroupId) {
+            colorsOptions = [];
+            list.innerHTML = '';
+            document.getElementById('drawerColorsNoGroup').classList.remove('hidden');
+            return;
+        }
+        colorsOptions = await apiFetch(`/variant-options/?option_group_id=${colorsGroupId}`);
+        renderColorsRows();
+    } catch (e) {
+        list.innerHTML = `<p class="text-xs text-red-500">Could not load colors: ${escHtml(e.message)}</p>`;
+    }
+}
+
+function renderColorsRows() {
+    const trackingOn = document.getElementById('drawerAllowInventoryTracking').checked;
+    const showCost = !document.getElementById('drawerCostPriceField').classList.contains('hidden');
+    const defaultPrice = document.getElementById('drawerProdPrice').value || '0.00';
+    const defaultCost = document.getElementById('drawerProdCostPrice').value || '';
+    const list = document.getElementById('drawerColorsList');
+    if (!colorsOptions.length) {
+        list.innerHTML = '<p class="text-xs text-slate-400">No colors yet — add one below.</p>';
+        return;
+    }
+    // Preserve what's already checked/entered across a re-render (the
+    // tracking toggle re-renders this to show/hide the Stock column) — a
+    // row with no prior state yet defaults its price/cost from the base
+    // Price/Cost Price fields above, per-color-editable from there.
+    const prev = {};
+    list.querySelectorAll('[data-color-id]').forEach(row => {
+        const stockInput = row.querySelector('.color-stock');
+        const costInput = row.querySelector('.color-cost');
+        prev[row.dataset.colorId] = {
+            checked: row.querySelector('.color-check').checked,
+            price: row.querySelector('.color-price').value,
+            cost: costInput ? costInput.value : '',
+            stock: stockInput ? stockInput.value : '',
+        };
+    });
+    list.innerHTML = colorsOptions.map(o => {
+        const p = prev[o.id] || { checked: false, price: defaultPrice, cost: defaultCost, stock: '0' };
+        return `<div class="flex items-center gap-2 flex-wrap" data-color-id="${escAttr(o.id)}">
+            <input type="checkbox" class="color-check w-4 h-4 rounded accent-indigo-600 flex-shrink-0" ${p.checked ? 'checked' : ''} />
+            <span class="text-sm text-slate-700 w-20 truncate flex-shrink-0" title="${escAttr(o.name)}">${escHtml(o.name)}</span>
+            <input type="number" step="0.01" min="0" title="Sale price" placeholder="Price" class="color-price w-24 border border-slate-300 rounded-lg px-2 py-1 text-sm" value="${escAttr(p.price)}" />
+            ${showCost ? `<input type="number" step="0.01" min="0" title="Cost price" placeholder="Cost" class="color-cost w-24 border border-slate-300 rounded-lg px-2 py-1 text-sm" value="${escAttr(p.cost)}" />` : ''}
+            ${trackingOn ? `<input type="number" min="0" step="1" title="Opening stock" placeholder="Stock" class="color-stock w-20 border border-slate-300 rounded-lg px-2 py-1 text-sm" value="${escAttr(p.stock)}" />` : ''}
+        </div>`;
+    }).join('');
+}
+
+async function createColorsGroup() {
+    try {
+        const group = await apiFetch('/variant-option-groups/', { method: 'POST', body: JSON.stringify({ name: 'Colors' }) });
+        colorsGroupId = group.id;
+        colorsOptions = [];
+        document.getElementById('drawerColorsNoGroup').classList.add('hidden');
+        renderColorsRows();
+    } catch (e) { showToast('Failed: ' + e.message, 'error'); }
+}
+
+async function addNewColorOption() {
+    const input = document.getElementById('drawerNewColorName');
+    const name = input.value.trim();
+    if (!name) return;
+    try {
+        if (!colorsGroupId) await createColorsGroup();
+        const option = await apiFetch(`/variant-options/?option_group_id=${colorsGroupId}`, {
+            method: 'POST', body: JSON.stringify({ name }),
+        });
+        colorsOptions.push(option);
+        input.value = '';
+        renderColorsRows();
+        const row = document.querySelector(`#drawerColorsList [data-color-id="${option.id}"] .color-check`);
+        if (row) row.checked = true;
+    } catch (e) { showToast('Failed: ' + e.message, 'error'); }
+}
+
+// Reads the checked rows and validates each has a usable price — returns
+// null (and shows a toast) on any invalid input, so saveProduct() can bail
+// out the same way it already does for other invalid fields.
+function collectPricedVariants() {
+    if (!document.getElementById('drawerHasColors').checked || !colorsGroupId) {
+        return { priced_variant_group_id: null, priced_variants: [] };
+    }
+    const trackingOn = document.getElementById('drawerAllowInventoryTracking').checked;
+    const showCost = !document.getElementById('drawerCostPriceField').classList.contains('hidden');
+    const branchIds = document.getElementById('chkAllBranches').checked
+        ? cachedBranches.map(b => b.id) : getSelectedBranchIds();
+    const rows = [...document.querySelectorAll('#drawerColorsList [data-color-id]')];
+    const priced_variants = [];
+    for (const row of rows) {
+        if (!row.querySelector('.color-check').checked) continue;
+        const price = parseFloat(row.querySelector('.color-price').value);
+        if (isNaN(price) || price < 0) {
+            showToast('Enter a valid price for every checked color.', 'error');
+            return null;
+        }
+        const entry = { option_id: row.dataset.colorId, sale_price: price };
+        if (showCost) {
+            const costRaw = row.querySelector('.color-cost').value.trim();
+            if (costRaw !== '') {
+                const cost = parseFloat(costRaw);
+                if (isNaN(cost) || cost < 0) { showToast('Enter a valid cost price for every checked color.', 'error'); return null; }
+                entry.cost_price = cost;
+            }
+        }
+        if (trackingOn) {
+            const stockRaw = row.querySelector('.color-stock').value.trim();
+            const qty = stockRaw === '' ? 0 : parseInt(stockRaw, 10);
+            if (!Number.isInteger(qty) || qty < 0) {
+                showToast('Enter a valid opening stock for every checked color.', 'error');
+                return null;
+            }
+            entry.opening_stock_by_branch = Object.fromEntries(branchIds.map(id => [id, qty]));
+        }
+        priced_variants.push(entry);
+    }
+    return { priced_variant_group_id: priced_variants.length ? colorsGroupId : null, priced_variants };
+}
+
+// ── Page init ────────────────────────────────────────────────────────────
+async function init() {
+    await initSidebar();
+    try {
+        const business = await apiFetch('/business/');
+        businessName = business.name;
+        const badge = document.getElementById('restaurantBadge');
+        badge.textContent = businessName;
+        badge.classList.remove('hidden');
+    } catch(e) {
+        showToast('Failed to load shop: ' + e.message, 'error');
+        document.getElementById('pageSpinner').classList.add('hidden');
+        return;
+    }
+    try {
+        const config = await apiFetch('/business/template-config');
+        if (config && config.product_fields) productFields = config.product_fields;
+        if (config && config.pricing) pricingConfig = config.pricing;
+        if (config && config.inventory) inventoryConfig = config.inventory;
+        if (config && config.addons && config.addons.enabled === false) addonsEnabled = false;
+        if (config && config.variants && config.variants.enabled === false) variantsEnabled = false;
+    } catch (e) { /* fail open — keep every field visible */ }
+    await loadCategories();
+    document.getElementById('pageSpinner').classList.add('hidden');
+}
+
+// ── Categories ───────────────────────────────────────────────────────────
+async function loadCategories() {
+    try {
+        categories = await apiFetch(`/categories/`);
+        renderCategoryList();
+        if (categories.length > 0) selectCategory(categories[0].id);
+    } catch(e) {
+        showToast('Failed to load categories: ' + e.message, 'error');
+    }
+}
+
+function renderCategoryList() {
+    const el = document.getElementById('catList');
+    if (!categories.length) {
+        el.innerHTML = `<div class="p-6 text-center text-slate-400 text-sm">No categories yet.<br>Click + to add one.</div>`;
+        return;
+    }
+    el.innerHTML = categories.map(cat => {
+        const isActive = cat.id === selectedCategoryId;
+        const baseClass = isActive
+            ? 'border-l-2 border-indigo-500 bg-indigo-50'
+            : 'border-l-2 border-transparent hover:bg-slate-50';
+        return `
+        <div id="cat-${cat.id}" class="group relative cursor-pointer px-4 py-3 transition-colors ${baseClass}" onclick="selectCategory('${escapeJSAttribute(cat.id)}')">
+            <div class="flex items-start justify-between gap-2">
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-slate-800 truncate">${escHtml(cat.name)}</p>
+                    ${cat.description ? `<p class="text-xs text-slate-500 truncate mt-0.5">${escHtml(cat.description)}</p>` : ''}
+                </div>
+                <div class="flex items-center gap-1 flex-shrink-0">
+                    ${cat.is_active
+                        ? '<span class="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-medium">Active</span>'
+                        : '<span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full font-medium">Inactive</span>'}
+                    <button onclick="event.stopPropagation(); openCatEdit('${escapeJSAttribute(cat.id)}')" title="Edit category"
+                        class="w-7 h-7 flex items-center justify-center rounded text-slate-500 hover:text-indigo-600 hover:bg-slate-200 transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </button>
+                    ${variantsEnabled ? `<button onclick="event.stopPropagation(); openCatVariants('${escapeJSAttribute(cat.id)}')" title="Variant Selections — applies to every product in this category"
+                        class="w-7 h-7 flex items-center justify-center rounded text-slate-500 hover:text-indigo-600 hover:bg-slate-200 transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+                    </button>` : ''}
+                    <button onclick="event.stopPropagation(); deleteCategory('${escapeJSAttribute(cat.id)}')" title="Delete category"
+                        class="w-7 h-7 flex items-center justify-center rounded text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Inline edit form (hidden by default) -->
+        <div id="cat-edit-${cat.id}" class="catEditPanel hidden border-l-2 border-indigo-400 bg-slate-50 px-3 py-3 border-b border-slate-200">
+            <p class="text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">Edit Category</p>
+            <input id="cat-edit-name-${cat.id}" type="text" value="${escAttr(cat.name)}" placeholder="Name *"
+                class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-2" />
+            <input id="cat-edit-desc-${cat.id}" type="text" value="${escAttr(cat.description || '')}" placeholder="Description (optional)"
+                class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-2" />
+            <label class="block text-[11px] font-medium text-slate-500 mb-1">Sort position — <b>1</b> = first, <b>2</b> = second, … <b>0 = unpositioned</b> (no fixed place; falls back to creation order). ${(cat.display_order ?? 0) === 0 ? '<span class="text-amber-600 font-semibold">This one is 0 — give it a number to place it.</span> ' : ''}Change it only to reorder — must differ from every other category.</label>
+            <input id="cat-edit-order-${cat.id}" type="number" value="${cat.display_order ?? 0}" min="0"
+                class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-3" />
+            <div class="flex gap-2">
+                <button onclick="updateCategory('${escapeJSAttribute(cat.id)}')" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">Save</button>
+                <button onclick="closeCatEdit('${escapeJSAttribute(cat.id)}')" class="flex-1 border border-slate-300 text-slate-600 hover:bg-slate-100 px-3 py-2 rounded-lg text-sm font-medium transition-colors">Cancel</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function closeCatMenuAll() { /* legacy no-op — the floating menu was removed */ }
+
+// Show the inline edit panel for one category (collapse any others first).
+function openCatEdit(catId) {
+    // collapse any other open edit panels (match the panels only, not their inputs)
+    document.querySelectorAll('.catEditPanel').forEach(el => {
+        if (el.id !== `cat-edit-${catId}`) el.classList.add('hidden');
+    });
+    const form = document.getElementById(`cat-edit-${catId}`);
+    if (!form) return;
+    form.classList.remove('hidden');
+    form.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    const nameField = document.getElementById(`cat-edit-name-${catId}`);
+    if (nameField) { nameField.focus(); nameField.select(); }
+}
+function closeCatEdit(catId) {
+    document.getElementById(`cat-edit-${catId}`).classList.add('hidden');
+}
+
+// ── Category Variant Selections (modal) ──────────────────────────────────
+// Attaching a shared group (e.g. RAM) here cascades it onto every product
+// currently in the category (see api/v1/variant_option_groups.py's
+// category_router) — a product can still customize or remove it
+// individually afterward on its own Edit Variants page. One shared modal
+// reused for whichever category's icon was clicked (never rendered per
+// category), gated entirely off by variantsEnabled — see its own comment.
+let catVariantsCategoryId = null;
+// The shared group library rarely changes within one session, so it's
+// fetched once and reused across every open of the modal.
+let variantGroupLibraryCache = null;
+
+function openCatVariants(catId) {
+    if (!variantsEnabled) return;
+    catVariantsCategoryId = catId;
+    const cat = categories.find(c => c.id === catId);
+    document.getElementById('catVariantsCatName').textContent = cat ? cat.name : 'this category';
+    document.getElementById('catVariantsModal').classList.remove('hidden');
+    loadCategoryVariantGroups();
+}
+function closeCatVariantsModal() {
+    document.getElementById('catVariantsModal').classList.add('hidden');
+    catVariantsCategoryId = null;
+}
+
+async function loadCategoryVariantGroups() {
+    const catId = catVariantsCategoryId;
+    if (!catId) return;
+    const host = document.getElementById('catVariantsBody');
+    try {
+        if (!variantGroupLibraryCache) variantGroupLibraryCache = await apiFetch('/variant-option-groups/');
+        const links = await apiFetch(`/categories/${catId}/variant-option-groups`);
+        if (catId !== catVariantsCategoryId) return; // modal moved to a different category while this was in flight
+        renderCategoryVariantGroups(catId, variantGroupLibraryCache, links);
+    } catch (e) {
+        host.innerHTML = `<p class="text-xs text-red-500">Could not load: ${escHtml(e.message)}</p>`;
+    }
+}
+
+function renderCategoryVariantGroups(catId, library, links) {
+    const host = document.getElementById('catVariantsBody');
+    if (!library.length) {
+        host.innerHTML = `<p class="text-xs text-slate-400">No Variant Selections exist yet — create one in the <a href="/tenant/variant-options.html" class="text-indigo-600 hover:underline">Variant Options</a> library.</p>`;
+        return;
+    }
+    const linkByGroup = {};
+    links.forEach(l => { linkByGroup[l.option_group_id] = l; });
+    host.innerHTML = `<div class="space-y-1.5">${library.map(g => {
+        const link = linkByGroup[g.id] || null;
+        return `<div class="flex items-center gap-2 text-xs text-slate-700 py-0.5">
+            <label class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer">
+                <input type="checkbox" class="w-3.5 h-3.5 accent-indigo-600 flex-shrink-0" ${link ? 'checked' : ''}
+                    onchange="toggleCategoryVariantGroup('${escapeJSAttribute(catId)}', '${escapeJSAttribute(g.id)}', ${link ? `'${escapeJSAttribute(link.id)}'` : 'null'}, this.checked)" />
+                <span class="flex-1 truncate" title="${escAttr(g.name)}">${escHtml(g.name)}</span>
+            </label>
+            <label class="flex items-center gap-1 text-[10px] text-slate-500 flex-shrink-0 cursor-pointer ${link ? '' : 'opacity-40 pointer-events-none'}">
+                <input type="checkbox" class="w-3 h-3 accent-indigo-600" ${link && link.is_required ? 'checked' : ''}
+                    onchange="toggleCategoryVariantGroupRequired('${escapeJSAttribute(catId)}', '${link ? escapeJSAttribute(link.id) : ''}', this.checked)" /> Required
+            </label>
+        </div>`;
+    }).join('')}</div>`;
+}
+
+async function toggleCategoryVariantGroup(catId, groupId, linkId, checked) {
+    try {
+        if (checked) {
+            await apiFetch(`/categories/${catId}/variant-option-groups`, {
+                method: 'POST', body: JSON.stringify({ option_group_id: groupId, is_required: true }),
+            });
+            showToast('Attached — every product in this category now offers it.');
+        } else {
+            const res = await apiFetch(`/categories/${catId}/variant-option-groups/${linkId}`, { method: 'DELETE' });
+            showToast(res?.message || 'Detached.');
+        }
+    } catch (e) {
+        showToast('Failed: ' + e.message, 'error');
+    } finally {
+        loadCategoryVariantGroups();
+    }
+}
+
+async function toggleCategoryVariantGroupRequired(catId, linkId, required) {
+    if (!linkId) return;
+    try {
+        await apiFetch(`/categories/${catId}/variant-option-groups/${linkId}`, {
+            method: 'PATCH', body: JSON.stringify({ is_required: required }),
+        });
+    } catch (e) {
+        showToast('Failed: ' + e.message, 'error');
+        loadCategoryVariantGroups();
+    }
+}
+
+function toggleCatForm() {
+    document.getElementById('catCreateForm').classList.toggle('hidden');
+    document.getElementById('catName').focus();
+}
+
+// Resolve a unique sort position for a category.
+//  - blank            -> next free (max + 1)
+//  - unchanged value  -> kept as-is (so a name-only edit never fails here)
+//  - a number another category already uses -> rejected with a clear message
+function resolveCatOrder(rawValue, excludeId, currentValue) {
+    const others = categories.filter(c => c.id !== excludeId);
+    const raw = String(rawValue ?? '').trim();
+    if (raw === '') {
+        const max = others.reduce((m, c) => Math.max(m, c.display_order || 0), 0);
+        return max + 1;
+    }
+    const n = parseInt(raw, 10);
+    if (isNaN(n)) throw new Error('Sort position must be a whole number.');
+    if (currentValue != null && n === Number(currentValue)) return n; // unchanged — skip all checks
+    if (n < 1) throw new Error('Sort position must be 1 or higher.');
+    const clash = others.find(c => (c.display_order || 0) === n);
+    if (clash) throw new Error(`Position ${n} is already used by "${clash.name}". Pick a different number.`);
+    return n;
+}
+
+async function saveCategory() {
+    const name = document.getElementById('catName').value.trim();
+    if (!name) { showToast('Category name is required', 'error'); return; }
+    let display_order;
+    try {
+        display_order = resolveCatOrder(document.getElementById('catOrder').value, null);
+    } catch (e) { showToast(e.message, 'error'); return; }
+    try {
+        const body = {
+            name,
+            description: document.getElementById('catDesc').value.trim() || undefined,
+            display_order
+        };
+        const cat = await apiFetch(`/categories/`, {
+            method: 'POST', body: JSON.stringify(body)
+        });
+        categories.push(cat);
+        renderCategoryList();
+        selectCategory(cat.id);
+        document.getElementById('catCreateForm').classList.add('hidden');
+        document.getElementById('catName').value = '';
+        document.getElementById('catDesc').value = '';
+        document.getElementById('catOrder').value = '';
+        showToast('Category created');
+    } catch(e) { showToast('Failed: ' + e.message, 'error'); }
+}
+
+async function updateCategory(catId) {
+    const name = document.getElementById(`cat-edit-name-${catId}`).value.trim();
+    if (!name) { showToast('Category name is required', 'error'); return; }
+    const currentOrder = (categories.find(c => c.id === catId) || {}).display_order;
+    let display_order;
+    try {
+        display_order = resolveCatOrder(
+            document.getElementById(`cat-edit-order-${catId}`).value, catId, currentOrder);
+    } catch (e) { showToast(e.message, 'error'); return; }
+    try {
+        const body = {
+            name,
+            description: document.getElementById(`cat-edit-desc-${catId}`).value.trim() || undefined,
+            display_order
+        };
+        const updated = await apiFetch(`/categories/${catId}`, { method: 'PATCH', body: JSON.stringify(body) });
+        const idx = categories.findIndex(c => c.id === catId);
+        if (idx !== -1) categories[idx] = { ...categories[idx], ...updated };
+        renderCategoryList();
+        showToast('Category updated');
+    } catch(e) { showToast('Failed: ' + e.message, 'error'); }
+}
+
+async function deleteCategory(catId) {
+    closeCatMenuAll();
+    const cat = categories.find(c => c.id === catId);
+    if (!window.confirm(`Delete category "${cat?.name}"? This cannot be undone.`)) return;
+    try {
+        await apiFetch(`/categories/${catId}`, { method: 'DELETE' });
+        categories = categories.filter(c => c.id !== catId);
+        if (selectedCategoryId === catId) {
+            selectedCategoryId = null;
+            showProductEmptyState();
+        }
+        renderCategoryList();
+        showToast('Category deleted');
+    } catch(e) { showToast('Failed: ' + e.message, 'error'); }
+}
+
+// ── Category selection ───────────────────────────────────────────────────
+async function selectCategory(catId) {
+    selectedCategoryId = catId;
+    renderCategoryList();
+    const cat = categories.find(c => c.id === catId);
+    document.getElementById('selectedCatName').textContent = cat?.name || '';
+    document.getElementById('selectedCatDesc').textContent = cat?.description || '';
+    document.getElementById('productEmptyState').classList.add('hidden');
+    document.getElementById('productPanel').classList.remove('hidden');
+    document.getElementById('productPanelEmpty').classList.add('hidden');
+    document.getElementById('productGrid').innerHTML = '';
+    document.getElementById('productSpinner').classList.remove('hidden');
+    await loadProducts(catId);
+    document.getElementById('productSpinner').classList.add('hidden');
+}
+
+function showProductEmptyState() {
+    document.getElementById('productEmptyState').classList.remove('hidden');
+    document.getElementById('productPanel').classList.add('hidden');
+}
+
+// ── Products ─────────────────────────────────────────────────────────────
+async function loadProducts(catId) {
+    try {
+        products = await apiFetch(`/products/?category_id=${catId}`);
+        renderProducts();
+    } catch(e) {
+        showToast('Failed to load products: ' + e.message, 'error');
+    }
+}
+
+function renderProducts() {
+    const grid = document.getElementById('productGrid');
+    const empty = document.getElementById('productPanelEmpty');
+    if (!products.length) {
+        grid.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+    }
+    empty.classList.add('hidden');
+    grid.innerHTML = products.map(p => `
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col gap-3">
+            ${p.image_path ? `<img src="${escAttr(p.image_path)}" alt="" class="w-full h-28 object-cover rounded-lg bg-slate-100" onerror="this.style.display='none'">` : ''}
+            <div class="flex items-start justify-between gap-2">
+                <div class="flex-1 min-w-0">
+                    <p class="text-slate-900 font-semibold text-sm truncate">${escHtml(p.name)}</p>
+                    <span class="inline-block mt-1 font-mono text-[11px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">${escHtml(p.product_code)}</span>
+                </div>
+                <span class="text-indigo-600 font-bold text-base flex-shrink-0">${p.price != null ? `${window.SHOP_CCY || 'Rs.'} ${parseFloat(p.price).toFixed(2)}` : '—'}</span>
+            </div>
+            ${p.description ? `<p class="text-xs text-slate-500 line-clamp-2">${escHtml(p.description)}</p>` : ''}
+            <div class="flex items-center gap-2 flex-wrap">
+                ${p.is_active
+                    ? '<span class="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-medium">Active</span>'
+                    : '<span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full font-medium">Inactive</span>'}
+                ${p.is_inventory_component
+                    ? '<span class="text-[10px] bg-violet-50 text-violet-700 px-1.5 py-0.5 rounded-full font-medium" title="Shared stock item: selectable with configured products and sellable on its own">Inventory component</span>'
+                    : ''}
+                ${p.all_branches === false
+                    ? '<span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">Specific branches</span>'
+                    : '<span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full font-medium">All branches</span>'}
+                ${(p.variant_option_group_count || 0) > 0
+                    ? `<span class="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full font-medium" title="Variant Option Groups on this product">${p.variant_option_group_count} variant group${p.variant_option_group_count === 1 ? '' : 's'}</span>`
+                    : ''}
+                ${(addonsEnabled && (p.addon_group_count || 0) > 0)
+                    ? `<span class="text-[10px] bg-sky-50 text-sky-700 px-1.5 py-0.5 rounded-full font-medium" title="Add-on Groups on this product">${p.addon_group_count} add-on${p.addon_group_count === 1 ? '' : 's'}</span>`
+                    : ''}
+            </div>
+            <div class="flex items-center gap-2 pt-1 border-t border-slate-100">
+                <a href="/tenant/menu/product-detail.html?product_id=${p.id}&category_id=${selectedCategoryId}"
+                    class="flex-1 text-center text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors py-1">
+                    ${p.is_inventory_component ? 'Manage component →' : 'Manage Variants →'}
+                </a>
+                <button onclick="openProductDrawer('${escapeJSAttribute(p.id)}')" title="Edit"
+                    class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                </button>
+                ${p.is_inventory_component ? '' : `<button onclick="toggleProductActive('${escapeJSAttribute(p.id)}', ${escapeJSAttribute(p.is_active)})" title="${p.is_active ? 'Deactivate' : 'Activate'}"
+                    class="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </button>
+                <button onclick="deleteProduct('${escapeJSAttribute(p.id)}')" title="Delete"
+                    class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>`}
+            </div>
+        </div>`).join('');
+}
+
+// ── Product Drawer ───────────────────────────────────────────────────────
+let _prodImageRemoval = false;   // set true when the user clicks "Remove photo"
+
+function markProductImageRemoval() {
+    _prodImageRemoval = true;
+    document.getElementById('drawerProdImgFile').value = '';
+    const img = document.getElementById('drawerProdImgPreview');
+    img.classList.add('hidden'); img.removeAttribute('src');
+    document.getElementById('drawerProdImgRemove').classList.add('hidden');
+}
+
+// Show the just-picked file in the preview (before it's uploaded).
+function previewChosenProductImage(input) {
+    const f = input.files && input.files[0];
+    const img = document.getElementById('drawerProdImgPreview');
+    if (!f) return;
+    _prodImageRemoval = false;
+    img.src = URL.createObjectURL(f);
+    img.classList.remove('hidden');
+    document.getElementById('drawerProdImgRemove').classList.remove('hidden');
+}
+
+// Opening stock is create-time only (editable per-branch afterward on the
+// Inventory page) — only shown once tracking is on, and only while creating.
+function toggleOpeningStockField(trackingChecked) {
+    const productId = document.getElementById('drawerProductId').value;
+    const hasColors = document.getElementById('drawerHasColors').checked;
+    document.getElementById('drawerOpeningStockField').classList.toggle('hidden', !trackingChecked || !!productId || hasColors);
+    if (!productId && hasColors && colorsGroupId) renderColorsRows();
+}
+
+// Next free sort position among products in the current category (max + 1).
+function nextProdOrder(excludeId) {
+    const max = products
+        .filter(p => p.id !== excludeId)
+        .reduce((m, p) => Math.max(m, p.display_order || 0), 0);
+    return max + 1;
+}
+
+// Same rules as categories: blank -> next free; unchanged -> kept; a number
+// another product already uses -> rejected.
+function resolveProdOrder(rawValue, excludeId, currentValue) {
+    const raw = String(rawValue ?? '').trim();
+    if (raw === '') return nextProdOrder(excludeId);
+    const n = parseInt(raw, 10);
+    if (isNaN(n)) throw new Error('Sort position must be a whole number.');
+    if (currentValue != null && n === Number(currentValue)) return n;
+    if (n < 1) throw new Error('Sort position must be 1 or higher.');
+    const clash = products.find(p => p.id !== excludeId && (p.display_order || 0) === n);
+    if (clash) throw new Error(`Position ${n} is already used by "${clash.name}". Pick a different number.`);
+    return n;
+}
+
+async function openProductDrawer(productId) {
+    const drawer = document.getElementById('productDrawer');
+    const backdrop = document.getElementById('drawerBackdrop');
+    document.getElementById('drawerProductId').value = productId || '';
+    _prodImageRemoval = false;
+    document.getElementById('drawerProdImgFile').value = '';
+    const preview = document.getElementById('drawerProdImgPreview');
+    const removeBtn = document.getElementById('drawerProdImgRemove');
+    applyProductFieldGating();
+    if (productId) {
+        const p = products.find(x => x.id === productId);
+        document.getElementById('drawerTitle').textContent = p.is_inventory_component ? 'Edit Inventory Component' : 'Edit Product';
+        document.getElementById('drawerProdName').value = p.name;
+        document.getElementById('drawerProdCode').value = p.product_code;
+        document.getElementById('drawerProdDesc').value = p.description || '';
+        document.getElementById('drawerProdSku').value = p.sku || '';
+        document.getElementById('drawerProdWarranty').value = p.warranty || '';
+        document.getElementById('drawerProdOrder').value = p.display_order ?? 0;
+        document.getElementById('drawerProdActive').checked = p.is_active;
+        document.getElementById('drawerAllowInventoryTracking').checked = p.allow_inventory_tracking === true;
+        document.getElementById('drawerProdActive').disabled = p.is_inventory_component === true;
+        document.getElementById('drawerAllowInventoryTracking').disabled = p.is_inventory_component === true;
+        document.getElementById('drawerProdActive').title = p.is_inventory_component ? 'Manage availability from Variant Options.' : '';
+        document.getElementById('drawerAllowInventoryTracking').title = p.is_inventory_component ? 'Shared components always keep inventory tracking enabled.' : '';
+        toggleOpeningStockField(false); // opening stock is create-time only
+        // Price is only editable here while the product has no real priced
+        // combination Variants (e.g. Colors) — a Specification-usage group
+        // attached with zero combinations yet, or an Inventory Component
+        // group, both leave the base product's own price fully editable.
+        const hasCombinations = p.has_combination_variants === true;
+        document.getElementById('drawerPriceField').classList.toggle('hidden', hasCombinations);
+        document.getElementById('drawerProdPrice').value = p.price ?? '';
+        // Colors are create-time only and are not managed from the product
+        // detail page afterward.
+        document.getElementById('drawerHasColors').checked = false;
+        document.getElementById('drawerColorsSection').classList.add('hidden');
+        colorsGroupId = null; colorsOptions = [];
+        // Cost Price is only set at product-creation time in this form.
+        document.getElementById('drawerCostPriceField').classList.add('hidden');
+        if (p.image_path) {
+            preview.src = p.image_path; preview.classList.remove('hidden');
+            removeBtn.classList.remove('hidden');
+        } else {
+            preview.classList.add('hidden'); preview.removeAttribute('src');
+            removeBtn.classList.add('hidden');
+        }
+        // Load branch assignment
+        try {
+            const assignment = await apiFetch(`/products/${productId}/branches`);
+            document.getElementById('chkAllBranches').checked = assignment.all_branches;
+            toggleBranchPicker(assignment.all_branches);
+            await renderBranchPicker(assignment.branches.map(b => b.id));
+        } catch(e) {
+            document.getElementById('chkAllBranches').checked = true;
+            toggleBranchPicker(true);
+            await renderBranchPicker([]);
+        }
+    } else {
+        document.getElementById('drawerTitle').textContent = 'Add Product';
+        document.getElementById('drawerProdName').value = '';
+        document.getElementById('drawerProdCode').value = '';
+        document.getElementById('drawerProdDesc').value = '';
+        document.getElementById('drawerProdSku').value = '';
+        document.getElementById('drawerProdWarranty').value = '';
+        document.getElementById('drawerProdPrice').value = '';
+        document.getElementById('drawerProdCostPrice').value = '';
+        // A new product never has Variant Option Groups yet — Price is always shown.
+        document.getElementById('drawerPriceField').classList.remove('hidden');
+        document.getElementById('drawerProdOrder').value = String(nextProdOrder(null));
+        document.getElementById('drawerProdActive').checked = true;
+        const defaultTracking = inventoryConfig.tracking_default_on === true || inventoryConfig.tracking_forced_on === true;
+        document.getElementById('drawerAllowInventoryTracking').checked = defaultTracking;
+        document.getElementById('drawerProdActive').disabled = false;
+        document.getElementById('drawerAllowInventoryTracking').disabled = inventoryConfig.tracking_forced_on === true;
+        document.getElementById('drawerProdActive').title = '';
+        document.getElementById('drawerAllowInventoryTracking').title = '';
+        document.getElementById('drawerOpeningStock').value = '';
+        document.getElementById('drawerHasColors').checked = false;
+        document.getElementById('drawerColorsSection').classList.add('hidden');
+        document.getElementById('drawerNewColorName').value = '';
+        colorsGroupId = null; colorsOptions = [];
+        toggleOpeningStockField(defaultTracking);
+        preview.classList.add('hidden'); preview.removeAttribute('src');
+        removeBtn.classList.add('hidden');
+        // Reset branch picker defaults
+        document.getElementById('chkAllBranches').checked = true;
+        toggleBranchPicker(true);
+        await renderBranchPicker([]);
+    }
+    backdrop.classList.remove('hidden');
+    requestAnimationFrame(() => drawer.classList.remove('translate-x-full'));
+}
+
+function closeProductDrawer() {
+    const drawer = document.getElementById('productDrawer');
+    drawer.classList.add('translate-x-full');
+    document.getElementById('drawerBackdrop').classList.add('hidden');
+}
+
+function autoGenCode() {
+    const name = document.getElementById('drawerProdName').value;
+    const code = name.toUpperCase().replace(/[^A-Z0-9]/g, '_').substring(0, 20);
+    document.getElementById('drawerProdCode').value = code;
+}
+
+async function generateProductSku() {
+    const errEl = document.getElementById('drawerSkuAutoError');
+    errEl.classList.add('hidden');
+    errEl.textContent = '';
+    if (!selectedCategoryId) {
+        errEl.textContent = 'Select a category first.';
+        errEl.classList.remove('hidden');
+        return;
+    }
+    const btn = document.getElementById('drawerSkuAutoBtn');
+    btn.disabled = true;
+    const prevLabel = btn.textContent;
+    btn.textContent = '…';
+    try {
+        const res = await apiFetch(`/products/generate-sku?category_id=${selectedCategoryId}`);
+        document.getElementById('drawerProdSku').value = res.sku;
+    } catch (e) {
+        errEl.textContent = 'Could not generate SKU. Try again.';
+        errEl.classList.remove('hidden');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = prevLabel;
+    }
+}
+
+async function saveProduct() {
+    const productId = document.getElementById('drawerProductId').value;
+    const name = document.getElementById('drawerProdName').value.trim();
+    const code = document.getElementById('drawerProdCode').value.trim();
+    const priceFieldVisible = !document.getElementById('drawerPriceField').classList.contains('hidden');
+    const price = parseFloat(document.getElementById('drawerProdPrice').value);
+    if (!name) { showToast('Product name is required', 'error'); return; }
+    if (!code) { showToast('Product code is required', 'error'); return; }
+    if (priceFieldVisible && (isNaN(price) || price < 0)) { showToast('Valid price is required', 'error'); return; }
+
+    let costPrice;
+    if (!productId && !document.getElementById('drawerCostPriceField').classList.contains('hidden')) {
+        const raw = document.getElementById('drawerProdCostPrice').value.trim();
+        if (raw !== '') {
+            costPrice = parseFloat(raw);
+            if (isNaN(costPrice) || costPrice < 0) { showToast('Enter a valid cost price.', 'error'); return; }
+        }
+    }
+
+    const current = productId ? products.find(x => x.id === productId) : null;
+    // Tracking a product's own creation flow already collects opening stock
+    // inline and cascades it into every create-time variant (see the
+    // opening_stock_by_branch block below, create-only). Editing an
+    // EXISTING product has no such inline step — flipping tracking on here
+    // used to leave every variant silently untracked until someone visited
+    // Product Detail and enabled each one by hand. Detect that exact
+    // transition so we can send the admin straight to the one combined
+    // opening-stock screen instead.
+    const turningTrackingOnForExistingProduct = !!current && current.allow_inventory_tracking !== true
+        && document.getElementById('drawerAllowInventoryTracking').checked === true;
+    let display_order;
+    try {
+        display_order = resolveProdOrder(
+            document.getElementById('drawerProdOrder').value, productId || null,
+            current ? current.display_order : null);
+    } catch (e) { showToast(e.message, 'error'); return; }
+
+    const body = {
+        name,
+        product_code: code,
+        description: document.getElementById('drawerProdDesc').value.trim() || undefined,
+        display_order,
+        is_active: document.getElementById('drawerProdActive').checked,
+        allow_inventory_tracking: document.getElementById('drawerAllowInventoryTracking').checked
+    };
+    // Only send sku/warranty when their field is actually shown — a hidden
+    // field must never silently clear a value set under a different template.
+    if (productFields.sku) body.sku = document.getElementById('drawerProdSku').value.trim() || null;
+    if (productFields.warranty) body.warranty = document.getElementById('drawerProdWarranty').value.trim() || null;
+    // Price seeds/updates the default Variant. The field remains locked once
+    // the product has a legacy Specification-usage Variant Option Group (G2).
+    if (!productId) {
+        body.price = price;
+        if (costPrice !== undefined) body.cost_price = costPrice;
+    } else if (priceFieldVisible) {
+        body.price = price;
+    }
+    if (!productId) {
+        // Branch assignment + opening stock are applied atomically with
+        // creation, so opening stock validates against the branches actually
+        // being assigned (not the all_branches=True default every product
+        // otherwise starts with).
+        const allBranches = document.getElementById('chkAllBranches').checked;
+        const branchIds = allBranches ? cachedBranches.map(b => b.id) : getSelectedBranchIds();
+        body.all_branches = allBranches;
+        body.branch_ids = branchIds;
+        const hasColors = document.getElementById('drawerHasColors').checked;
+        // A colored product's own opening stock never applies — each color
+        // has its own instead (see collectPricedVariants() below).
+        if (body.allow_inventory_tracking && !hasColors) {
+            // A blank field must still record zero stock, not omit the branch
+            // entirely — an omitted branch here means no VariantBranchStock
+            // row is ever created for it, and Inventory's Increase/Decrease
+            // actions require an existing row ("not stocked at the selected
+            // branch"), even though the product genuinely is assigned there
+            // with a starting count of zero. Matches the colors path below.
+            const stockRaw = document.getElementById('drawerOpeningStock').value.trim();
+            const qty = stockRaw === '' ? 0 : parseInt(stockRaw, 10);
+            if (!Number.isInteger(qty) || qty < 0) { showToast('Enter a valid opening stock quantity.', 'error'); return; }
+            body.opening_stock_by_branch = Object.fromEntries(branchIds.map(id => [id, qty]));
+        }
+        const priced = collectPricedVariants();
+        if (priced === null) return; // invalid price/stock — toast already shown
+        if (hasColors && !priced.priced_variants.length) {
+            showToast('Check at least one color, or uncheck "This product has colors".', 'error');
+            return;
+        }
+        if (priced.priced_variant_group_id) {
+            body.priced_variant_group_id = priced.priced_variant_group_id;
+            body.priced_variants = priced.priced_variants;
+        }
+    }
+    try {
+        let savedId;
+        if (productId) {
+            const updated = await apiFetch(`/products/${productId}`, { method: 'PATCH', body: JSON.stringify(body) });
+            const idx = products.findIndex(x => x.id === productId);
+            if (idx !== -1) products[idx] = { ...products[idx], ...updated };
+            savedId = productId;
+            // Save branch assignment (create already applies it atomically above).
+            await apiFetch(`/products/${savedId}/branches`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    all_branches: document.getElementById('chkAllBranches').checked,
+                    branch_ids: getSelectedBranchIds()
+                })
+            });
+        } else {
+            const created = await apiFetch(`/products/?category_id=${selectedCategoryId}`, { method: 'POST', body: JSON.stringify(body) });
+            products.push(created);
+            savedId = created.id;
+        }
+        // Photo: upload a newly chosen file, or clear it if the user removed it.
+        const file = document.getElementById('drawerProdImgFile').files[0];
+        try {
+            let imgResult;
+            if (file) {
+                const fd = new FormData();
+                fd.append('file', file);
+                imgResult = await apiUpload(`/products/${savedId}/image`, fd);
+            } else if (_prodImageRemoval) {
+                imgResult = await apiFetch(`/products/${savedId}/image`, { method: 'DELETE' });
+            }
+            if (imgResult) {
+                const idx = products.findIndex(x => x.id === savedId);
+                if (idx !== -1) products[idx] = { ...products[idx], ...imgResult };
+            }
+        } catch (imgErr) {
+            showToast('Product saved, but the photo failed: ' + imgErr.message, 'error');
+        }
+        if (turningTrackingOnForExistingProduct) {
+            // Hand off to Product Detail's combined opening-stock modal
+            // instead of leaving the admin on this page with tracking
+            // "on" but nothing actually tracked yet — see product-detail.html's
+            // init()/openEnableTracking() for the prompt_tracking handling.
+            window.location.href = `/tenant/menu/product-detail.html?product_id=${savedId}&category_id=${selectedCategoryId}&prompt_tracking=1`;
+            return;
+        }
+        showToast(productId ? 'Product updated' : 'Product created');
+        // Reload so derived fields (variant count, image URL) are fresh.
+        await loadProducts(selectedCategoryId);
+        renderProducts();
+        closeProductDrawer();
+    } catch(e) { showToast('Failed: ' + e.message, 'error'); }
+}
+
+async function toggleProductActive(productId, currentActive) {
+    try {
+        const updated = await apiFetch(`/products/${productId}`, { method: 'PATCH', body: JSON.stringify({ is_active: !currentActive }) });
+        const idx = products.findIndex(x => x.id === productId);
+        if (idx !== -1) products[idx] = { ...products[idx], ...updated };
+        renderProducts();
+        showToast(updated.is_active ? 'Product activated' : 'Product deactivated');
+    } catch(e) { showToast('Failed: ' + e.message, 'error'); }
+}
+
+async function deleteProduct(productId) {
+    const p = products.find(x => x.id === productId);
+    if (!window.confirm(`Delete product "${p?.name}"? This cannot be undone.`)) return;
+    try {
+        await apiFetch(`/products/${productId}`, { method: 'DELETE' });
+        products = products.filter(x => x.id !== productId);
+        renderProducts();
+        showToast('Product deleted');
+    } catch(e) { showToast('Failed: ' + e.message, 'error'); }
+}
+
+// ── Utils ────────────────────────────────────────────────────────────────
+function escHtml(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s) {
+    return String(s ?? '').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ── Boot ─────────────────────────────────────────────────────────────────
+init();
+</script>
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

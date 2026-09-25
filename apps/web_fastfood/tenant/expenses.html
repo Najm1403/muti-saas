@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expenses - Tenant Admin</title>
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+</head>
+<body class="bg-slate-50 min-h-screen flex">
+
+    <aside class="w-64 flex-shrink-0 h-screen bg-white border-r border-slate-200 flex flex-col overflow-y-auto fixed left-0 top-0 z-30">
+        <div class="h-16 flex items-center px-5 border-b border-slate-200 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span class="text-white text-sm font-bold select-none">T</span>
+                </div>
+                <div>
+                    <p class="text-slate-900 text-sm font-semibold leading-none" id="sidebarTenantName">Loading…</p>
+                    <p class="text-indigo-600 text-[11px] leading-none mt-0.5 font-medium" id="sidebarTenantCode">—</p>
+                </div>
+            </div>
+        </div>
+        <nav class="flex-1 px-3 py-4 space-y-0.5">
+            <a href="/tenant/dashboard.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 13.5V19a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-5.5M9 21V12M3 9l9-6 9 6"/></svg>
+                Overview
+            </a>
+            <a href="/tenant/sales.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                Sales
+            </a>
+            <a href="/tenant/reports.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                Reports
+            </a>
+
+        <a href="/tenant/shifts.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Cash Shortages
+        </a>
+            <a href="/tenant/menu.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                Menu
+            </a>
+
+        <a href="/tenant/variant-options.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+            Variant Options
+        </a>
+
+        <a href="/tenant/addon-groups.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+            Add-on Groups
+        </a>
+
+            <a href="/tenant/promotions.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg>
+                Promotions
+            </a>
+            <a href="/tenant/deals.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+                Deals
+            </a>
+            <a href="/tenant/branches.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
+                Branches
+            </a>
+            <a href="/tenant/preparation-stations.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z"/></svg>
+                Kitchen Stations
+            </a>
+            <a href="/tenant/devices.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 8.25h3"/></svg>
+                Devices
+            </a>
+            <a href="/tenant/inventory.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                Inventory
+            </a>
+            <a href="/tenant/expenses.html" class="bg-indigo-50 text-indigo-700 font-medium rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-6 4h6m-6 4h4M5 3h14a2 2 0 012 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 012-2z"/></svg>
+                Expenses
+            </a>
+            <a href="/tenant/employees.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+                Employees
+            </a>
+            <a href="/tenant/salaries.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Salaries
+            </a>
+            <a href="/tenant/users.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+                Users
+            </a>
+            <a href="/tenant/roles.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+                Roles
+            </a>
+            <a href="/tenant/activity.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0"/></svg>
+                Activity
+            </a>
+            <a href="/tenant/subscription.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg>
+                Subscription
+            </a>
+            <a href="/tenant/settings.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Settings
+            </a>
+        </nav>
+        <div class="border-t border-slate-200 p-4 flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                    <span class="text-indigo-700 text-sm font-semibold" id="userInitial">?</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-slate-900 truncate" id="sidebarUserName">—</p>
+                    <p class="text-xs text-slate-500 truncate" id="sidebarUserRoles">—</p>
+                </div>
+                <button onclick="logout()" title="Logout" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <main class="ml-64 flex-1 min-h-screen overflow-y-auto">
+        <div class="p-8">
+
+            <div class="flex items-start justify-between gap-3 mb-6 flex-wrap">
+                <div>
+                    <h1 class="text-2xl font-semibold text-slate-900">Expenses</h1>
+                    <p class="text-sm text-slate-500 mt-1">Record business spend and monitor it against category budgets.</p>
+                </div>
+                <div class="flex gap-2" id="actionBtns">
+                    <button id="pdfBtn" onclick="downloadExpensesPdf()" class="inline-flex items-center gap-2 border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-lg px-3 py-2">
+                        Print / Export PDF
+                    </button>
+                    <button onclick="openCats()" class="inline-flex items-center gap-2 border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-lg px-3 py-2">
+                        Categories
+                    </button>
+                    <button onclick="openAdd()" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg px-4 py-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Add Expense
+                    </button>
+                </div>
+            </div>
+
+            <div id="errorBanner" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-6 text-sm"></div>
+            <div id="denied" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm p-10 text-center">
+                <p class="text-slate-700 font-medium">You don't have access to Expenses.</p>
+                <p class="text-sm text-slate-500 mt-1">Ask an admin to grant you the <span class="font-mono">expenses.view</span> permission.</p>
+            </div>
+
+            <div id="pageLoading" class="bg-white rounded-xl border border-slate-200 shadow-sm p-8 text-center">
+                <div class="inline-block w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-sm text-slate-500 mt-2">Loading…</p>
+            </div>
+
+            <div id="content" class="hidden">
+                <!-- KPI row -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+                        <p class="text-xs text-slate-500 uppercase tracking-wide">This month</p>
+                        <p class="text-xl font-semibold text-slate-900 mt-1" id="kpiMonth">—</p>
+                    </div>
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+                        <p class="text-xs text-slate-500 uppercase tracking-wide">Last month</p>
+                        <p class="text-xl font-semibold text-slate-900 mt-1" id="kpiLast">—</p>
+                    </div>
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+                        <p class="text-xs text-slate-500 uppercase tracking-wide">Top category</p>
+                        <p class="text-xl font-semibold text-slate-900 mt-1" id="kpiTop">—</p>
+                    </div>
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+                        <p class="text-xs text-slate-500 uppercase tracking-wide">Entries (range)</p>
+                        <p class="text-xl font-semibold text-slate-900 mt-1" id="kpiCount">—</p>
+                    </div>
+                </div>
+
+                <!-- Monitor -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-6">
+                    <p class="text-sm font-semibold text-slate-900 mb-3">Monitor — spend by category vs budget</p>
+                    <div id="monitor" class="space-y-3"></div>
+                    <p class="text-sm font-semibold text-slate-900 mt-6 mb-2">Last 6 months</p>
+                    <div id="monthBars" class="flex items-end gap-2 h-24"></div>
+                </div>
+
+                <!-- Filters -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mb-5 flex flex-wrap gap-3 items-end">
+                    <div><label class="block text-xs font-medium text-slate-500 mb-1">From</label>
+                        <input type="date" id="fFrom" class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm" /></div>
+                    <div><label class="block text-xs font-medium text-slate-500 mb-1">To</label>
+                        <input type="date" id="fTo" class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm" /></div>
+                    <div><label class="block text-xs font-medium text-slate-500 mb-1">Category</label>
+                        <select id="fCat" class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm bg-white min-w-36"><option value="">All</option></select></div>
+                    <div><label class="block text-xs font-medium text-slate-500 mb-1">Branch</label>
+                        <select id="fBranch" class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm bg-white min-w-36"><option value="">All</option></select></div>
+                    <div><label class="block text-xs font-medium text-slate-500 mb-1">Method</label>
+                        <select id="fMethod" class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm bg-white">
+                            <option value="">All</option><option>Cash</option><option>Bank</option><option>Card</option><option>Mobile</option><option>Cheque</option><option>Other</option>
+                        </select></div>
+                    <button onclick="applyFilters()" class="bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium rounded-lg px-4 py-1.5">Apply</button>
+                    <button onclick="resetFilters()" class="text-slate-500 hover:text-slate-700 text-sm px-2 py-1.5">Reset</button>
+                    <span id="rangeLabel" class="ml-auto text-xs text-slate-400"></span>
+                </div>
+
+                <!-- Table -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-50 border-b border-slate-200">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Date</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Category</th>
+                                    <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Amount</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Method</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Vendor</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Branch</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Note</th>
+                                    <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase" id="thActions">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rows" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                        <div id="empty" class="hidden p-10 text-center text-sm text-slate-500">No expenses in this range.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add / Edit drawer -->
+    <div id="exModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeEx()"></div>
+        <div class="relative bg-white rounded-xl shadow-xl w-full max-w-md z-10">
+            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                <h3 class="text-base font-semibold text-slate-900" id="exTitle">Add Expense</h3>
+                <button onclick="closeEx()" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            </div>
+            <div class="px-6 py-5 space-y-3 max-h-[70vh] overflow-y-auto">
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Date *</label>
+                        <input id="e_date" type="date" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm" /></div>
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Amount *</label>
+                        <input id="e_amount" type="number" min="0" step="0.01" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm" /></div>
+                </div>
+                <div><label class="block text-xs font-medium text-slate-600 mb-1">Category *</label>
+                    <select id="e_cat" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm bg-white"></select></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Payment method</label>
+                        <select id="e_method" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm bg-white">
+                            <option>Cash</option><option>Bank</option><option>Card</option><option>Mobile</option><option>Cheque</option><option>Other</option>
+                        </select></div>
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Branch</label>
+                        <select id="e_branch" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm bg-white"><option value="">— None —</option></select></div>
+                </div>
+                <div><label class="block text-xs font-medium text-slate-600 mb-1">Vendor / payee</label>
+                    <input id="e_vendor" type="text" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm" /></div>
+                <div><label class="block text-xs font-medium text-slate-600 mb-1">Reference (invoice #)</label>
+                    <input id="e_ref" type="text" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm" /></div>
+                <div><label class="block text-xs font-medium text-slate-600 mb-1">Note</label>
+                    <textarea id="e_note" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"></textarea></div>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
+                <button onclick="closeEx()" class="h-10 px-4 border border-slate-200 rounded-lg text-sm text-slate-700 hover:bg-slate-50">Cancel</button>
+                <button id="exSave" onclick="saveEx()" class="h-10 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Categories modal -->
+    <div id="catModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeCats()"></div>
+        <div class="relative bg-white rounded-xl shadow-xl w-full max-w-lg z-10 flex flex-col max-h-[85vh]">
+            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                <h3 class="text-base font-semibold text-slate-900">Expense Categories</h3>
+                <button onclick="closeCats()" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            </div>
+            <div class="px-6 py-4 overflow-y-auto flex-1">
+                <div class="flex gap-2 mb-4">
+                    <input id="nc_name" type="text" placeholder="Category name" class="flex-1 h-10 px-3 border border-slate-200 rounded-lg text-sm" />
+                    <input id="nc_budget" type="number" min="0" step="0.01" placeholder="Monthly budget" class="w-40 h-10 px-3 border border-slate-200 rounded-lg text-sm" />
+                    <button onclick="addCat()" class="h-10 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg">Add</button>
+                </div>
+                <div id="catList" class="space-y-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm -->
+    <div id="cfModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeCf()"></div>
+        <div class="relative bg-white rounded-xl shadow-xl w-full max-w-sm z-10">
+            <div class="px-6 py-5"><h3 class="text-base font-semibold text-slate-900 mb-1" id="cfTitle">Confirm</h3><p id="cfText" class="text-sm text-slate-500"></p></div>
+            <div class="px-6 pb-5 flex justify-end gap-3">
+                <button onclick="closeCf()" class="h-9 px-4 border border-slate-200 rounded-lg text-sm text-slate-700 hover:bg-slate-50">Cancel</button>
+                <button id="cfOk" class="h-9 px-4 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-[60] space-y-2"></div>
+
+    <script>
+        const BASE = '/api/v1';
+        function getToken() { return localStorage.getItem('tenant_token'); }
+        async function apiFetch(path, opts = {}) {
+            const res = await fetch(BASE + path, { ...opts, headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken(), ...(opts.headers || {}) } });
+            if (res.status === 401) { localStorage.removeItem('tenant_token'); location.href = '/tenant/login.html'; throw new Error('Unauthorized'); }
+            if (res.status === 204) return null;
+            const body = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(errMsg(body, res.status, path));
+            return body;
+        }
+        function errMsg(body, status, path) {
+            const d = body && body.detail;
+            if (typeof d === 'string') return d;
+            if (Array.isArray(d) && d.length) return d.map(x => (x.loc ? x.loc.join('.') + ': ' : '') + (x.msg || JSON.stringify(x))).join('; ');
+            if (d && typeof d === 'object') return JSON.stringify(d);
+            return `HTTP ${status}${path ? ' on ' + path : ''}`;
+        }
+        function logout() { localStorage.removeItem('tenant_token'); localStorage.removeItem('tenant_me'); location.href = '/tenant/login.html'; }
+        function esc(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+        function showToast(msg, type = 'success') {
+            const c = document.getElementById('toastContainer'); const t = document.createElement('div'); const ok = type === 'success';
+            t.className = `px-4 py-3 rounded-lg shadow-lg text-sm font-medium border ${ok ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`;
+            t.textContent = msg; c.appendChild(t);
+            setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3500);
+        }
+        let CCY = 'Rs.';
+        function money(v) { const n = Number(v || 0); return `${CCY} ${n.toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`; }
+
+        // A thin variant of apiFetch() that returns the raw Response (for a
+        // PDF blob) instead of parsing JSON — mirrors inventory.html's copy.
+        async function apiFetchRaw(path) {
+            const res = await fetch(BASE + path, { headers: { Authorization: 'Bearer ' + getToken() } });
+            if (res.status === 401) { localStorage.removeItem('tenant_token'); location.href = '/tenant/login.html'; throw new Error('Unauthorized'); }
+            if (!res.ok) {
+                const body = await res.json().catch(() => ({}));
+                throw new Error(errMsg(body, res.status, path));
+            }
+            return res;
+        }
+
+        // Downloads the real, server-rendered A4 PDF (services/
+        // pdf_report_service.py) for the currently filtered expense list —
+        // not a browser print-to-PDF.
+        async function downloadExpensesPdf() {
+            const btn = document.getElementById('pdfBtn');
+            const prevText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Preparing PDF…';
+            try {
+                const res = await apiFetchRaw(`/expenses/pdf?${qs(currentFilters())}`);
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = 'expense-register.pdf';
+                document.body.appendChild(a); a.click(); a.remove();
+                URL.revokeObjectURL(url);
+            } catch (e) {
+                showToast(e.message || 'Could not generate the PDF.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = prevText;
+            }
+        }
+
+        async function initSidebar() {
+            if (!getToken()) { location.href = '/tenant/login.html'; return null; }
+            try {
+                const me = await apiFetch('/auth/me');
+                CCY = me.currency || 'Rs.';
+                document.getElementById('sidebarTenantName').textContent = me.tenant?.name || 'My Business';
+                document.getElementById('sidebarTenantCode').textContent = me.tenant?.code || '';
+                document.getElementById('sidebarUserName').textContent = me.full_name || me.username;
+                document.getElementById('userInitial').textContent = (me.full_name || me.username || '?')[0].toUpperCase();
+                document.getElementById('sidebarUserRoles').textContent = me.roles?.length ? me.roles.join(', ') : 'No roles';
+                return me;
+            } catch (e) { return null; }
+        }
+
+        // ── State ──
+        let CAN_MANAGE = false, cats = [], branches = [], expenses = [], summary = null;
+
+        function firstOfMonth(d) { return new Date(d.getFullYear(), d.getMonth(), 1); }
+        function iso(d) { return d.toISOString().slice(0, 10); }
+
+        function currentFilters() {
+            return {
+                date_from: document.getElementById('fFrom').value || null,
+                date_to: document.getElementById('fTo').value || null,
+                category_id: document.getElementById('fCat').value || null,
+                branch_id: document.getElementById('fBranch').value || null,
+                payment_method: document.getElementById('fMethod').value || null,
+            };
+        }
+        function qs(o) { return Object.entries(o).filter(([, v]) => v).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&'); }
+
+        async function loadAll() {
+            const f = currentFilters();
+            const [sum, list, catList, brs] = await Promise.all([
+                apiFetch(`/expenses/summary?${qs({ date_from: f.date_from, date_to: f.date_to })}`),
+                apiFetch(`/expenses?${qs(f)}`),
+                apiFetch('/expenses/categories'),
+                apiFetch('/branches/stats').catch(() => []),
+            ]);
+            summary = sum; expenses = list; cats = catList || []; branches = brs || [];
+            populateSelects();
+            renderKpis(); renderMonitor(); renderTable();
+            document.getElementById('rangeLabel').textContent = `${sum.date_from} → ${sum.date_to} · ${sum.count} entries`;
+        }
+
+        function populateSelects() {
+            const opt = (v, t) => `<option value="${v}">${esc(t)}</option>`;
+            const catOpts = cats.map(c => opt(c.id, c.name)).join('');
+            document.getElementById('fCat').innerHTML = '<option value="">All</option>' + catOpts;
+            document.getElementById('e_cat').innerHTML = catOpts || '<option value="">— create a category first —</option>';
+            const brOpts = branches.map(b => opt(b.id, b.name)).join('');
+            document.getElementById('fBranch').innerHTML = '<option value="">All</option>' + brOpts;
+            document.getElementById('e_branch').innerHTML = '<option value="">— None —</option>' + brOpts;
+        }
+
+        function renderKpis() {
+            const now = new Date();
+            const thisM = iso(firstOfMonth(now));
+            const lastMStart = iso(firstOfMonth(new Date(now.getFullYear(), now.getMonth() - 1, 1)));
+            const lastMEnd = iso(new Date(now.getFullYear(), now.getMonth(), 0));
+            // month totals from summary.by_month keyed YYYY-MM
+            const bm = Object.fromEntries((summary.by_month || []).map(p => [p.month, Number(p.total)]));
+            const key = d => d.slice(0, 7);
+            document.getElementById('kpiMonth').textContent = money(bm[key(thisM)] || 0);
+            document.getElementById('kpiLast').textContent = money(bm[key(lastMStart)] || 0);
+            const top = (summary.by_category || [])[0];
+            document.getElementById('kpiTop').textContent = top ? top.name : '—';
+            document.getElementById('kpiCount').textContent = summary.count;
+        }
+
+        function renderMonitor() {
+            const box = document.getElementById('monitor');
+            const rows = (summary.by_category || []);
+            if (!rows.length) { box.innerHTML = '<p class="text-sm text-slate-400">No spend in this range.</p>'; }
+            else {
+                box.innerHTML = rows.map(c => {
+                    const spent = Number(c.total), budget = c.budget != null ? Number(c.budget) : null;
+                    const pct = budget ? Math.min(100, Math.round(spent / budget * 100)) : null;
+                    const over = budget && spent > budget;
+                    return `<div>
+                        <div class="flex justify-between text-sm mb-1">
+                          <span class="font-medium text-slate-700">${esc(c.name)}</span>
+                          <span class="${over ? 'text-red-600 font-semibold' : 'text-slate-500'}">${money(spent)}${budget != null ? ' / ' + money(budget) : ''}</span>
+                        </div>
+                        <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div class="h-full ${over ? 'bg-red-500' : 'bg-indigo-500'}" style="width:${budget ? pct : 100}%"></div>
+                        </div>
+                      </div>`;
+                }).join('');
+            }
+            const bars = document.getElementById('monthBars');
+            const months = (summary.by_month || []).slice(-6);
+            const max = Math.max(1, ...months.map(m => Number(m.total)));
+            bars.innerHTML = months.length ? months.map(m => {
+                const h = Math.max(4, Math.round(Number(m.total) / max * 90));
+                return `<div class="flex-1 flex flex-col items-center justify-end gap-1">
+                    <div class="w-full bg-indigo-400 rounded-t" style="height:${h}px" title="${money(m.total)}"></div>
+                    <span class="text-[10px] text-slate-400">${m.month.slice(5)}</span>
+                  </div>`;
+            }).join('') : '<p class="text-sm text-slate-400">No data.</p>';
+        }
+
+        function renderTable() {
+            const tb = document.getElementById('rows'), empty = document.getElementById('empty');
+            if (!expenses.length) { tb.innerHTML = ''; empty.classList.remove('hidden'); return; }
+            empty.classList.add('hidden');
+            tb.innerHTML = expenses.map(e => `
+                <tr class="hover:bg-slate-50">
+                    <td class="px-4 py-3 text-slate-700 whitespace-nowrap">${esc(e.expense_date)}</td>
+                    <td class="px-4 py-3">${esc(e.category_name || '—')}</td>
+                    <td class="px-4 py-3 text-right font-medium text-slate-900 whitespace-nowrap">${money(e.amount)}</td>
+                    <td class="px-4 py-3 text-slate-600">${esc(e.payment_method)}</td>
+                    <td class="px-4 py-3 text-slate-600">${esc(e.vendor || '—')}</td>
+                    <td class="px-4 py-3 text-slate-600">${esc(e.branch_name || '—')}</td>
+                    <td class="px-4 py-3 text-slate-500 max-w-[200px] truncate">${esc(e.note || e.reference || '—')}</td>
+                    <td class="px-4 py-3 text-right whitespace-nowrap">${CAN_MANAGE ? `
+                        <button onclick='editEx(${JSON.stringify(e.id)})' class="text-xs font-medium text-indigo-600 hover:text-indigo-800">Edit</button>
+                        <span class="text-slate-200 mx-1">·</span>
+                        <button onclick='askDel(${JSON.stringify(e.id)})' class="text-xs font-medium text-red-600 hover:text-red-800">Delete</button>` : '<span class="text-slate-300 text-xs">—</span>'}</td>
+                </tr>`).join('');
+        }
+
+        // ── Filters ──
+        function applyFilters() { loadAll().catch(e => showToast(e.message, 'error')); }
+        function resetFilters() {
+            document.getElementById('fFrom').value = ''; document.getElementById('fTo').value = '';
+            document.getElementById('fCat').value = ''; document.getElementById('fBranch').value = ''; document.getElementById('fMethod').value = '';
+            applyFilters();
+        }
+
+        // ── Add / Edit ──
+        let editId = null;
+        function openAdd() {
+            if (!CAN_MANAGE) return;
+            editId = null; document.getElementById('exTitle').textContent = 'Add Expense';
+            document.getElementById('e_date').value = iso(new Date());
+            document.getElementById('e_amount').value = '';
+            document.getElementById('e_method').value = 'Cash';
+            document.getElementById('e_branch').value = '';
+            document.getElementById('e_vendor').value = ''; document.getElementById('e_ref').value = ''; document.getElementById('e_note').value = '';
+            if (cats[0]) document.getElementById('e_cat').value = cats[0].id;
+            document.getElementById('exModal').classList.remove('hidden');
+        }
+        function editEx(id) {
+            const e = expenses.find(x => x.id === id); if (!e) return;
+            editId = id; document.getElementById('exTitle').textContent = 'Edit Expense';
+            document.getElementById('e_date').value = e.expense_date;
+            document.getElementById('e_amount').value = e.amount;
+            document.getElementById('e_cat').value = e.category_id;
+            document.getElementById('e_method').value = e.payment_method;
+            document.getElementById('e_branch').value = e.branch_id || '';
+            document.getElementById('e_vendor').value = e.vendor || '';
+            document.getElementById('e_ref').value = e.reference || '';
+            document.getElementById('e_note').value = e.note || '';
+            document.getElementById('exModal').classList.remove('hidden');
+        }
+        function closeEx() { document.getElementById('exModal').classList.add('hidden'); }
+        async function saveEx() {
+            const body = {
+                category_id: document.getElementById('e_cat').value,
+                branch_id: document.getElementById('e_branch').value || null,
+                amount: document.getElementById('e_amount').value,
+                expense_date: document.getElementById('e_date').value,
+                payment_method: document.getElementById('e_method').value,
+                vendor: document.getElementById('e_vendor').value.trim() || null,
+                reference: document.getElementById('e_ref').value.trim() || null,
+                note: document.getElementById('e_note').value.trim() || null,
+            };
+            if (!body.category_id) { showToast('Pick a category.', 'error'); return; }
+            if (!body.amount || Number(body.amount) <= 0) { showToast('Enter an amount.', 'error'); return; }
+            if (!body.expense_date) { showToast('Pick a date.', 'error'); return; }
+            const btn = document.getElementById('exSave'); btn.disabled = true;
+            const savedId = editId;
+            try {
+                if (editId) await apiFetch(`/expenses/${editId}`, { method: 'PATCH', body: JSON.stringify(body) });
+                else await apiFetch('/expenses', { method: 'POST', body: JSON.stringify(body) });
+                closeEx(); showToast(editId ? 'Expense updated.' : 'Expense recorded.');
+                await loadAll();
+                // Re-categorizing/re-branching/re-dating an expense while a
+                // filter targets the old value moves it out of the current
+                // view — loadAll() re-queries with the same filters, so say
+                // so instead of letting an edit look like a deletion.
+                const f = currentFilters();
+                const filterActive = f.date_from || f.date_to || f.category_id || f.branch_id || f.payment_method;
+                if (savedId && filterActive && !expenses.some(e => e.id === savedId)) {
+                    showToast('Expense updated. It no longer matches the current filters, so it\'s hidden from this view — not deleted.');
+                }
+            } catch (e) { showToast(e.message, 'error'); } finally { btn.disabled = false; }
+        }
+
+        // ── Delete ──
+        let delId = null;
+        function askDel(id) {
+            delId = id; document.getElementById('cfText').textContent = 'Delete this expense? This cannot be undone.';
+            document.getElementById('cfOk').onclick = doDel;
+            document.getElementById('cfModal').classList.remove('hidden');
+        }
+        function closeCf() { document.getElementById('cfModal').classList.add('hidden'); }
+        async function doDel() {
+            closeCf();
+            try { await apiFetch(`/expenses/${delId}`, { method: 'DELETE' }); showToast('Expense deleted.'); await loadAll(); }
+            catch (e) { showToast(e.message, 'error'); }
+        }
+
+        // ── Categories ──
+        function openCats() { if (!CAN_MANAGE) return; renderCats(); document.getElementById('catModal').classList.remove('hidden'); }
+        function closeCats() { document.getElementById('catModal').classList.add('hidden'); }
+        function renderCats() {
+            document.getElementById('catList').innerHTML = cats.map(c => `
+                <div class="flex items-center gap-2 border border-slate-200 rounded-lg px-3 py-2">
+                    <input value="${esc(c.name)}" onchange='patchCat(${JSON.stringify(c.id)}, "name", this.value)' class="flex-1 text-sm border-0 focus:ring-0 p-0" />
+                    <input type="number" min="0" step="0.01" value="${c.monthly_budget ?? ''}" placeholder="budget"
+                           onchange='patchCat(${JSON.stringify(c.id)}, "monthly_budget", this.value)' class="w-28 text-sm border border-slate-200 rounded px-2 py-1" />
+                    <span class="text-xs text-slate-400 w-24 text-right">${money(c.spent_this_month)} this mo</span>
+                    <button onclick='delCat(${JSON.stringify(c.id)})' class="text-red-500 hover:text-red-700 text-xs">Delete</button>
+                </div>`).join('') || '<p class="text-sm text-slate-400">No categories yet.</p>';
+        }
+        async function addCat() {
+            const name = document.getElementById('nc_name').value.trim();
+            const budget = document.getElementById('nc_budget').value;
+            if (!name) { showToast('Enter a name.', 'error'); return; }
+            try {
+                await apiFetch('/expenses/categories', { method: 'POST', body: JSON.stringify({ name, monthly_budget: budget || null }) });
+                document.getElementById('nc_name').value = ''; document.getElementById('nc_budget').value = '';
+                cats = await apiFetch('/expenses/categories'); populateSelects(); renderCats(); showToast('Category added.');
+            } catch (e) { showToast(e.message, 'error'); }
+        }
+        async function patchCat(id, field, value) {
+            try {
+                const body = {}; body[field] = field === 'monthly_budget' ? (value === '' ? null : value) : value;
+                await apiFetch(`/expenses/categories/${id}`, { method: 'PATCH', body: JSON.stringify(body) });
+                cats = await apiFetch('/expenses/categories'); populateSelects(); renderMonitor(); showToast('Saved.');
+            } catch (e) { showToast(e.message, 'error'); }
+        }
+        async function delCat(id) {
+            try {
+                await apiFetch(`/expenses/categories/${id}`, { method: 'DELETE' });
+                cats = await apiFetch('/expenses/categories'); populateSelects(); renderCats(); showToast('Category deleted.');
+            } catch (e) { showToast(e.message, 'error'); }
+        }
+
+        // ── Boot ──
+        (async () => {
+            const me = await initSidebar();
+            if (!me) return;
+            const perms = me.permissions || [];
+            const canView = perms.includes('*') || perms.includes('expenses.view');
+            CAN_MANAGE = perms.includes('*') || perms.includes('expenses.manage');
+            document.getElementById('pageLoading').classList.add('hidden');
+            if (!canView) { document.getElementById('denied').classList.remove('hidden'); document.getElementById('actionBtns').classList.add('hidden'); return; }
+            if (!CAN_MANAGE) { document.getElementById('actionBtns').classList.add('hidden'); document.getElementById('thActions').textContent = ''; }
+            try {
+                await loadAll();
+                document.getElementById('content').classList.remove('hidden');
+            } catch (e) {
+                if (e && e.message === 'Unauthorized') return;
+                const b = document.getElementById('errorBanner');
+                b.textContent = 'Failed to load: ' + ((e && e.message) || e);
+                b.classList.remove('hidden');
+            }
+        })();
+    </script>
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

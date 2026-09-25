@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reports &amp; Analytics - Tenant Admin</title>
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        @media print {
+            aside, #filterBar, #printBtn, .no-print { display: none !important; }
+            main { margin-left: 0 !important; padding: 1rem !important; }
+            .print-break { page-break-before: always; }
+            body { background: white !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex">
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     SIDEBAR
+════════════════════════════════════════════════════════════════════════ -->
+<aside class="w-64 flex-shrink-0 h-screen bg-white border-r border-slate-200 flex flex-col overflow-y-auto fixed left-0 top-0 z-30">
+
+    <div class="h-16 flex items-center px-5 border-b border-slate-200 flex-shrink-0">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span class="text-white text-sm font-bold select-none">T</span>
+            </div>
+            <div>
+                <p class="text-slate-900 text-sm font-semibold leading-none" id="sidebarTenantName">Loading…</p>
+                <p class="text-indigo-600 text-[11px] leading-none mt-0.5 font-medium" id="sidebarTenantCode">—</p>
+            </div>
+        </div>
+    </div>
+
+    <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+
+        <a href="/tenant/dashboard.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            Overview
+        </a>
+
+        <a href="/tenant/sales.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+            Sales
+        </a>
+
+        <!-- Reports — ACTIVE -->
+        <a href="/tenant/reports.html" class="bg-indigo-50 text-indigo-700 font-medium rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            Reports
+        </a>
+
+        <a href="/tenant/shifts.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Cash Shortages
+        </a>
+
+        <a href="/tenant/menu.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+            Menu
+        </a>
+
+
+        <a href="/tenant/variant-options.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+            Variant Options
+        </a>
+
+        <a href="/tenant/addon-groups.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+            Add-on Groups
+        </a>
+
+        <a href="/tenant/promotions.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg>
+            Promotions
+        </a>
+
+        <a href="/tenant/deals.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+            Deals
+        </a>
+
+        <a href="/tenant/branches.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            Branches
+        </a>
+
+        <a href="/tenant/preparation-stations.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z"/></svg>
+            Kitchen Stations
+        </a>
+
+        <a href="/tenant/devices.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+            Devices
+        </a>
+
+        <a href="/tenant/users.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+            Users
+        </a>
+
+        <a href="/tenant/roles.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            Roles
+        </a>
+
+        <a href="/tenant/activity.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Activity
+        </a>
+
+            <a href="/tenant/expenses.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-6 4h6m-6 4h4M5 3h14a2 2 0 012 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 012-2z"/></svg>
+                Expenses
+            </a>
+            <a href="/tenant/employees.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+                Employees
+            </a>
+            <a href="/tenant/salaries.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Salaries
+            </a>
+        <a href="/tenant/inventory.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            Inventory
+        </a>
+
+        <a href="/tenant/subscription.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            Subscription
+        </a>
+
+        <a href="/tenant/settings.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Settings
+        </a>
+
+    </nav>
+
+    <div class="border-t border-slate-200 p-4 flex-shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                <span class="text-indigo-700 text-sm font-semibold" id="userInitial">?</span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-slate-900 truncate" id="sidebarUserName">—</p>
+                <p class="text-xs text-slate-500 truncate" id="sidebarUserRoles">—</p>
+            </div>
+            <button onclick="logout()" title="Logout" class="text-slate-400 hover:text-slate-600 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            </button>
+        </div>
+    </div>
+</aside>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════════════════════════════════════ -->
+<main class="ml-64 flex-1 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <div class="bg-white border-b border-slate-200 flex-shrink-0 no-print">
+        <div class="h-16 flex items-center justify-between px-6">
+            <div>
+                <h1 class="text-lg font-semibold text-slate-900">Reports &amp; Analytics</h1>
+                <p class="text-xs text-slate-400" id="reportPeriodLabel">—</p>
+            </div>
+            <button id="printBtn" onclick="handleExportClick()"
+                class="flex items-center gap-2 border border-slate-200 text-slate-600 text-sm font-medium px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                Export PDF
+            </button>
+        </div>
+        <div class="px-6 flex gap-1">
+            <button onclick="switchTab('sales')" id="tabBtnSales"
+                class="px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors">Sales Report</button>
+            <button onclick="switchTab('yearComparison')" id="tabBtnYearComparison"
+                class="px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors">Year Comparison</button>
+        </div>
+    </div>
+
+    <div id="tabSalesReport" class="flex-1 flex flex-col">
+
+    <!-- ── FILTERS ── -->
+    <div id="filterBar" class="no-print bg-white border-b border-slate-200 px-6 py-4">
+        <div class="flex flex-wrap items-end gap-3">
+
+            <!-- Quick Range Presets -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Quick Range</label>
+                <div class="flex gap-1.5">
+                    <button onclick="setRange('today')"     id="rToday"  class="range-btn px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors">Today</button>
+                    <button onclick="setRange('week')"      id="rWeek"   class="range-btn px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors">Week</button>
+                    <button onclick="setRange('month')"     id="rMonth"  class="range-btn px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors">Month</button>
+                    <button onclick="setRange('quarter')"   id="rQtr"    class="range-btn px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors">Quarter</button>
+                    <button onclick="setRange('year')"      id="rYear"   class="range-btn px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors">Year</button>
+                </div>
+            </div>
+
+            <!-- Custom From / To -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">From</label>
+                <input id="fDateFrom" type="date" onchange="clearPreset()"
+                    class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">To</label>
+                <input id="fDateTo" type="date" onchange="clearPreset()"
+                    class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+
+            <!-- Branch -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Branch</label>
+                <select id="fBranch"
+                    onchange="loadReportShifts()"
+                    class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-w-[160px]">
+                    <option value="">All Branches</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Cashier</label>
+                <select id="fCashier" class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-900 min-w-[160px]">
+                    <option value="">All Cashiers</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Shift</label>
+                <select id="fShift" class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-900 min-w-[160px]">
+                    <option value="">All Shifts</option>
+                </select>
+            </div>
+
+            <!-- Run Report -->
+            <button onclick="runReport()"
+                class="flex items-center gap-1.5 bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                Run Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Error -->
+    <div id="errorBanner" class="hidden bg-red-50 border-b border-red-200 text-red-700 px-6 py-3 text-sm"></div>
+
+    <!-- ── REPORT CONTENT ── -->
+    <div class="flex-1 p-6 space-y-6" id="reportContent">
+
+        <!-- Print letterhead — shop logo/name on the left, report title +
+             period on the right, printed/exported reports only. One clean
+             header block, no dash-joined title. -->
+        <div id="printLetterhead" class="hidden print:flex items-start justify-between gap-3 pb-3 mb-3 border-b-2 border-slate-800">
+            <div class="flex items-center gap-3">
+                <img id="printLogo" class="hidden h-14 w-14 object-contain flex-shrink-0" alt="" />
+                <p class="text-xl font-bold text-slate-900" id="printBusinessName">&nbsp;</p>
+            </div>
+            <div class="text-right">
+                <h2 class="text-base font-semibold text-slate-800" id="printTitle">Sales Report</h2>
+                <p class="text-xs text-slate-500" id="printSubtitle">—</p>
+            </div>
+        </div>
+
+        <!-- Loading state -->
+        <div id="loadingState" class="flex items-center justify-center py-20">
+            <div class="text-center text-slate-400">
+                <svg class="w-10 h-10 mx-auto mb-3 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                <p class="text-sm">Select a date range and click Run Report</p>
+            </div>
+        </div>
+
+        <!-- ── SECTION 1: Summary Cards ── -->
+        <div id="sectionSummary" class="hidden">
+            <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Total Sales</p>
+                    <p class="text-2xl font-bold text-slate-900 mt-2" id="cTotalSales">—</p>
+                    <p class="text-xs text-slate-400 mt-1" id="cCompletedSales">—</p>
+                </div>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Total Revenue</p>
+                    <p class="text-2xl font-bold text-emerald-600 mt-2" id="cRevenue">—</p>
+                    <p class="text-xs text-slate-400 mt-1" id="cDiscount">—</p>
+                </div>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Avg Order Value</p>
+                    <p class="text-2xl font-bold text-indigo-600 mt-2" id="cAvgOrder">—</p>
+                    <p class="text-xs text-slate-400 mt-1">per completed sale</p>
+                </div>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Tax Collected</p>
+                    <p class="text-2xl font-bold text-slate-700 mt-2" id="cTax">—</p>
+                    <p class="text-xs text-slate-400 mt-1" id="cCancelled">—</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── SECTION 1.5: By Payment Method ── -->
+        <div id="sectionPaymentMethods" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h2 class="text-base font-semibold text-slate-900">Revenue by Payment Method</h2>
+                <span class="text-xs text-slate-400">Cash · JazzCash · EasyPaisa · Online Transfer · Credit Card — completed sales, selected period</span>
+            </div>
+            <table class="w-full text-sm">
+                <thead class="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                        <th class="text-left px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Method</th>
+                        <th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Transactions</th>
+                        <th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Amount</th>
+                        <th class="text-left px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide w-1/3 no-print">Share</th>
+                    </tr>
+                </thead>
+                <tbody id="paymentMethodTableBody" class="divide-y divide-slate-100"></tbody>
+                <tfoot class="bg-slate-50 border-t border-slate-200">
+                    <tr>
+                        <td class="px-5 py-2.5 text-sm font-semibold text-slate-700">Total</td>
+                        <td class="px-5 py-2.5 text-right text-sm font-semibold text-slate-700" id="pmTotalTx">—</td>
+                        <td class="px-5 py-2.5 text-right text-sm font-semibold text-slate-900" id="pmTotalAmt">—</td>
+                        <td class="no-print"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- ── SECTION 1.6: Refunds & Cancellations ── -->
+        <div id="sectionRefunds" class="hidden space-y-4 print-break">
+            <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Returns</p>
+                    <p class="text-2xl font-bold text-amber-600 mt-2" id="cRefundTotal">—</p>
+                    <p class="text-xs text-slate-400 mt-1" id="cRefundCount">—</p>
+                </div>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Cancellations</p>
+                    <p class="text-2xl font-bold text-red-600 mt-2" id="cCancelTotal">—</p>
+                    <p class="text-xs text-slate-400 mt-1" id="cCancelCount">—</p>
+                </div>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Total Refunded</p>
+                    <p class="text-2xl font-bold text-slate-700 mt-2" id="cRefundedGrandTotal">—</p>
+                    <p class="text-xs text-slate-400 mt-1">Returns + Cancellations</p>
+                </div>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Refunded Sales</p>
+                    <p class="text-2xl font-bold text-slate-700 mt-2" id="cRefundedSalesCount">—</p>
+                    <p class="text-xs text-slate-400 mt-1">Fully refunded transactions</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="px-5 py-4 border-b border-slate-100">
+                        <h2 class="text-base font-semibold text-slate-900">Refunds by Payment Method</h2>
+                        <p class="text-xs text-slate-400 mt-0.5">Returns only</p>
+                    </div>
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th class="text-left px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Method</th>
+                                <th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="refundMethodTableBody" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="px-5 py-4 border-b border-slate-100">
+                        <h2 class="text-base font-semibold text-slate-900">Cancellations by Payment Method</h2>
+                        <p class="text-xs text-slate-400 mt-0.5">Same-shift full reversals</p>
+                    </div>
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th class="text-left px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Method</th>
+                                <th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cancelMethodTableBody" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-5 py-4 border-b border-slate-100">
+                    <h2 class="text-base font-semibold text-slate-900">Top Returned / Cancelled Products</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">By amount returned</p>
+                </div>
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="text-left px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">#</th>
+                            <th class="text-left px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Product</th>
+                            <th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Times</th>
+                            <th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Qty Returned</th>
+                            <th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="returnedProductTableBody" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ── SECTION 2: Daily Revenue Trend ── -->
+        <div id="sectionDaily" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-5">
+                <h2 class="text-base font-semibold text-slate-900">Daily Revenue Trend</h2>
+                <span class="text-xs text-slate-400 no-print">Completed sales only</span>
+            </div>
+            <div class="relative h-56">
+                <canvas id="dailyChart"></canvas>
+            </div>
+        </div>
+
+        <!-- ── SECTION 3: Monthly View ── -->
+        <div id="sectionMonthly" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm p-6 print-break">
+            <div class="flex items-center justify-between mb-5">
+                <h2 class="text-base font-semibold text-slate-900">Monthly Revenue</h2>
+                <span class="text-xs text-slate-400 no-print" id="monthlyRangeLabel">—</span>
+            </div>
+            <div class="relative h-56">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+
+        <!-- ── SECTION 4: By Branch ── -->
+        <div id="sectionBranches" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h2 class="text-base font-semibold text-slate-900">Revenue by Branch</h2>
+                <span class="text-xs text-slate-400">Completed sales only</span>
+            </div>
+            <table class="w-full text-sm">
+                <thead class="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                        <th class="text-left px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Branch</th>
+                        <th class="text-left px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Code</th>
+                        <th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Total Sales</th>
+                        <th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Completed</th>
+                        <th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Revenue</th>
+                    </tr>
+                </thead>
+                <tbody id="branchTableBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+        </div>
+
+        <!-- ── SECTION 5: Top Products ── -->
+        <div id="sectionProducts" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden print-break">
+            <div class="px-5 py-4 border-b border-slate-100">
+                <h2 class="text-base font-semibold text-slate-900">Top Products</h2>
+                <p class="text-xs text-slate-400 mt-0.5">By revenue — completed sales only</p>
+            </div>
+            <table class="w-full text-sm">
+                <thead class="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                        <th class="text-left px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">#</th>
+                        <th class="text-left px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Product</th>
+                        <th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Orders</th>
+                        <th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Qty Sold</th>
+                        <th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Revenue</th>
+                    </tr>
+                </thead>
+                <tbody id="productTableBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+        </div>
+
+        <!-- ── SECTION 6: By Cashier ── -->
+        <div id="sectionCashiers" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden print-break">
+            <div class="px-5 py-4 border-b border-slate-100">
+                <h2 class="text-base font-semibold text-slate-900">Sales by Cashier</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Performance per staff member</p>
+            </div>
+            <table class="w-full text-sm">
+                <thead class="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                        <th class="text-left px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Cashier</th>
+                        <th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Total Sales</th>
+                        <th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Completed</th>
+                        <th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Revenue</th>
+                    </tr>
+                </thead>
+                <tbody id="cashierTableBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+        </div>
+
+        <!-- Print footer — developer credit, printed/exported reports only -->
+        <div class="hidden print:block mt-6 pt-3 border-t border-slate-300 text-center text-[10px] text-slate-400">
+            Storixx &middot; developed by apkaysoftware.com &middot; 03487457766
+        </div>
+
+    </div>
+    </div>
+    <!-- /tabSalesReport -->
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         YEAR COMPARISON TAB
+    ════════════════════════════════════════════════════════════════════════ -->
+    <div id="tabYearComparison" class="hidden flex-1 flex flex-col">
+
+        <div class="no-print bg-white border-b border-slate-200 px-6 py-4">
+            <div class="flex flex-wrap items-end gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Years</label>
+                    <div class="flex flex-wrap gap-1.5 max-w-xl" id="ycYearChips"></div>
+                    <p class="text-[11px] text-slate-400 mt-1">Compare up to 8 years at a time.</p>
+                </div>
+                <button onclick="selectLastNYears(5)"
+                    class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors">
+                    Last 5 Years
+                </button>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Branch</label>
+                    <select id="ycBranch"
+                        class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-w-[160px]">
+                        <option value="">All Branches</option>
+                    </select>
+                </div>
+                <button onclick="runYearComparison()"
+                    class="flex items-center gap-1.5 bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    Compare
+                </button>
+            </div>
+        </div>
+
+        <div id="ycError" class="hidden bg-red-50 border-b border-red-200 text-red-700 px-6 py-3 text-sm"></div>
+
+        <div class="flex-1 p-6 space-y-6" id="ycContentWrap">
+
+            <div id="ycPrintLetterhead" class="hidden print:flex items-start justify-between gap-3 pb-3 mb-3 border-b-2 border-slate-800">
+                <div class="flex items-center gap-3">
+                    <img id="ycPrintLogo" class="hidden h-14 w-14 object-contain flex-shrink-0" alt="" />
+                    <p class="text-xl font-bold text-slate-900" id="ycPrintBusinessName">&nbsp;</p>
+                </div>
+                <div class="text-right">
+                    <h2 class="text-base font-semibold text-slate-800">Year Comparison Report</h2>
+                    <p class="text-xs text-slate-500" id="ycPrintSubtitle">—</p>
+                </div>
+            </div>
+
+            <div id="ycEmptyState" class="flex items-center justify-center py-20">
+                <div class="text-center text-slate-400">
+                    <svg class="w-10 h-10 mx-auto mb-3 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    <p class="text-sm">Pick one or more years and click Compare</p>
+                </div>
+            </div>
+
+            <div id="ycResults" class="hidden space-y-6">
+
+                <div class="grid grid-cols-2 xl:grid-cols-4 gap-4" id="ycKpiCards"></div>
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="px-5 py-4 border-b border-slate-100">
+                        <h2 class="text-base font-semibold text-slate-900">Year-by-Year Summary</h2>
+                        <p class="text-xs text-slate-400 mt-0.5">Growth % is against the immediately preceding calendar year</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-50 border-b border-slate-200">
+                                <tr>
+                                    <th class="text-left px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Year</th>
+                                    <th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Total Sales</th>
+                                    <th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Completed</th>
+                                    <th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Revenue</th>
+                                    <th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Avg Order</th>
+                                    <th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Refunds</th>
+                                    <th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Cancellations</th>
+                                    <th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">YoY Growth</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ycSummaryBody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 print-break">
+                    <div class="flex items-center justify-between mb-1">
+                        <h2 class="text-base font-semibold text-slate-900">Monthly Revenue Comparison</h2>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4 no-print">One line per year, January through December</p>
+                    <div class="relative h-72">
+                        <canvas id="ycChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden print-break">
+                    <div class="px-5 py-4 border-b border-slate-100">
+                        <h2 class="text-base font-semibold text-slate-900">Monthly Revenue — By Year</h2>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-50 border-b border-slate-200">
+                                <tr id="ycMatrixHead">
+                                    <th class="text-left px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Month</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ycMatrixBody" class="divide-y divide-slate-100"></tbody>
+                            <tfoot class="bg-slate-50 border-t border-slate-200" id="ycMatrixFoot"></tfoot>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="hidden print:block mt-6 pt-3 border-t border-slate-300 text-center text-[10px] text-slate-400 px-6 pb-6">
+            Storixx &middot; developed by apkaysoftware.com &middot; 03487457766
+        </div>
+    </div>
+    <!-- /tabYearComparison -->
+
+</main>
+
+<script>
+const API = '/api/v1';
+let token = localStorage.getItem('tenant_token') || '';
+let dailyChartInstance = null;
+let monthlyChartInstance = null;
+let ycChart = null;
+let activeTab = 'sales';
+let salesPeriodLabel = '—';
+let ycPeriodLabel = '—';
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function tabBtnClass(active) {
+    return `px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${active ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-slate-500 hover:text-slate-700'}`;
+}
+
+function switchTab(tab) {
+    activeTab = tab;
+    const salesActive = tab === 'sales';
+    document.getElementById('tabSalesReport').classList.toggle('hidden', !salesActive);
+    document.getElementById('tabYearComparison').classList.toggle('hidden', salesActive);
+    document.getElementById('tabBtnSales').className = tabBtnClass(salesActive);
+    document.getElementById('tabBtnYearComparison').className = tabBtnClass(!salesActive);
+    document.getElementById('reportPeriodLabel').textContent = salesActive ? salesPeriodLabel : ycPeriodLabel;
+    if (!salesActive && ycSelectedYears.size === 0) {
+        selectLastNYears(5);
+    }
+}
+
+function handleExportClick() {
+    if (activeTab === 'sales') { printReport(); } else { exportYearComparisonPdf(); }
+}
+
+async function api(path, opts = {}) {
+    const r = await fetch(API + path, {
+        ...opts,
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', ...opts.headers },
+    });
+    if (r.status === 401) { localStorage.removeItem('tenant_token'); location.href = '/tenant/login.html'; }
+    if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || r.statusText); }
+    return r.status === 204 ? null : r.json();
+}
+
+function fmt(v) { return (window.SHOP_CCY||"Rs.")+" " + parseFloat(v || 0).toFixed(2); }
+
+function showError(msg) {
+    const el = document.getElementById('errorBanner');
+    el.textContent = msg;
+    el.classList.remove('hidden');
+}
+
+function hide(id) { document.getElementById(id).classList.add('hidden'); }
+function show(id) { document.getElementById(id).classList.remove('hidden'); }
+
+const PRESET_BTN_BASE = 'range-btn px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-colors';
+const PRESET_ACTIVE = 'bg-indigo-600 text-white border-indigo-600';
+const PRESET_INACTIVE = 'border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200';
+
+function clearPreset() {
+    ['rToday','rWeek','rMonth','rQtr','rYear'].forEach(id => {
+        const btn = document.getElementById(id);
+        btn.className = `${PRESET_BTN_BASE} ${PRESET_INACTIVE}`;
+    });
+}
+
+function setRange(type) {
+    clearPreset();
+    const today = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const fmtD = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    let from, to = fmtD(today), btnId;
+
+    if (type === 'today') {
+        from = fmtD(today);
+        btnId = 'rToday';
+    } else if (type === 'week') {
+        const mon = new Date(today); mon.setDate(today.getDate() - today.getDay() + 1);
+        from = fmtD(mon);
+        btnId = 'rWeek';
+    } else if (type === 'month') {
+        from = `${today.getFullYear()}-${pad(today.getMonth()+1)}-01`;
+        btnId = 'rMonth';
+    } else if (type === 'quarter') {
+        const qStart = new Date(today.getFullYear(), Math.floor(today.getMonth()/3)*3, 1);
+        from = fmtD(qStart);
+        btnId = 'rQtr';
+    } else if (type === 'year') {
+        from = `${today.getFullYear()}-01-01`;
+        btnId = 'rYear';
+    }
+    document.getElementById('fDateFrom').value = from;
+    document.getElementById('fDateTo').value = to;
+    if (btnId) document.getElementById(btnId).className = `${PRESET_BTN_BASE} ${PRESET_ACTIVE}`;
+}
+
+async function loadBranches(selectId) {
+    try {
+        const branches = await api(`/branches/?limit=200`);
+        const sel = document.getElementById(selectId);
+        branches.forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b.id;
+            opt.textContent = `${b.name} (${b.branch_code})`;
+            sel.appendChild(opt);
+        });
+    } catch(_) {}
+}
+
+async function loadReportCashiers() {
+    try {
+        const users = await api('/users/?limit=200');
+        const sel = document.getElementById('fCashier');
+        users.forEach(user => {
+            const opt = document.createElement('option');
+            opt.value = user.id;
+            opt.textContent = user.full_name || user.username;
+            sel.appendChild(opt);
+        });
+    } catch (_) {}
+}
+
+async function loadReportShifts() {
+    const branch = document.getElementById('fBranch').value;
+    const sel = document.getElementById('fShift');
+    const selected = sel.value;
+    sel.innerHTML = '<option value="">All Shifts</option>';
+    if (!branch) return;
+    const df = document.getElementById('fDateFrom').value;
+    const dt = document.getElementById('fDateTo').value;
+    const params = new URLSearchParams({branch_id: branch, limit: '200'});
+    if (df) params.set('date_from', `${df}T00:00:00`);
+    if (dt) params.set('date_to', `${dt}T23:59:59`);
+    try {
+        const sales = await api('/sales/?' + params.toString());
+        const shifts = new Map();
+        sales.forEach(sale => {
+            if (sale.session_id && !shifts.has(sale.session_id)) shifts.set(sale.session_id, sale.sold_at);
+        });
+        shifts.forEach((soldAt, id) => {
+            const opt = document.createElement('option');
+            opt.value = id;
+            opt.textContent = `Shift ${id.slice(0, 8)} · ${new Date(soldAt).toLocaleString()}`;
+            sel.appendChild(opt);
+        });
+        if ([...sel.options].some(option => option.value === selected)) sel.value = selected;
+    } catch (_) {}
+}
+
+function buildQS() {
+    const df = document.getElementById('fDateFrom').value;
+    const dt = document.getElementById('fDateTo').value;
+    const br = document.getElementById('fBranch').value;
+    const cashier = document.getElementById('fCashier').value;
+    const shift = document.getElementById('fShift').value;
+    const params = new URLSearchParams();
+    if (df) params.set('date_from', new Date(`${df}T00:00:00.000`).toISOString());
+    if (dt) params.set('date_to', new Date(`${dt}T23:59:59.999`).toISOString());
+    if (br) params.set('branch_id', br);
+    if (cashier) params.set('user_id', cashier);
+    if (shift) params.set('session_id', shift);
+    const encoded = params.toString();
+    return encoded ? `?${encoded}` : '';
+}
+
+// Decides which trend section applies to the selected date range, so the
+// dashboard never mixes a short period (Today/Week/Month) with an
+// unrelated full-year monthly chart, or vice versa — Today shows only
+// today's data, Week only that week, Quarter/Year only that period's
+// months. A range over 31 days switches from the day-by-day chart to the
+// month-by-month one, scoped to the range's own year (and month span, when
+// it stays inside one calendar year). Mirrored server-side in
+// api/v1/reports.py::_report_granularity for the PDF export.
+function computeGranularity() {
+    const df = document.getElementById('fDateFrom').value;
+    const dt = document.getElementById('fDateTo').value;
+    if (!df && !dt) {
+        return { showDaily: false, showMonthly: true, year: null, monthRange: null };
+    }
+    if (!df || !dt) {
+        return { showDaily: true, showMonthly: false, year: null, monthRange: null };
+    }
+    const start = new Date(df + 'T00:00:00');
+    const end = new Date(dt + 'T00:00:00');
+    const spanDays = Math.round((end - start) / 86400000) + 1;
+    if (spanDays <= 31) {
+        return { showDaily: true, showMonthly: false, year: null, monthRange: null };
+    }
+    const sameYear = start.getFullYear() === end.getFullYear();
+    return {
+        showDaily: false, showMonthly: true, year: start.getFullYear(),
+        monthRange: sameYear ? [start.getMonth() + 1, end.getMonth() + 1] : null,
+    };
+}
+
+async function runReport() {
+    document.getElementById('errorBanner').classList.add('hidden');
+    hide('loadingState');
+
+    const df = document.getElementById('fDateFrom').value;
+    const dt = document.getElementById('fDateTo').value;
+    const br = document.getElementById('fBranch').value;
+    const cashier = document.getElementById('fCashier').value;
+    const shift = document.getElementById('fShift').value;
+    if (df && dt && df > dt) {
+        showError('The From date must be on or before the To date.');
+        return;
+    }
+    await loadReportShifts();
+    const qs = buildQS();
+    const gran = computeGranularity();
+
+    // Period label
+    const branchOption = document.getElementById('fBranch').selectedOptions[0];
+    const cashierOption = document.getElementById('fCashier').selectedOptions[0];
+    const shiftOption = document.getElementById('fShift').selectedOptions[0];
+    const label = [df && `From ${df}`, dt && `To ${dt}`, br && branchOption?.textContent,
+        cashier && cashierOption?.textContent, shift && shiftOption?.textContent].filter(Boolean).join(' · ');
+    salesPeriodLabel = label || 'All time';
+    if (activeTab === 'sales') document.getElementById('reportPeriodLabel').textContent = salesPeriodLabel;
+    // "Sales Report" only — the letterhead above already shows the business
+    // name, so repeating it dash-joined here was redundant clutter.
+    document.getElementById('printTitle').textContent = 'Sales Report';
+    document.getElementById('printSubtitle').textContent = salesPeriodLabel;
+
+    const trendParams = new URLSearchParams();
+    if (br) trendParams.set('branch_id', br);
+    if (cashier) trendParams.set('user_id', cashier);
+    if (shift) trendParams.set('session_id', shift);
+    const monthlyParams = new URLSearchParams(trendParams);
+    if (gran.year) monthlyParams.set('year', gran.year);
+    const monthlyQS = monthlyParams.toString() ? `?${monthlyParams}` : '';
+
+    // Run everything that always applies in parallel; Daily and Monthly are
+    // mutually exclusive so only the one this range actually needs is fetched.
+    try {
+        const promises = {
+            summary: api('/reports/summary' + qs),
+            products: api('/reports/products' + qs + (qs ? '&' : '?') + 'limit=20'),
+            cashiers: api('/reports/cashiers' + qs),
+            branches: api('/reports/branches' + qs),
+            paymentMethods: api('/reports/payment-methods' + qs),
+            refunds: api('/reports/refunds' + qs),
+            returnedProducts: api('/reports/returned-products' + qs + (qs ? '&' : '?') + 'limit=20'),
+        };
+        if (gran.showDaily) promises.daily = api('/reports/daily' + qs);
+        if (gran.showMonthly) promises.monthly = api('/reports/monthly' + monthlyQS);
+
+        const keys = Object.keys(promises);
+        const results = await Promise.all(Object.values(promises));
+        const data = {};
+        keys.forEach((k, i) => { data[k] = results[i]; });
+
+        renderSummary(data.summary);
+        renderPaymentMethods(data.paymentMethods);
+        renderRefunds(data.refunds, data.returnedProducts);
+        renderBranches(data.branches);
+        renderProducts(data.products);
+        renderCashiers(data.cashiers);
+
+        if (gran.showDaily) {
+            renderDaily(data.daily);
+            hide('sectionMonthly');
+        } else {
+            hide('sectionDaily');
+            let monthly = data.monthly || [];
+            if (gran.monthRange) {
+                const [lo, hi] = gran.monthRange;
+                monthly = monthly.filter(m => {
+                    const mm = parseInt(m.month.split('-')[1], 10);
+                    return mm >= lo && mm <= hi;
+                });
+            }
+            const rangeLabel = gran.year
+                ? (gran.monthRange ? `${MONTH_NAMES[gran.monthRange[0]-1]} – ${MONTH_NAMES[gran.monthRange[1]-1]} ${gran.year}` : String(gran.year))
+                : 'Last 24 months';
+            renderMonthly(monthly, rangeLabel);
+        }
+
+    } catch(e) {
+        showError('Report failed: ' + e.message);
+    }
+}
+
+function renderSummary(s) {
+    if (!s) { hide('sectionSummary'); return; }
+    document.getElementById('cTotalSales').textContent = s.total_sales || 0;
+    document.getElementById('cCompletedSales').textContent = `${s.completed_sales} completed · ${s.refunded_sales || 0} refunded`;
+    document.getElementById('cRevenue').textContent = fmt(s.total_revenue);
+    document.getElementById('cDiscount').textContent = `Discount: ${fmt(s.total_discount)}`;
+    document.getElementById('cAvgOrder').textContent = fmt(s.avg_order_value);
+    document.getElementById('cTax').textContent = fmt(s.total_tax);
+    document.getElementById('cCancelled').textContent = `${s.cancelled_sales} cancelled · ${fmt(s.cancellation_total)}`;
+    document.getElementById('cRefundedSalesCount').textContent = s.refunded_sales || 0;
+    show('sectionSummary');
+}
+
+function renderRefunds(r, products) {
+    if (!r || (!r.refund_count && !r.cancellation_count)) { hide('sectionRefunds'); return; }
+    show('sectionRefunds');
+
+    document.getElementById('cRefundTotal').textContent = fmt(r.refund_total);
+    document.getElementById('cRefundCount').textContent = `${r.refund_count} return${r.refund_count === 1 ? '' : 's'}`;
+    document.getElementById('cCancelTotal').textContent = fmt(r.cancellation_total);
+    document.getElementById('cCancelCount').textContent = `${r.cancellation_count} cancellation${r.cancellation_count === 1 ? '' : 's'}`;
+    document.getElementById('cRefundedGrandTotal').textContent =
+        fmt(parseFloat(r.refund_total || 0) + parseFloat(r.cancellation_total || 0));
+
+    const methodRows = (breakdown) => {
+        const entries = Object.entries(breakdown || {});
+        if (entries.length === 0) return `<tr><td colspan="2" class="px-5 py-4 text-center text-slate-400 text-sm">None</td></tr>`;
+        return entries.map(([method, amt]) => `
+            <tr class="hover:bg-slate-50">
+                <td class="px-5 py-3 text-slate-900 font-medium">${escapeHTML(method)}</td>
+                <td class="px-5 py-3 text-right text-slate-900 font-semibold">${fmt(amt)}</td>
+            </tr>`).join('');
+    };
+    document.getElementById('refundMethodTableBody').innerHTML = methodRows(r.refunds_by_payment_method);
+    document.getElementById('cancelMethodTableBody').innerHTML = methodRows(r.cancellations_by_payment_method);
+
+    document.getElementById('returnedProductTableBody').innerHTML = (products && products.length > 0)
+        ? products.map((p, i) => `
+            <tr class="hover:bg-slate-50">
+                <td class="px-5 py-3 text-slate-400 text-sm">${i + 1}</td>
+                <td class="px-5 py-3 text-slate-900 font-medium">${escapeHTML(p.product_name)}</td>
+                <td class="px-5 py-3 text-right text-slate-600">${p.times_returned}</td>
+                <td class="px-5 py-3 text-right text-slate-600">${parseFloat(p.quantity_returned).toFixed(2)}</td>
+                <td class="px-5 py-3 text-right text-slate-900 font-semibold">${fmt(p.amount_returned)}</td>
+            </tr>`).join('')
+        : `<tr><td colspan="5" class="px-5 py-4 text-center text-slate-400 text-sm">No returns in this period</td></tr>`;
+}
+
+function renderPaymentMethods(points) {
+    // group_by is omitted, so the endpoint returns exactly one overall point
+    // (period: null) for the date_from..date_to / branch filter already applied
+    // above — the same Cash / JazzCash / EasyPaisa / Online Transfer / Credit
+    // Card split the POS shift-close screen shows per session.
+    const rows = (points && points[0] && points[0].breakdown) || [];
+    if (rows.length === 0) { hide('sectionPaymentMethods'); return; }
+    show('sectionPaymentMethods');
+
+    const total = rows.reduce((a, r) => a + parseFloat(r.amount || 0), 0);
+    const totalTx = rows.reduce((a, r) => a + (r.transactions || 0), 0);
+    document.getElementById('pmTotalTx').textContent = totalTx;
+    document.getElementById('pmTotalAmt').textContent = fmt(total);
+
+    document.getElementById('paymentMethodTableBody').innerHTML = rows.map(r => {
+        const pct = total > 0 ? (parseFloat(r.amount || 0) / total * 100) : 0;
+        return `
+        <tr class="hover:bg-slate-50">
+            <td class="px-5 py-3 text-slate-900 font-medium">${r.payment_method}</td>
+            <td class="px-5 py-3 text-right text-slate-600">${r.transactions}</td>
+            <td class="px-5 py-3 text-right text-slate-900 font-semibold">${fmt(r.amount)}</td>
+            <td class="px-5 py-3 no-print">
+                <div class="flex items-center gap-2">
+                    <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-indigo-500 rounded-full" style="width:${pct.toFixed(1)}%"></div>
+                    </div>
+                    <span class="text-xs text-slate-400 w-10 text-right">${pct.toFixed(1)}%</span>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function renderDaily(points) {
+    if (!points || points.length === 0) { hide('sectionDaily'); return; }
+    show('sectionDaily');
+    const ctx = document.getElementById('dailyChart').getContext('2d');
+    if (dailyChartInstance) dailyChartInstance.destroy();
+    dailyChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: points.map(p => p.date),
+            datasets: [{
+                label: 'Revenue ('+(window.SHOP_CCY||"Rs.")+')',
+                data: points.map(p => parseFloat(p.revenue || 0)),
+                backgroundColor: 'rgba(99,102,241,0.85)',
+                borderRadius: 4,
+            }, {
+                label: 'Sales Count',
+                data: points.map(p => p.completed_count),
+                type: 'line',
+                borderColor: '#10b981',
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                pointRadius: 3,
+                tension: 0.3,
+                yAxisID: 'y1',
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { callback: v => (window.SHOP_CCY||"Rs.")+" "+v } },
+                y1: { position: 'right', beginAtZero: true, grid: { display: false }, ticks: { color: '#10b981' } },
+            },
+            plugins: { legend: { position: 'top', labels: { usePointStyle: true, padding: 16, font: { size: 12 } } } }
+        }
+    });
+}
+
+function renderMonthly(points, rangeLabel) {
+    if (!points || points.length === 0) { hide('sectionMonthly'); return; }
+    show('sectionMonthly');
+    document.getElementById('monthlyRangeLabel').textContent = rangeLabel || '';
+    const ctx = document.getElementById('monthlyChart').getContext('2d');
+    if (monthlyChartInstance) monthlyChartInstance.destroy();
+    monthlyChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: points.map(p => p.month),
+                datasets: [{
+                    label: 'Monthly Revenue ('+(window.SHOP_CCY||"Rs.")+')',
+                    data: points.map(p => parseFloat(p.revenue || 0)),
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99,102,241,0.08)',
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#6366f1',
+                }, {
+                    label: 'Sales Count',
+                    data: points.map(p => p.sales_count),
+                    borderColor: '#10b981',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    pointRadius: 3,
+                    yAxisID: 'y1',
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { callback: v => (window.SHOP_CCY||"Rs.")+" "+v } },
+                    y1: { position: 'right', beginAtZero: true, grid: { display: false }, ticks: { color: '#10b981' } },
+                },
+                plugins: { legend: { position: 'top', labels: { usePointStyle: true, padding: 16, font: { size: 12 } } } }
+            }
+    });
+}
+
+function renderBranches(rows) {
+    if (!rows || rows.length === 0) { hide('sectionBranches'); return; }
+    show('sectionBranches');
+    const totalRev = rows.reduce((a, r) => a + parseFloat(r.revenue||0), 0);
+    document.getElementById('branchTableBody').innerHTML = rows.map(r => `
+        <tr class="hover:bg-slate-50">
+            <td class="px-5 py-3 text-slate-900 font-medium">${escapeHTML(r.branch_name)}</td>
+            <td class="px-5 py-3 font-mono text-xs text-slate-400">${escapeHTML(r.branch_code)}</td>
+            <td class="px-5 py-3 text-right text-slate-600">${r.sales_count}</td>
+            <td class="px-5 py-3 text-right text-slate-600">${r.completed_count}</td>
+            <td class="px-5 py-3 text-right">
+                <span class="text-slate-900 font-semibold">${fmt(r.revenue)}</span>
+                <span class="text-xs text-slate-400 ml-1">${totalRev > 0 ? ((parseFloat(r.revenue||0)/totalRev*100).toFixed(1)+'%') : ''}</span>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function renderProducts(rows) {
+    if (!rows || rows.length === 0) { hide('sectionProducts'); return; }
+    show('sectionProducts');
+    document.getElementById('productTableBody').innerHTML = rows.map((p, i) => `
+        <tr class="hover:bg-slate-50">
+            <td class="px-5 py-3 text-slate-400 text-sm">${i+1}</td>
+            <td class="px-5 py-3 text-slate-900 font-medium">${escapeHTML(p.product_name)}</td>
+            <td class="px-5 py-3 text-right text-slate-600">${p.order_count}</td>
+            <td class="px-5 py-3 text-right text-slate-600">${parseFloat(p.quantity_sold).toFixed(2)}</td>
+            <td class="px-5 py-3 text-right text-slate-900 font-semibold">${fmt(p.revenue)}</td>
+        </tr>
+    `).join('');
+}
+
+function renderCashiers(rows) {
+    if (!rows || rows.length === 0) { hide('sectionCashiers'); return; }
+    show('sectionCashiers');
+    document.getElementById('cashierTableBody').innerHTML = rows.map(c => `
+        <tr class="hover:bg-slate-50">
+            <td class="px-5 py-3 text-slate-900 font-medium">${escapeHTML(c.user_name)}</td>
+            <td class="px-5 py-3 text-right text-slate-600">${c.sales_count}</td>
+            <td class="px-5 py-3 text-right text-slate-600">${c.completed_count}</td>
+            <td class="px-5 py-3 text-right text-slate-900 font-semibold">${fmt(c.revenue)}</td>
+        </tr>
+    `).join('');
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// YEAR COMPARISON TAB
+// ════════════════════════════════════════════════════════════════════════
+
+let ycSelectedYears = new Set();
+const YC_MAX_YEARS = 8;
+// Fixed categorical order (validated palette, dataviz skill) — assigned by
+// selection order, never cycled or re-ranked when the selection changes.
+const YC_PALETTE = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948'];
+
+function ycChipClass(active) {
+    return `px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200'}`;
+}
+
+function populateYearChips() {
+    const container = document.getElementById('ycYearChips');
+    const now = new Date().getFullYear();
+    container.innerHTML = '';
+    for (let y = now; y >= now - 9; y--) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = String(y);
+        btn.dataset.year = String(y);
+        btn.className = ycChipClass(false);
+        btn.onclick = () => toggleYearChip(y);
+        container.appendChild(btn);
+    }
+}
+
+function toggleYearChip(y) {
+    document.getElementById('ycError').classList.add('hidden');
+    if (ycSelectedYears.has(y)) {
+        ycSelectedYears.delete(y);
+    } else {
+        if (ycSelectedYears.size >= YC_MAX_YEARS) {
+            showYcError(`Compare up to ${YC_MAX_YEARS} years at a time.`);
+            return;
+        }
+        ycSelectedYears.add(y);
+    }
+    refreshYearChipStyles();
+}
+
+function refreshYearChipStyles() {
+    document.querySelectorAll('#ycYearChips button').forEach(btn => {
+        const y = parseInt(btn.dataset.year, 10);
+        btn.className = ycChipClass(ycSelectedYears.has(y));
+    });
+}
+
+function selectLastNYears(n) {
+    const now = new Date().getFullYear();
+    ycSelectedYears = new Set();
+    for (let i = 0; i < n; i++) ycSelectedYears.add(now - i);
+    refreshYearChipStyles();
+    runYearComparison();
+}
+
+function showYcError(msg) {
+    const el = document.getElementById('ycError');
+    el.textContent = msg;
+    el.classList.remove('hidden');
+}
+
+async function runYearComparison() {
+    document.getElementById('ycError').classList.add('hidden');
+    const years = [...ycSelectedYears].sort((a, b) => a - b);
+    if (years.length === 0) { showYcError('Select at least one year to compare.'); return; }
+    const br = document.getElementById('ycBranch').value;
+    const params = new URLSearchParams();
+    years.forEach(y => params.append('years', y));
+    if (br) params.set('branch_id', br);
+    try {
+        const points = await api('/reports/year-comparison?' + params.toString());
+        renderYearComparison(points);
+    } catch (e) {
+        showYcError('Comparison failed: ' + e.message);
+    }
+}
+
+function renderYearComparison(points) {
+    if (!points || points.length === 0) {
+        hide('ycResults');
+        show('ycEmptyState');
+        return;
+    }
+    hide('ycEmptyState');
+    show('ycResults');
+
+    ycPeriodLabel = 'Years: ' + points.map(p => p.year).join(', ');
+    if (activeTab === 'yearComparison') document.getElementById('reportPeriodLabel').textContent = ycPeriodLabel;
+    document.getElementById('ycPrintSubtitle').textContent = points.map(p => p.year).join(', ');
+
+    const latest = points[points.length - 1];
+    const growthKnown = latest.revenue_growth_pct !== null && latest.revenue_growth_pct !== undefined;
+    const growthText = growthKnown
+        ? `${latest.revenue_growth_pct >= 0 ? '+' : ''}${parseFloat(latest.revenue_growth_pct).toFixed(1)}% vs ${latest.year - 1}`
+        : 'No prior-year data';
+    const growthColor = !growthKnown ? 'text-slate-400' : (latest.revenue_growth_pct >= 0 ? 'text-emerald-600' : 'text-red-600');
+    document.getElementById('ycKpiCards').innerHTML = `
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">${latest.year} Revenue</p>
+            <p class="text-2xl font-bold text-slate-900 mt-2">${fmt(latest.total_revenue)}</p>
+            <p class="text-xs mt-1 font-medium ${growthColor}">${growthText}</p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">${latest.year} Total Sales</p>
+            <p class="text-2xl font-bold text-slate-900 mt-2">${latest.total_sales}</p>
+            <p class="text-xs text-slate-400 mt-1">${latest.completed_sales} completed</p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">${latest.year} Avg Order</p>
+            <p class="text-2xl font-bold text-indigo-600 mt-2">${fmt(latest.avg_order_value)}</p>
+            <p class="text-xs text-slate-400 mt-1">per completed sale</p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">${latest.year} Refunded</p>
+            <p class="text-2xl font-bold text-slate-700 mt-2">${fmt(parseFloat(latest.refund_total || 0) + parseFloat(latest.cancellation_total || 0))}</p>
+            <p class="text-xs text-slate-400 mt-1">Returns + cancellations</p>
+        </div>
+    `;
+
+    document.getElementById('ycSummaryBody').innerHTML = points.map(p => {
+        const growth = p.revenue_growth_pct;
+        const growthCell = (growth === null || growth === undefined)
+            ? '<span class="text-slate-400">—</span>'
+            : `<span class="${growth >= 0 ? 'text-emerald-600' : 'text-red-600'} font-semibold">${growth >= 0 ? '+' : ''}${parseFloat(growth).toFixed(1)}%</span>`;
+        return `
+        <tr class="hover:bg-slate-50">
+            <td class="px-5 py-3 text-slate-900 font-semibold">${p.year}</td>
+            <td class="px-5 py-3 text-right text-slate-600">${p.total_sales}</td>
+            <td class="px-5 py-3 text-right text-slate-600">${p.completed_sales}</td>
+            <td class="px-5 py-3 text-right text-slate-900 font-semibold">${fmt(p.total_revenue)}</td>
+            <td class="px-5 py-3 text-right text-slate-600">${fmt(p.avg_order_value)}</td>
+            <td class="px-5 py-3 text-right text-amber-600">${fmt(p.refund_total)}</td>
+            <td class="px-5 py-3 text-right text-red-600">${fmt(p.cancellation_total)}</td>
+            <td class="px-5 py-3 text-right">${growthCell}</td>
+        </tr>`;
+    }).join('');
+
+    const ctx = document.getElementById('ycChart').getContext('2d');
+    if (ycChart) ycChart.destroy();
+    ycChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: MONTH_NAMES,
+            datasets: points.map((p, i) => ({
+                label: String(p.year),
+                data: p.monthly.map(m => parseFloat(m.revenue || 0)),
+                borderColor: YC_PALETTE[i % YC_PALETTE.length],
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                pointRadius: 3,
+                pointBackgroundColor: YC_PALETTE[i % YC_PALETTE.length],
+                tension: 0.3,
+            })),
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { callback: v => (window.SHOP_CCY||"Rs.")+" "+v } },
+            },
+            plugins: { legend: { position: 'top', labels: { usePointStyle: true, padding: 16, font: { size: 12 } } } }
+        }
+    });
+
+    const headRow = document.getElementById('ycMatrixHead');
+    headRow.innerHTML = '<th class="text-left px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Month</th>' +
+        points.map(p => `<th class="text-right px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">${p.year}</th>`).join('');
+
+    document.getElementById('ycMatrixBody').innerHTML = MONTH_NAMES.map((name, idx) => {
+        const cells = points.map(p => `<td class="px-5 py-3 text-right text-slate-700">${fmt(p.monthly[idx].revenue)}</td>`).join('');
+        return `<tr class="hover:bg-slate-50"><td class="px-5 py-3 text-slate-900 font-medium">${name}</td>${cells}</tr>`;
+    }).join('');
+
+    document.getElementById('ycMatrixFoot').innerHTML =
+        '<tr><td class="px-5 py-2.5 text-sm font-semibold text-slate-700">Total</td>' +
+        points.map(p => `<td class="px-5 py-2.5 text-right text-sm font-semibold text-slate-900">${fmt(p.total_revenue)}</td>`).join('') +
+        '</tr>';
+}
+
+async function exportYearComparisonPdf() {
+    const years = [...ycSelectedYears].sort((a, b) => a - b);
+    if (years.length === 0) { showYcError('Select at least one year to compare.'); return; }
+    const br = document.getElementById('ycBranch').value;
+    const params = new URLSearchParams();
+    years.forEach(y => params.append('years', y));
+    if (br) params.set('branch_id', br);
+
+    const btn = document.getElementById('printBtn');
+    const prevHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.textContent = 'Preparing PDF…';
+    try {
+        const res = await fetch(API + '/reports/year-comparison/pdf?' + params.toString(), {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'Could not generate the PDF.');
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'year-comparison-report.pdf';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    } catch (e) {
+        showYcError(e.message || 'Could not generate the PDF.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = prevHtml;
+    }
+}
+
+// Downloads the real, server-rendered A4 PDF (services/pdf_report_service.py)
+// instead of relying on the browser's own print-to-PDF pipeline — that's
+// what used to produce missing column headers, a stray scrollbar, and
+// content that didn't reliably fit the page.
+async function printReport() {
+    const btn = document.getElementById('printBtn');
+    const prevHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.textContent = 'Preparing PDF…';
+    try {
+        const res = await fetch(API + '/reports/pdf' + buildQS(), {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'Could not generate the PDF.');
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'sales-report.pdf';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    } catch (e) {
+        showError(e.message || 'Could not generate the PDF.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = prevHtml;
+    }
+}
+
+function logout() {
+    localStorage.removeItem('tenant_token');
+    location.href = '/tenant/login.html';
+}
+
+async function loadPrintBranding() {
+    try {
+        const biz = await api('/business/');
+        document.getElementById('printBusinessName').textContent = biz.name || 'My Business';
+        document.getElementById('ycPrintBusinessName').textContent = biz.name || 'My Business';
+        if (biz.logo_path) {
+            const img = document.getElementById('printLogo');
+            img.src = biz.logo_path;
+            img.classList.remove('hidden');
+            const ycImg = document.getElementById('ycPrintLogo');
+            ycImg.src = biz.logo_path;
+            ycImg.classList.remove('hidden');
+        }
+    } catch (_) { /* no logo set, or business fetch failed — letterhead just shows nothing extra */ }
+}
+
+async function initSidebar() {
+    try {
+        const me = await api('/auth/me'); window.SHOP_CCY = (me && me.currency) || 'Rs.';
+        document.getElementById('sidebarTenantName').textContent = me.tenant?.name || me.tenant_name || 'My Business';
+        document.getElementById('sidebarTenantCode').textContent = me.tenant?.code || me.tenant_code || '';
+        document.getElementById('sidebarUserName').textContent = me.full_name || me.name || me.username || '—';
+        document.getElementById('sidebarUserRoles').textContent = (me.roles || []).join(', ') || 'No roles';
+        const initial = (me.full_name || me.name || me.username || '?')[0].toUpperCase();
+        document.getElementById('userInitial').textContent = initial;
+    } catch (_) {}
+}
+
+(async () => {
+    if (!token) { location.href = '/tenant/login.html'; return; }
+    populateYearChips();
+    switchTab('sales');
+    await Promise.all([
+        initSidebar(), loadBranches('fBranch'), loadBranches('ycBranch'),
+        loadReportCashiers(), loadPrintBranding(),
+    ]);
+    // Default to this month and run report automatically
+    setRange('month');
+    await runReport();
+})();
+</script>
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

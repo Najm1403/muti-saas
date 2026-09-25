@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>STORE OWNER LOGIN</title>
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-sm">
+
+        <!-- Logo / Branding -->
+        <div class="flex flex-col items-center mb-8">
+            <div class="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center mb-4 shadow-md">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+            </div>
+            <h1 class="text-2xl font-semibold text-slate-900">STORE OWNER LOGIN</h1>
+            <p class="text-sm text-slate-500 mt-1">Sign in to manage your business</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+
+            <!-- Error Banner -->
+            <div id="errorBanner" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-5 text-sm"></div>
+
+            <form id="loginForm" novalidate>
+
+                <!-- Tenant Code -->
+                <div class="mb-4">
+                    <label for="tenantCode" class="block text-sm font-medium text-slate-700 mb-1.5">Tenant Code</label>
+                    <input
+                        id="tenantCode"
+                        type="text"
+                        placeholder="e.g. ABC001"
+                        autocomplete="organization"
+                        class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 uppercase placeholder:normal-case"
+                    />
+                </div>
+
+                <!-- Username -->
+                <div class="mb-4">
+                    <label for="username" class="block text-sm font-medium text-slate-700 mb-1.5">Username</label>
+                    <input
+                        id="username"
+                        type="text"
+                        placeholder="your-username"
+                        autocomplete="username"
+                        class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                </div>
+
+                <!-- Password -->
+                <div class="mb-6">
+                    <label for="password" class="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+                    <input
+                        id="password"
+                        type="password"
+                        placeholder="••••••••"
+                        autocomplete="current-password"
+                        class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                </div>
+
+                <!-- Submit -->
+                <button
+                    id="submitBtn"
+                    type="submit"
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                    Sign In
+                </button>
+
+                <p class="text-center mt-4">
+                    <button type="button" id="forgotLink" class="text-xs text-indigo-600 hover:underline font-medium">Forgot password?</button>
+                </p>
+
+            </form>
+
+            <!-- ── Forgot / reset password (calls /api/v1/auth/forgot-password + /reset-password) ── -->
+            <div id="resetPanel" class="hidden mt-5 pt-5 border-t border-slate-100">
+                <div id="resetMsg" class="hidden rounded-lg p-3 mb-4 text-sm"></div>
+
+                <!-- Step 1: request the OTP -->
+                <div id="resetStep1">
+                    <p class="text-sm text-slate-600 mb-3">Enter your Tenant Code and the email on your user account. We'll email a 6-digit code.</p>
+                    <input id="r_tenantCode" type="text" placeholder="Tenant Code"
+                           class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm mb-3 uppercase placeholder:normal-case focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    <input id="r_email" type="email" placeholder="you@example.com"
+                           class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    <button type="button" id="r_sendBtn"
+                            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Send reset code</button>
+                    <button type="button" id="r_haveCode" class="w-full mt-2 text-xs text-indigo-600 hover:underline">I already received a code from the platform administrator</button>
+                </div>
+
+                <!-- Step 2: enter OTP + new password -->
+                <div id="resetStep2" class="hidden">
+                    <p class="text-sm text-slate-600 mb-3">Enter the code from the email and choose a new password (min 6 characters).</p>
+                    <input id="r_otp" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code"
+                           class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm mb-3 tracking-widest text-center focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    <input id="r_newpass" type="password" placeholder="New password"
+                           class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    <button type="button" id="r_resetBtn"
+                            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Set new password</button>
+                </div>
+
+                <p class="text-center mt-3">
+                    <button type="button" id="backToLogin" class="text-xs text-slate-500 hover:underline">Back to sign in</button>
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ── Redirect if already logged in ─────────────────────────────────────
+        if (localStorage.getItem('tenant_token')) {
+            location.href = '/tenant/dashboard.html';
+        }
+
+        // ── DOM refs ──────────────────────────────────────────────────────────
+        const form       = document.getElementById('loginForm');
+        const submitBtn  = document.getElementById('submitBtn');
+        const errorBanner = document.getElementById('errorBanner');
+        const tenantCodeInput = document.getElementById('tenantCode');
+
+        // Auto-uppercase tenant code as user types
+        tenantCodeInput.addEventListener('input', () => {
+            const pos = tenantCodeInput.selectionStart;
+            tenantCodeInput.value = tenantCodeInput.value.toUpperCase();
+            tenantCodeInput.setSelectionRange(pos, pos);
+        });
+
+        // ── Helpers ───────────────────────────────────────────────────────────
+        function showError(msg) {
+            errorBanner.textContent = msg;
+            errorBanner.classList.remove('hidden');
+        }
+        function hideError() {
+            errorBanner.classList.add('hidden');
+        }
+        function setLoading(loading) {
+            submitBtn.disabled = loading;
+            submitBtn.textContent = loading ? 'Signing in…' : 'Sign In';
+        }
+
+        // ── Form submit ───────────────────────────────────────────────────────
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideError();
+
+            const tenant_code = document.getElementById('tenantCode').value.trim().toUpperCase();
+            const username    = document.getElementById('username').value.trim();
+            const password    = document.getElementById('password').value;
+
+            // Basic validation
+            if (!tenant_code || !username || !password) {
+                showError('Please fill in all fields.');
+                return;
+            }
+
+            setLoading(true);
+            try {
+                // Step 1: Login and get token
+                const res = await fetch('/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tenant_code, username, password })
+                });
+
+                if (!res.ok) {
+                    const e = await res.json().catch(() => ({}));
+                    throw new Error(e.detail || 'Login failed. Check your credentials.');
+                }
+
+                const data = await res.json();
+                localStorage.setItem('tenant_token', data.access_token);
+
+                // Step 2: Fetch full user profile
+                const meRes = await fetch('/api/v1/auth/me', {
+                    headers: { 'Authorization': 'Bearer ' + data.access_token }
+                });
+
+                if (meRes.ok) {
+                    const me = await meRes.json();
+                    localStorage.setItem('tenant_me', JSON.stringify(me));
+                }
+
+                // Step 3: Navigate to dashboard
+                location.href = '/tenant/dashboard.html';
+
+            } catch (err) {
+                showError(err.message);
+                setLoading(false);
+            }
+        });
+
+        // ── Forgot / reset password ──────────────────────────────────────────
+        const resetPanel = document.getElementById('resetPanel');
+        const resetMsg   = document.getElementById('resetMsg');
+        const rStep1 = document.getElementById('resetStep1');
+        const rStep2 = document.getElementById('resetStep2');
+
+        function rShow(kind, text) {
+            resetMsg.textContent = text;
+            resetMsg.className = 'rounded-lg p-3 mb-4 text-sm ' +
+                (kind === 'ok' ? 'bg-green-50 border border-green-200 text-green-700'
+                               : 'bg-red-50 border border-red-200 text-red-700');
+            resetMsg.classList.remove('hidden');
+        }
+
+        document.getElementById('forgotLink').addEventListener('click', () => {
+            form.classList.add('hidden');
+            resetPanel.classList.remove('hidden');
+            document.getElementById('r_tenantCode').value = document.getElementById('tenantCode').value;
+        });
+        document.getElementById('backToLogin').addEventListener('click', () => {
+            resetPanel.classList.add('hidden');
+            form.classList.remove('hidden');
+            resetMsg.classList.add('hidden');
+            rStep1.classList.remove('hidden');
+            rStep2.classList.add('hidden');
+        });
+
+        document.getElementById('r_tenantCode').addEventListener('input', (e) => {
+            e.target.value = e.target.value.toUpperCase();
+        });
+
+        document.getElementById('r_sendBtn').addEventListener('click', async () => {
+            const tenant_code = document.getElementById('r_tenantCode').value.trim().toUpperCase();
+            const email       = document.getElementById('r_email').value.trim();
+            if (!tenant_code || !email) { rShow('err', 'Enter your tenant code and email.'); return; }
+            const btn = document.getElementById('r_sendBtn');
+            btn.disabled = true; btn.textContent = 'Sending…';
+            try {
+                // Always 200 — the response never reveals whether the account exists.
+                await fetch('/api/v1/auth/forgot-password', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tenant_code, email }),
+                });
+                rShow('ok', 'If that account exists, a 6-digit code is on its way. It expires in 15 minutes.');
+                rStep1.classList.add('hidden');
+                rStep2.classList.remove('hidden');
+            } catch {
+                rShow('err', 'Could not reach the server. Try again.');
+            } finally {
+                btn.disabled = false; btn.textContent = 'Send reset code';
+            }
+        });
+
+        document.getElementById('r_haveCode').addEventListener('click', () => {
+            const tenantCode = document.getElementById('r_tenantCode').value.trim().toUpperCase();
+            if (!tenantCode) { rShow('err', 'Enter your tenant code first.'); return; }
+            rShow('ok', 'Enter the code from the platform administrator email and choose a new password.');
+            rStep1.classList.add('hidden');
+            rStep2.classList.remove('hidden');
+            document.getElementById('r_otp').focus();
+        });
+
+        document.getElementById('r_resetBtn').addEventListener('click', async () => {
+            const tenant_code  = document.getElementById('r_tenantCode').value.trim().toUpperCase();
+            const token        = document.getElementById('r_otp').value.trim();
+            const new_password = document.getElementById('r_newpass').value;
+            if (!token || new_password.length < 6) { rShow('err', 'Enter the code and a password of at least 6 characters.'); return; }
+            const btn = document.getElementById('r_resetBtn');
+            btn.disabled = true; btn.textContent = 'Saving…';
+            try {
+                const res = await fetch('/api/v1/auth/reset-password', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tenant_code, token, new_password }),
+                });
+                if (!res.ok) {
+                    const e = await res.json().catch(() => ({}));
+                    throw new Error(e.detail || 'Invalid or expired code.');
+                }
+                rShow('ok', 'Password updated. You can sign in now.');
+                setTimeout(() => document.getElementById('backToLogin').click(), 1500);
+            } catch (err) {
+                rShow('err', err.message);
+            } finally {
+                btn.disabled = false; btn.textContent = 'Set new password';
+            }
+        });
+    </script>
+
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

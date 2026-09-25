@@ -1,0 +1,148 @@
+/* shared/responsive.css
+ *
+ * Retrofits the standalone Tailwind dashboard pages for phones / small
+ * tablets (< 768px). Desktop layout at >= 768px is left completely untouched.
+ *
+ * Paired with shared/responsive.js, which injects the top bar (.rnav-bar) and
+ * the backdrop (.rnav-backdrop) and toggles body.nav-open.
+ *
+ * Include on every dashboard page:
+ *   <link rel="stylesheet" href="/shared/responsive.css" />
+ *   <script src="/shared/responsive.js" defer></script>
+ */
+
+/* The injected chrome only exists on mobile; keep it out of the way otherwise. */
+.rnav-bar,
+.rnav-backdrop { display: none; }
+
+/* `screen and` matters: a printed/PDF page's effective content width (paper
+ * size minus margins) commonly lands under 767px, so without this guard
+ * every rule below — including the hamburger bar and the mobile table
+ * card-view fallback — would silently activate on printed reports instead
+ * of only real narrow viewports. */
+@media screen and (max-width: 767px) {
+
+  /* ---- Page scroll / stacking -------------------------------------------- */
+  html, body {
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 100vh;
+  }
+  body {
+    display: block !important;
+  }
+  /* Only pages that actually got the injected top bar reserve space for it
+   * (responsive.js sets data-rnav-ready when it finds a sidebar). Login pages
+   * have no <aside> and stay untouched. */
+  body[data-rnav-ready] {
+    padding-top: 3.25rem;
+  }
+
+  /* ---- Off-canvas sidebar --------------------------------------------------
+   * Every page has exactly one top-level <aside> (the nav). Pin it off-screen
+   * and slide it in when body.nav-open is set.
+   */
+  body > aside,
+  aside.w-64 {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    height: 100vh !important;
+    width: 16rem !important;
+    max-width: 82vw;
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+    z-index: 60;
+  }
+  body.nav-open > aside,
+  body.nav-open aside.w-64 {
+    transform: translateX(0);
+    box-shadow: 0 0 40px rgba(0, 0, 0, .35);
+  }
+
+  /* Content column: drop the desktop sidebar offset / height / clipping. */
+  .ml-64 { margin-left: 0 !important; }
+  aside + div,
+  aside + main {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    width: 100% !important;
+  }
+  main.ml-64,
+  div.ml-64 { width: 100% !important; }
+
+  /* ---- Injected top bar + backdrop -------------------------------------- */
+  .rnav-bar {
+    display: flex;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3.25rem;
+    align-items: center;
+    gap: .625rem;
+    padding: 0 .75rem;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    z-index: 50;
+  }
+  .rnav-bar button {
+    flex: 0 0 auto;
+    width: 2.25rem; height: 2.25rem;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px;
+    color: #334155;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+  }
+  .rnav-bar button:active { background: #f1f5f9; }
+  .rnav-bar .rnav-title {
+    font-size: .95rem;
+    font-weight: 600;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .rnav-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, .45);
+    z-index: 55;
+  }
+  body.nav-open .rnav-backdrop { display: block; }
+
+  /* ---- Right-side slide-in drawers → full width ----------------------- */
+  [class*="fixed"][class*="top-0"][class*="right-0"],
+  #drawer, aside#drawer,
+  #productDrawer, #planDrawer, #createDrawer, #registerDeviceDrawer {
+    width: 100vw !important;
+    max-width: 100vw !important;
+  }
+
+  /* ---- Modals: never wider than the screen --------------------------- */
+  [class*="max-w-"] { max-width: 100% !important; }
+
+  /* ---- Tables scroll instead of clipping ----------------------------- */
+  table {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  /* ---- Stat / KPI grids stack to 2-up ------------------------------- */
+  .grid-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .grid-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+
+  /* ---- Toolbars: let search / selects take the full row ------------ */
+  input[type="search"] {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}

@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <!--
+        Platform Admins — STORIXX
+        ================================================
+        Manage the team of people who can log in to this SuperAdmin dashboard.
+
+        These are PLATFORM admins (stored in platform_admins table, JWT type="platform_access").
+        They are completely separate from TENANT users (stored in users table with tenant_id).
+
+        API:
+          GET    /api/platform/admins          → list platform admins
+          POST   /api/platform/admins          → create  (super-admin only)
+          PATCH  /api/platform/admins/{id}     → update  (super-admin for role/status changes)
+          POST   /api/platform/admins/{id}/deactivate  → super-admin only
+          POST   /api/platform/admins/{id}/activate    → super-admin only
+
+        Style: follows web_fastfood/STYLE_GUIDE.md
+    -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Platform Admins - STORIXX</title>
+
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+
+    <style>
+        .rounded-card { border-radius: 10px; }
+        body { overflow: hidden; }
+        .drawer-open   { transform: translateX(0); }
+        .drawer-closed { transform: translateX(100%); }
+    </style>
+</head>
+
+<body class="flex h-screen bg-slate-50 text-slate-900">
+
+
+    <!-- ==================================================================
+         SIDEBAR
+         ================================================================== -->
+    <aside class="w-64 flex-shrink-0 h-screen bg-slate-900 flex flex-col overflow-y-auto">
+
+        <div class="h-16 flex items-center px-5 border-b border-slate-800 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <img src="/assets/logo-mark.png?v=3" alt="STORIXX" class="w-8 h-8 rounded-[6px] flex-shrink-0 object-contain" />
+                <div>
+                    <p class="text-white text-sm font-semibold leading-none">STORIXX</p>
+                    <p class="text-slate-500 text-[11px] leading-none mt-0.5">SaaS Platform</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="flex-1 px-3 py-4 space-y-0.5">
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-1 pb-2">Overview</p>
+
+            <a href="/platform/dashboard.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2
+                             2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1
+                             0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                <span class="text-sm">Dashboard</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Management</p>
+
+            <a href="/platform/tenants.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2
+                             0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5
+                             10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                <span class="text-sm">Tenants</span>
+            </a>
+            <a href="/platform/business-templates.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M20 7h-4V5a3 3 0 00-3-3h-2a3 3 0 00-3 3v2H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM10 5a1 1 0 011-1h2a1 1 0 011 1v2h-4V5z"/>
+                </svg>
+                <span class="text-sm">Business Templates</span>
+            </a>
+            <a href="/platform/config-reference.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s4.332.477 5.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                <span class="text-sm">Config Reference</span>
+            </a>
+
+            <!-- Platform Admins — ACTIVE -->
+            <a href="/platform/platform_users.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      bg-slate-800 text-white font-medium
+                      border-l-[3px] border-blue-500">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955
+                             11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824
+                             10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+                <span class="text-sm">Platform Admins</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Billing</p>
+
+            <a href="/platform/plans.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2
+                             0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0
+                             012-2h2a2 2 0 012 2"/>
+                </svg>
+                <span class="text-sm">Plans</span>
+            </a>
+
+            <a href="/platform/subscriptions.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3
+                             0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                </svg>
+                <span class="text-sm">Subscriptions</span>
+            </a>
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Human Resources</p>
+            <a href="/platform/employees.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm">Employees</span>
+            </a>
+            <a href="/platform/salaries.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="text-sm">Salaries</span>
+            </a>
+
+        </nav>
+
+        <div class="px-3 py-3 border-t border-slate-800 space-y-0.5 flex-shrink-0">
+            <a href="/platform/settings.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-400 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0
+                             002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0
+                             001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0
+                             00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724
+                             0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724
+                             1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724
+                             1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724
+                             1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608
+                             2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm">Settings</span>
+            </a>
+            <button id="sidebarLogout"
+                    class="w-full flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                           text-slate-400 hover:bg-slate-800 hover:text-red-400
+                           border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3
+                             0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+                <span class="text-sm">Logout</span>
+            </button>
+        </div>
+    </aside>
+
+
+    <!-- ==================================================================
+         MAIN COLUMN
+         ================================================================== -->
+    <div class="flex-1 flex flex-col h-screen overflow-hidden">
+
+        <!-- Header -->
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center
+                       justify-between px-6 flex-shrink-0">
+            <div>
+                <h1 class="text-base font-semibold text-slate-900">Platform Admins</h1>
+                <p class="text-xs text-slate-400 mt-0.5">
+                    People who can log in to this SuperAdmin dashboard.
+                    <span class="text-slate-300 mx-1">·</span>
+                    Distinct from tenant users managed by tenant admins.
+                </p>
+            </div>
+
+            <div class="relative">
+                <button id="userMenuBtn"
+                        class="flex items-center gap-2 h-9 px-2 rounded-card
+                               hover:bg-slate-50 transition-colors">
+                    <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                        <span id="avatarInitial" class="text-white text-sm font-semibold select-none">A</span>
+                    </div>
+                    <span id="usernameDisplay" class="text-sm text-slate-700 font-medium">—</span>
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor"
+                         stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div id="userDropdown"
+                     class="hidden absolute right-0 top-full mt-1 w-40 bg-white border
+                            border-slate-200 rounded-card shadow-lg py-1 z-50">
+                    <button id="dropdownLogout"
+                            class="w-full text-left px-4 py-2 text-sm text-slate-700
+                                   hover:bg-slate-50 transition-colors">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </header>
+
+
+        <!-- Scrollable body -->
+        <main class="flex-1 overflow-y-auto p-6">
+
+            <!-- Distinction banner -->
+            <div class="flex items-start gap-3 px-4 py-3 bg-blue-50 border border-blue-100
+                        rounded-card mb-5">
+                <svg class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1
+                             0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1
+                             1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+                <p class="text-sm text-blue-800">
+                    <strong>Platform Admins</strong> log in here with their email and password.
+                    <strong>Tenant Users</strong> (cashiers, managers, etc.) log in to their tenant panel
+                    using a tenant code — they are managed by each tenant's admin, not from here.
+                </p>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="relative">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+                             fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+                        </svg>
+                        <input id="searchInput" type="search" placeholder="Search admins…"
+                               oninput="applyFilters()"
+                               class="h-10 pl-9 pr-3 w-60 border border-slate-200 rounded-card
+                                      text-sm focus:outline-none focus:ring-2 focus:ring-blue-500
+                                      focus:border-transparent" />
+                    </div>
+
+                    <select id="filterRole" onchange="applyFilters()"
+                            class="h-10 pl-3 pr-8 border border-slate-200 rounded-card text-sm
+                                   text-slate-700 bg-white focus:outline-none focus:ring-2
+                                   focus:ring-blue-500">
+                        <option value="">All Roles</option>
+                        <option value="owner">Owner</option>
+                        <option value="manager">Manager</option>
+                        <option value="viewer">Viewer</option>
+                    </select>
+
+                    <select id="filterStatus" onchange="applyFilters()"
+                            class="h-10 pl-3 pr-8 border border-slate-200 rounded-card text-sm
+                                   text-slate-700 bg-white focus:outline-none focus:ring-2
+                                   focus:ring-blue-500">
+                        <option value="">All Statuses</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+
+                    <span id="adminCount" class="text-sm text-slate-500"></span>
+                </div>
+
+                <button id="addAdminBtn" onclick="openAddDrawer()"
+                        class="h-10 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm
+                               font-medium rounded-card transition-colors flex items-center gap-2
+                               disabled:opacity-40 disabled:cursor-not-allowed">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Add Platform Admin
+                </button>
+            </div>
+
+            <!-- Table -->
+            <div class="bg-white border border-slate-200 rounded-card overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-200 bg-slate-50">
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Email</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Role</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Added</th>
+                            <th class="px-4 py-3"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center text-sm text-slate-400">
+                                Loading…
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div><!-- /main -->
+
+
+    <!-- ==================================================================
+         ROW ACTION MENU (floating)
+         ================================================================== -->
+    <div id="rowMenu"
+         class="hidden fixed z-50 bg-white border border-slate-200 rounded-card shadow-lg
+                py-1 w-44">
+        <button onclick="rowAction('deactivate')"
+                id="rowDeactivateBtn"
+                class="hidden w-full text-left px-4 py-2 text-sm text-red-600
+                       hover:bg-red-50 transition-colors">
+            Deactivate
+        </button>
+        <button onclick="rowAction('activate')"
+                id="rowActivateBtn"
+                class="hidden w-full text-left px-4 py-2 text-sm text-green-700
+                       hover:bg-green-50 transition-colors">
+            Activate
+        </button>
+        <button onclick="rowAction('roleOwner')"
+                id="rowRoleOwnerBtn"
+                class="hidden w-full text-left px-4 py-2 text-sm text-slate-700
+                       hover:bg-slate-50 transition-colors">
+            Set role → Owner
+        </button>
+        <button onclick="rowAction('roleManager')"
+                id="rowRoleManagerBtn"
+                class="hidden w-full text-left px-4 py-2 text-sm text-slate-700
+                       hover:bg-slate-50 transition-colors">
+            Set role → Manager
+        </button>
+        <button onclick="rowAction('roleViewer')"
+                id="rowRoleViewerBtn"
+                class="hidden w-full text-left px-4 py-2 text-sm text-slate-700
+                       hover:bg-slate-50 transition-colors">
+            Set role → Viewer
+        </button>
+        <button onclick="rowAction('grantTemplates')"
+                id="rowGrantTemplatesBtn"
+                class="hidden w-full text-left px-4 py-2 text-sm text-slate-700
+                       hover:bg-slate-50 transition-colors border-t border-slate-100">
+            Grant: Manage Business Templates
+        </button>
+        <button onclick="rowAction('revokeTemplates')"
+                id="rowRevokeTemplatesBtn"
+                class="hidden w-full text-left px-4 py-2 text-sm text-slate-700
+                       hover:bg-slate-50 transition-colors border-t border-slate-100">
+            Revoke: Manage Business Templates
+        </button>
+        <button onclick="rowAction('setPassword')"
+                id="rowSetPasswordBtn"
+                class="hidden w-full text-left px-4 py-2 text-sm text-slate-700
+                       hover:bg-slate-50 transition-colors border-t border-slate-100">
+            Set Password
+        </button>
+    </div>
+
+
+    <!-- ==================================================================
+         SET PASSWORD MODAL  (super-admin force-set for another admin)
+         POST /api/platform/admins/{id}/reset-password
+         ================================================================== -->
+    <div id="setPwModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeSetPwModal()"></div>
+        <div class="relative bg-white rounded-card shadow-xl w-full max-w-sm z-10">
+            <div class="px-6 py-5 border-b border-slate-200 flex items-center justify-between">
+                <h3 class="text-base font-semibold text-slate-900">Set Password</h3>
+                <button onclick="closeSetPwModal()"
+                        class="w-8 h-8 flex items-center justify-center rounded-card text-slate-400 hover:text-slate-600 hover:bg-slate-50">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="px-6 py-5 space-y-3">
+                <p class="text-sm text-slate-600">
+                    Directly set a new password for <span id="spw_admin" class="font-medium text-slate-900">—</span>.
+                    Share it securely; they can change it after logging in.
+                </p>
+                <label class="block text-xs font-medium text-slate-700 mb-1.5">New password (min 8 characters)</label>
+                <div class="relative">
+                    <input id="spw_password" type="text" placeholder="e.g. Temp-48219x"
+                           class="w-full h-10 pl-3 pr-16 border border-slate-200 rounded-card text-sm font-mono
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <button type="button" onclick="genSpwPassword()"
+                            class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-medium text-blue-600 hover:text-blue-800">
+                        Generate
+                    </button>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                <button onclick="closeSetPwModal()"
+                        class="h-10 px-4 border border-slate-200 bg-white rounded-card text-sm text-slate-700 hover:bg-slate-50">
+                    Cancel
+                </button>
+                <button onclick="submitSetPw()"
+                        class="h-10 px-5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-card">
+                    Set Password
+                </button>
+            </div>
+        </div>
+    </div><!-- /setPwModal -->
+
+
+    <!-- ==================================================================
+         ADD PLATFORM ADMIN DRAWER
+         ================================================================== -->
+    <div id="drawerBackdrop"
+         class="hidden fixed inset-0 bg-slate-900/50 z-40"
+         onclick="closeAddDrawer()"></div>
+
+    <div id="addDrawer"
+         class="fixed right-0 top-0 h-full w-full max-w-[440px] bg-white border-l border-slate-200
+                z-50 flex flex-col drawer-closed transition-transform duration-300">
+
+        <div class="h-16 flex items-center justify-between px-6 border-b border-slate-200 flex-shrink-0">
+            <h2 class="text-base font-semibold text-slate-900">Add Platform Admin</h2>
+            <button onclick="closeAddDrawer()"
+                    class="w-9 h-9 flex items-center justify-center rounded-card
+                           text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <div id="drawerError"
+             class="hidden mx-6 mt-4 flex items-start gap-2 px-3 py-2.5
+                    bg-red-50 border border-red-200 rounded-card flex-shrink-0">
+            <svg class="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0
+                         00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414
+                         1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414
+                         10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clip-rule="evenodd"/>
+            </svg>
+            <p id="drawerErrorText" class="text-[12px] text-red-700"></p>
+        </div>
+
+        <div class="flex-1 overflow-y-auto">
+            <form id="addForm" onsubmit="return false;" class="px-6 py-5 space-y-4">
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                        Full Name <span class="text-red-500">*</span>
+                    </label>
+                    <input id="f_name" type="text" placeholder="Muhammad Ali"
+                           class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                        Email <span class="text-red-500">*</span>
+                    </label>
+                    <input id="f_email" type="email" placeholder="admin@company.com"
+                           class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                        Password <span class="text-red-500">*</span>
+                    </label>
+                    <input id="f_password" type="password" placeholder="Min. 8 characters"
+                           class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                    <p class="mt-1 text-[11px] text-slate-400">
+                        Share securely — they can change it after first login.
+                    </p>
+                </div>
+
+                <!-- Access role -->
+                <div class="py-2">
+                    <label for="f_role" class="block text-sm font-medium text-slate-700 mb-1.5">Access role</label>
+                    <select id="f_role"
+                            class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm bg-white
+                                   focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="manager">Manager — all modules except Plans, Settings &amp; admin management</option>
+                        <option value="viewer">Viewer — read-only (cannot change anything)</option>
+                        <option value="owner">Owner — full access, incl. Plans, Settings &amp; managing admins</option>
+                    </select>
+                    <p class="mt-1 text-[11px] text-slate-400">
+                        Owner is the same as the old "Super Admin". A Viewer's every save/delete is blocked by the API.
+                    </p>
+                </div>
+
+            </form>
+        </div>
+
+        <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 flex-shrink-0">
+            <button onclick="closeAddDrawer()"
+                    class="h-10 px-4 border border-slate-300 bg-white rounded-card
+                           text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                Cancel
+            </button>
+            <button id="addSubmitBtn" onclick="submitAddAdmin()"
+                    class="h-10 px-5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium
+                           rounded-card transition-colors disabled:opacity-60 disabled:cursor-not-allowed
+                           flex items-center gap-2">
+                <svg id="addSpinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                </svg>
+                <span id="addBtnText">Add Admin</span>
+            </button>
+        </div>
+    </div>
+
+
+    <!-- ==================================================================
+         CONFIRM MODAL
+         ================================================================== -->
+    <div id="confirmModal"
+         class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeConfirm()"></div>
+        <div class="relative bg-white rounded-card shadow-xl p-6 w-full max-w-sm z-10">
+            <h3 id="confirmTitle" class="text-base font-semibold text-slate-900 mb-2">Confirm</h3>
+            <p  id="confirmMessage" class="text-sm text-slate-600 mb-5"></p>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeConfirm()"
+                        class="h-10 px-4 border border-slate-200 bg-white rounded-card
+                               text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                    Cancel
+                </button>
+                <button id="confirmOkBtn"
+                        class="h-10 px-4 rounded-card text-sm text-white font-medium transition-colors">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==================================================================
+         TOAST
+         ================================================================== -->
+    <div id="toast"
+         class="hidden fixed bottom-6 right-6 z-50 flex items-center gap-3
+                px-4 py-3 rounded-card shadow-lg border text-sm font-medium">
+        <svg id="toastIcon" class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"></svg>
+        <span id="toastText"></span>
+    </div>
+
+
+    <!-- ==================================================================
+         JAVASCRIPT
+         ================================================================== -->
+    <script>
+        /**
+         * Platform Admins page controller
+         * ---------------------------------
+         * Manages the team of people who log in to this SuperAdmin dashboard.
+         *
+         * Important distinction:
+         *   Platform Admins  → stored in platform_admins table, JWT type="platform_access"
+         *   Tenant Users     → stored in users table with tenant_id, managed by tenant admins
+         *
+         * Super-admin guards apply to create/deactivate/role-change actions.
+         * A non-super admin can view the list but cannot modify it.
+         */
+
+        const API_BASE  = window.API_BASE_URL ?? '';
+        const TOKEN_KEY = 'platform_token';
+
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (!token) window.location.replace('/platform/login.html');
+
+        // Page state
+        let allAdmins     = [];     // PlatformAdminResponse[]
+        let currentMe     = null;   // logged-in admin's PlatformAdminResponse
+        let rowMenuTarget = null;   // admin currently targeted by the floating row menu
+
+
+        // ── API helper ─────────────────────────────────────────────────────
+
+        async function apiFetch(path, options = {}) {
+            const res = await fetch(API_BASE + path, {
+                ...options,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type':  'application/json',
+                    ...(options.headers ?? {}),
+                },
+            });
+            if (res.status === 401) {
+                localStorage.removeItem(TOKEN_KEY);
+                window.location.replace('/platform/login.html');
+                return null;
+            }
+            if (!res.ok) {
+                const body = await res.json().catch(() => ({}));
+                throw new Error(body.detail ?? `API ${res.status}`);
+            }
+            return res.json();
+        }
+
+        function esc(v) {
+            if (v == null) return '—';
+            return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                            .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function fmtDate(iso) {
+            if (!iso) return '—';
+            return new Date(iso).toLocaleDateString('en-PK', {
+                day: '2-digit', month: 'short', year: 'numeric',
+            });
+        }
+
+        function badge(cls, label) {
+            return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full
+                                text-xs font-medium ${cls}">${esc(label)}</span>`;
+        }
+
+        function roleBadge(a) {
+            const role = a.role || (a.is_super ? 'owner' : 'manager');
+            const map = {
+                owner:   ['bg-purple-100 text-purple-700', 'Owner'],
+                manager: ['bg-blue-100 text-blue-700',     'Manager'],
+                viewer:  ['bg-slate-100 text-slate-600',   'Viewer'],
+            };
+            const [cls, label] = map[role] || map.manager;
+            return badge(cls, label);
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // HEADER — load current admin name
+        // ════════════════════════════════════════════════════════════════
+
+        async function loadAdminHeader() {
+            try {
+                currentMe = await apiFetch('/api/platform/auth/me');
+                if (!currentMe) return;
+                const display = currentMe.full_name || currentMe.email;
+                document.getElementById('usernameDisplay').textContent = display;
+                document.getElementById('avatarInitial').textContent   = display.charAt(0).toUpperCase();
+
+                // Only super-admins can add/modify other platform admins
+                if (!currentMe.is_super) {
+                    document.getElementById('addAdminBtn').disabled = true;
+                    document.getElementById('addAdminBtn').title =
+                        'Super-admin access required to add platform admins.';
+                }
+            } catch { /* keep placeholder */ }
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // LOAD + RENDER
+        // ════════════════════════════════════════════════════════════════
+
+        async function loadAdmins() {
+            try {
+                const data = await apiFetch('/api/platform/admins/');
+                allAdmins = Array.isArray(data) ? data : [];
+                applyFilters();
+            } catch (err) {
+                document.getElementById('tableBody').innerHTML = `
+                    <tr><td colspan="6" class="px-6 py-10 text-center text-sm text-red-500">
+                        ${esc(err.message)}
+                    </td></tr>`;
+                showToast('error', `Failed to load admins: ${err.message}`);
+            }
+        }
+
+        function renderTable(admins) {
+            const tbody = document.getElementById('tableBody');
+            document.getElementById('adminCount').textContent =
+                `${admins.length} admin${admins.length !== 1 ? 's' : ''}`;
+
+            if (!admins.length) {
+                tbody.innerHTML = `
+                    <tr><td colspan="6" class="px-6 py-12 text-center text-sm text-slate-400">
+                        No platform admins match your filters.
+                    </td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = admins.map(a => {
+                const isSelf = currentMe && a.id === currentMe.id;
+                return `
+                <tr class="border-t border-slate-100 hover:bg-slate-50 transition-colors">
+                    <td class="px-6 py-4">
+                        <p class="text-sm font-medium text-slate-900">
+                            ${esc(a.full_name)}
+                            ${isSelf ? '<span class="ml-1.5 text-xs text-blue-500 font-normal">(you)</span>' : ''}
+                        </p>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-600">${esc(a.email)}</td>
+                    <td class="px-6 py-4">
+                        ${roleBadge(a)}
+                        ${a.can_manage_business_templates && !a.is_super
+                            ? '<span class="ml-1.5 inline-block px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200" title="Can delete Business Templates and change which modules they hide">Templates</span>'
+                            : ''}
+                    </td>
+                    <td class="px-6 py-4">
+                        ${a.is_active
+                            ? badge('bg-green-100 text-green-700', 'Active')
+                            : badge('bg-red-100   text-red-700',   'Inactive')}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-400">${fmtDate(a.created_at)}</td>
+                    <td class="px-4 py-4 text-right">
+                        ${!isSelf ? `
+                        <button onclick="openRowMenu(event, '${escapeJSAttribute(a.id)}')"
+                                class="w-8 h-8 flex items-center justify-center rounded-card
+                                       text-slate-400 hover:text-slate-700 hover:bg-slate-100
+                                       transition-colors">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0
+                                         110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                            </svg>
+                        </button>` : ''}
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // FILTERING
+        // ════════════════════════════════════════════════════════════════
+
+        function applyFilters() {
+            const q      = document.getElementById('searchInput').value.trim().toLowerCase();
+            const role   = document.getElementById('filterRole').value;
+            const status = document.getElementById('filterStatus').value;
+
+            const filtered = allAdmins.filter(a => {
+                if (q) {
+                    const hay = [a.full_name, a.email].join(' ').toLowerCase();
+                    if (!hay.includes(q)) return false;
+                }
+                if (role) {
+                    const r = a.role || (a.is_super ? 'owner' : 'manager');
+                    if (r !== role) return false;
+                }
+                if (status === 'active'   && !a.is_active) return false;
+                if (status === 'inactive' &&  a.is_active) return false;
+                return true;
+            });
+
+            renderTable(filtered);
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // ROW MENU
+        // ════════════════════════════════════════════════════════════════
+
+        const rowMenu = document.getElementById('rowMenu');
+
+        function openRowMenu(event, adminId) {
+            event.stopPropagation();
+            rowMenuTarget = allAdmins.find(a => a.id === adminId) ?? null;
+            if (!rowMenuTarget) return;
+
+            const isActive = rowMenuTarget.is_active;
+            const role     = rowMenuTarget.role || (rowMenuTarget.is_super ? 'owner' : 'manager');
+            const canModify = currentMe?.is_super;
+
+            document.getElementById('rowDeactivateBtn').classList.toggle('hidden', !isActive || !canModify);
+            document.getElementById('rowActivateBtn').classList.toggle('hidden',   isActive  || !canModify);
+            document.getElementById('rowRoleOwnerBtn').classList.toggle('hidden',   role === 'owner'   || !canModify);
+            document.getElementById('rowRoleManagerBtn').classList.toggle('hidden', role === 'manager' || !canModify);
+            document.getElementById('rowRoleViewerBtn').classList.toggle('hidden',  role === 'viewer'  || !canModify);
+            // Owner has this implicitly and Viewer can't write anything anyway —
+            // only meaningful to grant/revoke for a Manager-tier admin.
+            const canManageTemplates = !!rowMenuTarget.can_manage_business_templates;
+            document.getElementById('rowGrantTemplatesBtn').classList.toggle('hidden', role !== 'manager' || canManageTemplates || !canModify);
+            document.getElementById('rowRevokeTemplatesBtn').classList.toggle('hidden', role !== 'manager' || !canManageTemplates || !canModify);
+            document.getElementById('rowSetPasswordBtn').classList.toggle('hidden', !canModify);
+
+            const btn  = event.currentTarget;
+            const rect = btn.getBoundingClientRect();
+            rowMenu.style.top   = `${rect.bottom + 4}px`;
+            rowMenu.style.right = `${window.innerWidth - rect.right}px`;
+            rowMenu.classList.remove('hidden');
+        }
+
+        document.addEventListener('click', e => {
+            if (!rowMenu.contains(e.target)) rowMenu.classList.add('hidden');
+        });
+
+        async function rowAction(action) {
+            if (!rowMenuTarget) return;
+            const a = rowMenuTarget;
+            rowMenu.classList.add('hidden');
+
+            if (action === 'deactivate') {
+                openConfirm(
+                    'Deactivate Admin',
+                    `Deactivate "${a.full_name}"? They will not be able to log in.`,
+                    'bg-red-600 hover:bg-red-700',
+                    () => doSetActive(a.id, false)
+                );
+            } else if (action === 'activate') {
+                openConfirm(
+                    'Activate Admin',
+                    `Re-activate "${a.full_name}"?`,
+                    'bg-green-600 hover:bg-green-700',
+                    () => doSetActive(a.id, true)
+                );
+            } else if (action === 'roleOwner') {
+                openConfirm(
+                    'Set role → Owner',
+                    `Give "${a.full_name}" the Owner role? They will get full access, including Plans, Settings and managing other admins.`,
+                    'bg-purple-600 hover:bg-purple-700',
+                    () => doSetRole(a.id, 'owner')
+                );
+            } else if (action === 'roleManager') {
+                openConfirm(
+                    'Set role → Manager',
+                    `Set "${a.full_name}" to Manager? They can use every module except Plans, Settings and admin management.`,
+                    'bg-blue-600 hover:bg-blue-700',
+                    () => doSetRole(a.id, 'manager')
+                );
+            } else if (action === 'roleViewer') {
+                openConfirm(
+                    'Set role → Viewer',
+                    `Set "${a.full_name}" to Viewer (read-only)? Every save/delete they attempt will be blocked.`,
+                    'bg-slate-600 hover:bg-slate-700',
+                    () => doSetRole(a.id, 'viewer')
+                );
+            } else if (action === 'grantTemplates') {
+                openConfirm(
+                    'Grant: Manage Business Templates',
+                    `Let "${a.full_name}" delete Business Templates and change which modules they hide? They will still need to re-enter their own password immediately before either action — this only makes them eligible.`,
+                    'bg-blue-600 hover:bg-blue-700',
+                    () => doSetCapability(a.id, true)
+                );
+            } else if (action === 'revokeTemplates') {
+                openConfirm(
+                    'Revoke: Manage Business Templates',
+                    `Remove "${a.full_name}"'s ability to delete Business Templates or change which modules they hide?`,
+                    'bg-slate-600 hover:bg-slate-700',
+                    () => doSetCapability(a.id, false)
+                );
+            } else if (action === 'setPassword') {
+                openSetPwModal(a.id, a.full_name);
+            }
+        }
+
+        // ── Set Password modal ───────────────────────────────────────────
+        let setPwAdminId = null;
+
+        function genSpwPassword() {
+            const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+            let out = '';
+            for (let i = 0; i < 12; i++) out += chars[Math.floor(Math.random() * chars.length)];
+            document.getElementById('spw_password').value = out;
+        }
+
+        function openSetPwModal(adminId, fullName) {
+            setPwAdminId = adminId;
+            document.getElementById('spw_admin').textContent = fullName;
+            document.getElementById('spw_password').value = '';
+            document.getElementById('setPwModal').classList.remove('hidden');
+        }
+
+        function closeSetPwModal() {
+            document.getElementById('setPwModal').classList.add('hidden');
+            setPwAdminId = null;
+        }
+
+        async function submitSetPw() {
+            if (!setPwAdminId) return;
+            const pw = document.getElementById('spw_password').value;
+            if (!pw || pw.length < 8) {
+                showToast('error', 'Password must be at least 8 characters.');
+                return;
+            }
+            try {
+                // Endpoint takes a bare JSON string body (Body(...) scalar, not embedded).
+                await apiFetch(`/api/platform/admins/${setPwAdminId}/reset-password`, {
+                    method: 'POST',
+                    body: JSON.stringify(pw),
+                });
+                closeSetPwModal();
+                showToast('success', 'Password updated. Share it securely with the admin.');
+            } catch (err) {
+                showToast('error', err.message);
+            }
+        }
+
+        async function doSetActive(id, isActive) {
+            try {
+                const endpoint = isActive ? 'activate' : 'deactivate';
+                await apiFetch(`/api/platform/admins/${id}/${endpoint}`, { method: 'POST' });
+                showToast('success', isActive ? 'Admin activated.' : 'Admin deactivated.');
+                await loadAdmins();
+            } catch (err) {
+                showToast('error', err.message);
+            }
+        }
+
+        async function doSetRole(id, role) {
+            try {
+                await apiFetch(`/api/platform/admins/${id}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ role }),
+                });
+                showToast('success', `Role updated to ${role}.`);
+                await loadAdmins();
+            } catch (err) {
+                showToast('error', err.message);
+            }
+        }
+
+        async function doSetCapability(id, canManageTemplates) {
+            try {
+                await apiFetch(`/api/platform/admins/${id}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ can_manage_business_templates: canManageTemplates }),
+                });
+                showToast('success', canManageTemplates
+                    ? 'Granted — they can now manage Business Templates.'
+                    : 'Revoked — they can no longer manage Business Templates.');
+                await loadAdmins();
+            } catch (err) {
+                showToast('error', err.message);
+            }
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // ADD DRAWER
+        // ════════════════════════════════════════════════════════════════
+
+        function openAddDrawer() {
+            if (!currentMe?.is_super) {
+                showToast('error', 'Super-admin access required.');
+                return;
+            }
+            document.getElementById('addDrawer').classList.replace('drawer-closed','drawer-open');
+            document.getElementById('drawerBackdrop').classList.remove('hidden');
+            document.getElementById('drawerError').classList.add('hidden');
+            document.getElementById('addForm').reset();
+        }
+
+        function closeAddDrawer() {
+            document.getElementById('addDrawer').classList.replace('drawer-open','drawer-closed');
+            document.getElementById('drawerBackdrop').classList.add('hidden');
+        }
+
+        async function submitAddAdmin() {
+            const btn     = document.getElementById('addSubmitBtn');
+            const spinner = document.getElementById('addSpinner');
+            const btnText = document.getElementById('addBtnText');
+            const errDiv  = document.getElementById('drawerError');
+            const errText = document.getElementById('drawerErrorText');
+
+            const full_name = document.getElementById('f_name').value.trim();
+            const email     = document.getElementById('f_email').value.trim();
+            const password  = document.getElementById('f_password').value;
+            const role      = document.getElementById('f_role').value;
+
+            if (!full_name || !email || !password) {
+                errText.textContent = 'Full name, email, and password are required.';
+                errDiv.classList.remove('hidden');
+                return;
+            }
+            if (password.length < 8) {
+                errText.textContent = 'Password must be at least 8 characters.';
+                errDiv.classList.remove('hidden');
+                return;
+            }
+
+            errDiv.classList.add('hidden');
+            btn.disabled        = true;
+            spinner.classList.remove('hidden');
+            btnText.textContent = 'Adding…';
+
+            try {
+                const created = await apiFetch('/api/platform/admins/', {
+                    method: 'POST',
+                    body: JSON.stringify({ full_name, email, password, role }),
+                });
+                closeAddDrawer();
+                showToast('success', `${esc(full_name)} added as a platform admin.`);
+                // Optimistically append then full-reload for consistency
+                if (created && !allAdmins.find(a => a.id === created.id)) {
+                    allAdmins = [...allAdmins, created];
+                    applyFilters();
+                }
+                await loadAdmins();
+            } catch (err) {
+                errText.textContent = err.message;
+                errDiv.classList.remove('hidden');
+            } finally {
+                btn.disabled        = false;
+                spinner.classList.add('hidden');
+                btnText.textContent = 'Add Admin';
+            }
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // CONFIRM MODAL
+        // ════════════════════════════════════════════════════════════════
+
+        let confirmCallback = null;
+
+        function openConfirm(title, message, btnClass, callback) {
+            document.getElementById('confirmTitle').textContent   = title;
+            document.getElementById('confirmMessage').textContent = message;
+            const btn = document.getElementById('confirmOkBtn');
+            btn.className = `h-10 px-4 rounded-card text-sm text-white font-medium transition-colors ${btnClass}`;
+            confirmCallback = callback;
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+
+        function closeConfirm() {
+            document.getElementById('confirmModal').classList.add('hidden');
+            confirmCallback = null;
+        }
+
+        document.getElementById('confirmOkBtn').addEventListener('click', () => {
+            if (confirmCallback) { confirmCallback(); closeConfirm(); }
+        });
+
+
+        // ════════════════════════════════════════════════════════════════
+        // TOAST
+        // ════════════════════════════════════════════════════════════════
+
+        let toastTimer = null;
+
+        function showToast(type, message) {
+            const toast = document.getElementById('toast');
+            const icon  = document.getElementById('toastIcon');
+            const text  = document.getElementById('toastText');
+            const styles = {
+                success: { border: 'border-green-200 bg-green-50 text-green-800', fill: '#16A34A',
+                    path: 'M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' },
+                error:   { border: 'border-red-200 bg-red-50 text-red-800',       fill: '#DC2626',
+                    path: 'M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z' },
+                info:    { border: 'border-blue-200 bg-blue-50 text-blue-800',    fill: '#2563EB',
+                    path: 'M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z' },
+            };
+            const s = styles[type] ?? styles.info;
+            toast.className = `fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3
+                               rounded-card shadow-lg border text-sm font-medium ${s.border}`;
+            icon.setAttribute('fill', s.fill);
+            icon.innerHTML = `<path fill-rule="evenodd" d="${s.path}" clip-rule="evenodd"/>`;
+            text.textContent = message;
+            toast.classList.remove('hidden');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toast.classList.add('hidden'), 4000);
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // HEADER USER MENU + LOGOUT
+        // ════════════════════════════════════════════════════════════════
+
+        document.getElementById('userMenuBtn').addEventListener('click', e => {
+            e.stopPropagation();
+            document.getElementById('userDropdown').classList.toggle('hidden');
+        });
+        document.addEventListener('click', () =>
+            document.getElementById('userDropdown').classList.add('hidden'));
+
+        function logout() {
+            localStorage.removeItem(TOKEN_KEY);
+            window.location.replace('/platform/login.html');
+        }
+        document.getElementById('sidebarLogout').addEventListener('click', logout);
+        document.getElementById('dropdownLogout').addEventListener('click', logout);
+
+
+        // ════════════════════════════════════════════════════════════════
+        // BOOT
+        // ════════════════════════════════════════════════════════════════
+
+        loadAdminHeader().then(loadAdmins);
+
+    </script>
+
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Preparation Stations - Tenant Admin</title>
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+    <style>
+        .drawer-open  { transform: translateX(0); }
+        .drawer-close { transform: translateX(100%); }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex">
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         SIDEBAR
+    ════════════════════════════════════════════════════════════════════════ -->
+    <aside class="w-64 flex-shrink-0 h-screen bg-white border-r border-slate-200 flex flex-col overflow-y-auto fixed left-0 top-0 z-20">
+
+        <!-- Brand / Tenant -->
+        <div class="h-16 flex items-center px-5 border-b border-slate-200 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span class="text-white text-sm font-bold select-none">T</span>
+                </div>
+                <div>
+                    <p class="text-slate-900 text-sm font-semibold leading-none" id="sidebarTenantName">Loading…</p>
+                    <p class="text-indigo-600 text-[11px] leading-none mt-0.5 font-medium" id="sidebarTenantCode">—</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nav -->
+        <nav class="flex-1 px-3 py-4 space-y-0.5">
+
+            <a href="/tenant/dashboard.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 13.5V19a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-5.5M9 21V12M3 9l9-6 9 6"/>
+                </svg>
+                Overview
+            </a>
+
+            <a href="/tenant/sales.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                Sales
+            </a>
+
+            <a href="/tenant/reports.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                Reports
+            </a>
+
+        <a href="/tenant/shifts.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Cash Shortages
+        </a>
+
+            <a href="/tenant/menu.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                Menu
+            </a>
+
+
+        <a href="/tenant/variant-options.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+            Variant Options
+        </a>
+
+        <a href="/tenant/addon-groups.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+            Add-on Groups
+        </a>
+
+            <a href="/tenant/promotions.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg>
+                Promotions
+            </a>
+
+            <a href="/tenant/deals.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+                Deals
+            </a>
+
+            <a href="/tenant/branches.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/>
+                </svg>
+                Branches
+            </a>
+
+            <!-- Preparation Stations (ACTIVE) -->
+            <a href="/tenant/preparation-stations.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium bg-indigo-50 text-indigo-700">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z"/>
+                </svg>
+                Kitchen Stations
+            </a>
+
+            <a href="/tenant/devices.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 8.25h3"/>
+                </svg>
+                Devices
+            </a>
+
+            <a href="/tenant/users.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/>
+                </svg>
+                Users
+            </a>
+
+            <a href="/tenant/roles.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+                </svg>
+                Roles
+            </a>
+
+            <a href="/tenant/activity.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0"/>
+                </svg>
+                Activity
+            </a>
+
+            <a href="/tenant/expenses.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-6 4h6m-6 4h4M5 3h14a2 2 0 012 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 012-2z"/></svg>
+                Expenses
+            </a>
+            <a href="/tenant/employees.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+                Employees
+            </a>
+            <a href="/tenant/salaries.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Salaries
+            </a>
+            <a href="/tenant/inventory.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                Inventory
+            </a>
+
+            <a href="/tenant/subscription.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/>
+                </svg>
+                Subscription
+            </a>
+
+            <a href="/tenant/settings.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                Settings
+            </a>
+
+        </nav>
+
+        <!-- User Footer -->
+        <div class="border-t border-slate-200 p-4 flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                    <span class="text-indigo-700 text-sm font-semibold" id="userInitial">?</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-slate-900 truncate" id="sidebarUserName">—</p>
+                    <p class="text-xs text-slate-500 truncate" id="sidebarUserRoles">—</p>
+                </div>
+                <button onclick="logout()" title="Logout" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         MAIN CONTENT
+    ════════════════════════════════════════════════════════════════════════ -->
+    <main class="flex-1 ml-64 min-h-screen p-8">
+<a href="kitchen.html" class="inline-block p-3 text-indigo-600 font-semibold">Open Kitchen Display</a>
+
+
+        <!-- Page Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-2xl font-semibold text-slate-900">Kitchen Stations</h1>
+                <p class="text-sm text-slate-500 mt-1">Manage preparation areas for KDS routing per branch</p>
+            </div>
+            <button onclick="openDrawer()" id="addBtn"
+                    class="hidden inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Add Station
+            </button>
+        </div>
+
+        <!-- Error Banner -->
+        <div id="errorBanner" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-6 text-sm"></div>
+
+        <!-- Branch Selector -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-6">
+            <div class="flex items-center gap-4 flex-wrap">
+                <div class="flex-1 min-w-48">
+                    <label class="block text-xs font-medium text-slate-500 mb-1">Branch</label>
+                    <select id="branchSelect"
+                            onchange="onBranchChange()"
+                            class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">— Select a branch —</option>
+                    </select>
+                </div>
+                <div id="summaryBar" class="hidden flex items-center gap-6 flex-wrap">
+                    <div class="text-center">
+                        <p class="text-xl font-semibold text-slate-900" id="statTotal">0</p>
+                        <p class="text-xs text-slate-500">Total</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-xl font-semibold text-green-600" id="statActive">0</p>
+                        <p class="text-xs text-slate-500">Active</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-xl font-semibold text-slate-400" id="statInactive">0</p>
+                        <p class="text-xs text-slate-500">Inactive</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty: no branch selected -->
+        <div id="emptyBranch" class="bg-white rounded-xl border border-slate-200 shadow-sm p-12 text-center">
+            <svg class="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/>
+            </svg>
+            <p class="text-slate-500 text-sm">Select a branch to view its kitchen stations</p>
+        </div>
+
+        <!-- Stations Table -->
+        <div id="tableWrap" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-sm">
+                <thead class="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                        <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-5 py-3">Station Name</th>
+                        <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-5 py-3">Display Order</th>
+                        <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-5 py-3">Status</th>
+                        <th class="text-right text-xs font-semibold text-slate-500 uppercase tracking-wide px-5 py-3">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="stationsBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+
+            <!-- Empty stations state -->
+            <div id="emptyStations" class="hidden p-12 text-center">
+                <svg class="w-10 h-10 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/>
+                </svg>
+                <p class="text-slate-500 text-sm">No stations yet. Add the first one.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         DRAWER — Create / Edit Station
+    ════════════════════════════════════════════════════════════════════════ -->
+    <div id="drawerBackdrop"
+         onclick="closeDrawer()"
+         class="hidden fixed inset-0 bg-black/30 z-30"></div>
+
+    <div id="drawer"
+         class="fixed top-0 right-0 h-full w-96 bg-white border-l border-slate-200 shadow-xl z-40 flex flex-col transition-transform duration-300 drawer-close">
+
+        <!-- Drawer Header -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 flex-shrink-0">
+            <h2 class="text-base font-semibold text-slate-900" id="drawerTitle">Add Station</h2>
+            <button onclick="closeDrawer()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Drawer Body -->
+        <div class="flex-1 overflow-y-auto p-6">
+            <div id="drawerError" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 mb-4 text-sm"></div>
+
+            <div class="space-y-5">
+
+                <!-- Name -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Station Name <span class="text-red-500">*</span></label>
+                    <input id="fName" type="text" maxlength="100" placeholder="e.g. Kitchen, Coffee Station, Grill"
+                           class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+
+                <!-- Display Order -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Display Order</label>
+                    <input id="fOrder" type="number" min="0" value="0" placeholder="0"
+                           class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    <p class="text-xs text-slate-400 mt-1">Lower numbers appear first in KDS lists</p>
+                </div>
+
+                <!-- Active -->
+                <div class="flex items-center gap-3">
+                    <input id="fActive" type="checkbox" checked
+                           class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                    <label for="fActive" class="text-sm font-medium text-slate-700">Active</label>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Drawer Footer -->
+        <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 flex-shrink-0">
+            <button onclick="closeDrawer()"
+                    class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors">
+                Cancel
+            </button>
+            <button id="drawerSaveBtn"
+                    onclick="saveStation()"
+                    class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition-colors">
+                Save
+            </button>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         DELETE CONFIRM MODAL
+    ════════════════════════════════════════════════════════════════════════ -->
+    <div id="deleteModal" class="hidden fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-xl w-full max-w-sm p-6">
+            <h3 class="text-base font-semibold text-slate-900 mb-2">Delete Station</h3>
+            <p class="text-sm text-slate-600 mb-6">
+                Delete <strong id="deleteStationName" class="text-slate-900"></strong>?
+                Existing KDS history linked to this station is preserved.
+            </p>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeDeleteModal()"
+                        class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors">
+                    Cancel
+                </button>
+                <button onclick="confirmDelete()"
+                        class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-[60] space-y-2"></div>
+
+    <script>
+        // ── Config ────────────────────────────────────────────────────────────
+        const BASE = '/api/v1';
+
+        // ── State ─────────────────────────────────────────────────────────────
+        let currentBranchId = null;
+        let editingStationId = null;
+        let deleteTargetId = null;
+        let allStations = [];
+
+        // ── Auth helpers ──────────────────────────────────────────────────────
+        function getToken() { return localStorage.getItem('tenant_token'); }
+
+        async function apiFetch(path, opts = {}) {
+            const res = await fetch(BASE + path, {
+                ...opts,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + getToken(),
+                    ...(opts.headers || {}),
+                },
+            });
+            if (res.status === 401) {
+                localStorage.removeItem('tenant_token');
+                location.href = '/tenant/login.html';
+                throw new Error('Unauthorized');
+            }
+            if (res.status === 204) return null;
+            if (!res.ok) {
+                const e = await res.json().catch(() => ({}));
+                throw new Error(e.detail || 'Request failed');
+            }
+            return res.json();
+        }
+
+        function logout() {
+            localStorage.removeItem('tenant_token');
+            localStorage.removeItem('tenant_me');
+            location.href = '/tenant/login.html';
+        }
+
+        function escHtml(s) {
+            return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        // ── Toast ─────────────────────────────────────────────────────────────
+        function toast(msg, type = 'success') {
+            const t = document.createElement('div');
+            const colors = type === 'success'
+                ? 'bg-green-600 text-white'
+                : 'bg-red-600 text-white';
+            t.className = `${colors} text-sm px-4 py-3 rounded-lg shadow-lg max-w-xs transition-opacity duration-300`;
+            t.textContent = msg;
+            document.getElementById('toastContainer').appendChild(t);
+            setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
+        }
+
+        // ── Sidebar ───────────────────────────────────────────────────────────
+        async function initSidebar() {
+            const token = localStorage.getItem('tenant_token');
+            if (!token) { location.href = '/tenant/login.html'; return false; }
+            try {
+                const me = await apiFetch('/auth/me'); window.SHOP_CCY = (me && me.currency) || 'Rs.';
+                localStorage.setItem('tenant_me', JSON.stringify(me));
+                document.getElementById('sidebarTenantName').textContent = me.tenant?.name || 'My Business';
+                document.getElementById('sidebarTenantCode').textContent = me.tenant?.code || '';
+                document.getElementById('sidebarUserName').textContent = me.full_name || me.username;
+                document.getElementById('userInitial').textContent = (me.full_name || me.username || '?')[0].toUpperCase();
+                document.getElementById('sidebarUserRoles').textContent = me.roles?.length ? me.roles.join(', ') : 'No roles';
+                return me;
+            } catch (e) {
+                if (e.message !== 'Unauthorized') console.error(e);
+                return false;
+            }
+        }
+
+        // ── Branch selector ───────────────────────────────────────────────────
+        async function loadBranches() {
+            try {
+                const branches = await apiFetch(`/branches/`);
+
+                const sel = document.getElementById('branchSelect');
+                branches.forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b.id;
+                    opt.textContent = b.name;
+                    sel.appendChild(opt);
+                });
+
+                if (branches.length === 1) {
+                    sel.value = branches[0].id;
+                    onBranchChange();
+                }
+            } catch (e) {
+                showError(e.message);
+            }
+        }
+
+        function onBranchChange() {
+            const sel = document.getElementById('branchSelect');
+            currentBranchId = sel.value || null;
+            if (currentBranchId) {
+                document.getElementById('addBtn').classList.remove('hidden');
+                loadStations();
+            } else {
+                document.getElementById('addBtn').classList.add('hidden');
+                document.getElementById('emptyBranch').classList.remove('hidden');
+                document.getElementById('tableWrap').classList.add('hidden');
+                document.getElementById('summaryBar').classList.add('hidden');
+            }
+        }
+
+        // ── Load stations ─────────────────────────────────────────────────────
+        async function loadStations() {
+            if (!currentBranchId) return;
+            document.getElementById('emptyBranch').classList.add('hidden');
+            document.getElementById('tableWrap').classList.add('hidden');
+
+            try {
+                allStations = await apiFetch(`/branches/${currentBranchId}/preparation-stations/`);
+                renderTable();
+            } catch (e) {
+                showError(e.message);
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('stationsBody');
+            const emptyEl = document.getElementById('emptyStations');
+            const tableWrap = document.getElementById('tableWrap');
+            const summaryBar = document.getElementById('summaryBar');
+
+            // Summary
+            const active = allStations.filter(s => s.is_active).length;
+            document.getElementById('statTotal').textContent = allStations.length;
+            document.getElementById('statActive').textContent = active;
+            document.getElementById('statInactive').textContent = allStations.length - active;
+            summaryBar.classList.remove('hidden');
+
+            tableWrap.classList.remove('hidden');
+
+            if (!allStations.length) {
+                tbody.innerHTML = '';
+                emptyEl.classList.remove('hidden');
+                return;
+            }
+            emptyEl.classList.add('hidden');
+
+            tbody.innerHTML = allStations.map(s => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-5 py-3.5 font-medium text-slate-900">${escHtml(s.name)}</td>
+                    <td class="px-5 py-3.5 text-slate-600">${s.display_order}</td>
+                    <td class="px-5 py-3.5">
+                        ${s.is_active
+                            ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Active</span>'
+                            : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500">Inactive</span>'
+                        }
+                    </td>
+                    <td class="px-5 py-3.5 text-right space-x-2">
+                        <button onclick="editStation('${escapeJSAttribute(s.id)}')"
+                                class="text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors">
+                            Edit
+                        </button>
+                        <button onclick="promptDelete('${escapeJSAttribute(s.id)}', '${escapeJSAttribute(s.name)}')"
+                                class="text-xs font-medium text-red-600 hover:text-red-800 transition-colors">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ── Drawer ────────────────────────────────────────────────────────────
+        function openDrawer(station = null) {
+            editingStationId = station ? station.id : null;
+            document.getElementById('drawerTitle').textContent = station ? 'Edit Station' : 'Add Station';
+            document.getElementById('fName').value = station?.name ?? '';
+            document.getElementById('fOrder').value = station?.display_order ?? 0;
+            document.getElementById('fActive').checked = station?.is_active ?? true;
+            document.getElementById('drawerError').classList.add('hidden');
+
+            document.getElementById('drawerBackdrop').classList.remove('hidden');
+            document.getElementById('drawer').classList.remove('drawer-close');
+            document.getElementById('drawer').classList.add('drawer-open');
+        }
+
+        function editStation(id) {
+            const station = allStations.find(s => s.id === id);
+            if (station) openDrawer(station);
+        }
+
+        function closeDrawer() {
+            document.getElementById('drawerBackdrop').classList.add('hidden');
+            document.getElementById('drawer').classList.remove('drawer-open');
+            document.getElementById('drawer').classList.add('drawer-close');
+            editingStationId = null;
+        }
+
+        async function saveStation() {
+            const name = document.getElementById('fName').value.trim();
+            if (!name) {
+                showDrawerError('Station name is required.');
+                return;
+            }
+
+            const payload = {
+                name,
+                display_order: parseInt(document.getElementById('fOrder').value) || 0,
+                is_active: document.getElementById('fActive').checked,
+            };
+
+            const btn = document.getElementById('drawerSaveBtn');
+            btn.disabled = true;
+            btn.textContent = 'Saving…';
+
+            try {
+                if (editingStationId) {
+                    await apiFetch(`/branches/${currentBranchId}/preparation-stations/${editingStationId}`, {
+                        method: 'PATCH',
+                        body: JSON.stringify(payload),
+                    });
+                    toast('Station updated.');
+                } else {
+                    await apiFetch(`/branches/${currentBranchId}/preparation-stations/`, {
+                        method: 'POST',
+                        body: JSON.stringify(payload),
+                    });
+                    toast('Station created.');
+                }
+                closeDrawer();
+                await loadStations();
+            } catch (e) {
+                showDrawerError(e.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Save';
+            }
+        }
+
+        // ── Delete ────────────────────────────────────────────────────────────
+        function promptDelete(id, name) {
+            deleteTargetId = id;
+            document.getElementById('deleteStationName').textContent = name;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            deleteTargetId = null;
+            document.getElementById('deleteModal').classList.add('hidden');
+        }
+
+        async function confirmDelete() {
+            if (!deleteTargetId) return;
+            try {
+                await apiFetch(`/branches/${currentBranchId}/preparation-stations/${deleteTargetId}`, { method: 'DELETE' });
+                toast('Station deleted.');
+                closeDeleteModal();
+                await loadStations();
+            } catch (e) {
+                closeDeleteModal();
+                toast(e.message, 'error');
+            }
+        }
+
+        // ── Error helpers ─────────────────────────────────────────────────────
+        function showError(msg) {
+            const el = document.getElementById('errorBanner');
+            el.textContent = msg;
+            el.classList.remove('hidden');
+        }
+
+        function showDrawerError(msg) {
+            const el = document.getElementById('drawerError');
+            el.textContent = msg;
+            el.classList.remove('hidden');
+        }
+
+        // ── Boot ──────────────────────────────────────────────────────────────
+        (async () => {
+            const me = await initSidebar();
+            if (!me) return;
+            await loadBranches();
+        })();
+    </script>
+
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

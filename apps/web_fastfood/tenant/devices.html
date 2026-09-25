@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>POS Devices - Tenant Admin</title>
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+</head>
+<body class="bg-slate-50 min-h-screen flex">
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         SIDEBAR
+    ════════════════════════════════════════════════════════════════════════ -->
+    <aside class="w-64 flex-shrink-0 h-screen bg-white border-r border-slate-200 flex flex-col overflow-y-auto fixed left-0 top-0 z-30">
+
+        <div class="h-16 flex items-center px-5 border-b border-slate-200 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span class="text-white text-sm font-bold select-none">T</span>
+                </div>
+                <div>
+                    <p class="text-slate-900 text-sm font-semibold leading-none" id="sidebarTenantName">Loading…</p>
+                    <p class="text-indigo-600 text-[11px] leading-none mt-0.5 font-medium" id="sidebarTenantCode">—</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="flex-1 px-3 py-4 space-y-0.5">
+            <a href="/tenant/dashboard.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 13.5V19a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-5.5M9 21V12M3 9l9-6 9 6"/></svg>
+                Overview
+            </a>
+            <a href="/tenant/sales.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                Sales
+            </a>
+            <a href="/tenant/reports.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                Reports
+            </a>
+
+        <a href="/tenant/shifts.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Cash Shortages
+        </a>
+            <a href="/tenant/menu.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                Menu
+            </a>
+
+        <a href="/tenant/variant-options.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+            Variant Options
+        </a>
+
+        <a href="/tenant/addon-groups.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+            Add-on Groups
+        </a>
+
+            <a href="/tenant/promotions.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg>
+                Promotions
+            </a>
+            <a href="/tenant/deals.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+                Deals
+            </a>
+            <a href="/tenant/branches.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
+                Branches
+            </a>
+            <a href="/tenant/preparation-stations.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z"/></svg>
+                Kitchen Stations
+            </a>
+            <a href="/tenant/devices.html" class="bg-indigo-50 text-indigo-700 font-medium rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 8.25h3"/></svg>
+                Devices
+            </a>
+            <a href="/tenant/users.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+                Users
+            </a>
+            <a href="/tenant/roles.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+                Roles
+            </a>
+            <a href="/tenant/activity.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0"/></svg>
+                Activity
+            </a>
+            <a href="/tenant/expenses.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-6 4h6m-6 4h4M5 3h14a2 2 0 012 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 012-2z"/></svg>
+                Expenses
+            </a>
+            <a href="/tenant/employees.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+                Employees
+            </a>
+            <a href="/tenant/salaries.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Salaries
+            </a>
+            <a href="/tenant/inventory.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                Inventory
+            </a>
+            <a href="/tenant/subscription.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg>
+                Subscription
+            </a>
+            <a href="/tenant/settings.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Settings
+            </a>
+        </nav>
+
+        <div class="border-t border-slate-200 p-4 flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                    <span class="text-indigo-700 text-sm font-semibold" id="userInitial">?</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-slate-900 truncate" id="sidebarUserName">—</p>
+                    <p class="text-xs text-slate-500 truncate" id="sidebarUserRoles">—</p>
+                </div>
+                <button onclick="logout()" title="Logout" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         MAIN CONTENT
+    ════════════════════════════════════════════════════════════════════════ -->
+    <main class="ml-64 flex-1 min-h-screen overflow-y-auto">
+        <div class="p-8">
+
+            <div class="flex items-start justify-between mb-6">
+                <div>
+                    <h1 class="text-2xl font-semibold text-slate-900">POS Devices</h1>
+                    <p class="text-sm text-slate-500 mt-1">
+                        Add a device, then enter its activation code on the POS.
+                        <span id="limitHint" class="ml-1 font-medium text-slate-600"></span>
+                    </p>
+                </div>
+                <button id="addBtn" onclick="openAdd()"
+                    class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg px-4 py-2 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    Add Device
+                </button>
+            </div>
+
+            <div id="errorBanner" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-6 text-sm"></div>
+
+            <!-- Filter Bar -->
+            <div id="filterBar" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm p-4 mb-5 flex flex-wrap gap-3 items-center">
+                <div>
+                    <label class="block text-xs font-medium text-slate-500 mb-1">Branch</label>
+                    <select id="filterBranch" onchange="renderTable()" class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white min-w-36">
+                        <option value="">All Branches</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-500 mb-1">Status</label>
+                    <select id="filterStatus" onchange="renderTable()" class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                        <option value="">All</option>
+                        <option value="ACTIVE">Active</option>
+                        <option value="PENDING">Awaiting activation</option>
+                        <option value="SUSPENDED">Suspended</option>
+                        <option value="REVOKED">Revoked</option>
+                    </select>
+                </div>
+                <div class="ml-auto text-xs text-slate-400" id="filterCount"></div>
+            </div>
+
+            <div id="pageLoading" class="bg-white rounded-xl border border-slate-200 shadow-sm p-8 text-center">
+                <div class="inline-block w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-sm text-slate-500 mt-2">Loading devices…</p>
+            </div>
+
+            <div id="tableCard" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Name</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Branch</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Type</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Last Sync</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="deviceTableBody" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                    <div id="emptyState" class="hidden p-12 text-center">
+                        <p class="text-sm text-slate-500">No devices yet. Click <span class="font-medium text-slate-700">Add Device</span> to create one.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ── Add Device modal ─────────────────────────────────────────────── -->
+    <div id="addModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeAdd()"></div>
+        <div class="relative bg-white rounded-xl shadow-xl w-full max-w-sm z-10">
+            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                <h3 class="text-base font-semibold text-slate-900">Add Device</h3>
+                <button onclick="closeAdd()" class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="px-6 py-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1.5">Device Name <span class="text-red-500">*</span></label>
+                    <input id="ad_name" type="text" placeholder="Counter POS 2"
+                           class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1.5">Branch <span class="text-red-500">*</span></label>
+                    <select id="ad_branch" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1.5">Purpose <span class="text-red-500">*</span></label>
+                    <select id="ad_type" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="POS">POS</option>
+                        <option value="Kitchen">Kitchen</option>
+                        <option value="Display">Display</option>
+                    </select>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
+                <button onclick="closeAdd()" class="h-10 px-4 border border-slate-200 rounded-lg text-sm text-slate-700 hover:bg-slate-50">Cancel</button>
+                <button id="ad_submit" onclick="submitAdd()" class="h-10 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg">Create Device</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Activation code modal ────────────────────────────────────────── -->
+    <div id="codeModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeCode()"></div>
+        <div class="relative bg-white rounded-xl shadow-xl w-full max-w-sm z-10 text-center">
+            <div class="px-6 pt-6">
+                <p id="cm_eyebrow" class="text-xs font-medium text-emerald-600 uppercase tracking-wide">Device created</p>
+                <h3 id="cm_name" class="text-lg font-semibold text-slate-900 mt-1">—</h3>
+                <p id="cm_branch" class="text-sm text-slate-500">—</p>
+            </div>
+            <div class="px-6 py-5">
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Activation Code</p>
+                <p id="cm_code" class="text-4xl font-bold tracking-[0.2em] text-slate-900 font-mono">— —</p>
+                <p id="cm_expiry" class="text-xs text-slate-400 mt-3">Expires in 15 minutes</p>
+                <p class="text-xs text-slate-400 mt-1">Enter this code on the new POS.</p>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-100 flex justify-center gap-3">
+                <button onclick="regenCode()" class="h-10 px-4 border border-slate-200 rounded-lg text-sm text-slate-700 hover:bg-slate-50">Generate New Code</button>
+                <button onclick="closeCode()" class="h-10 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Confirm modal ───────────────────────────────────────────────── -->
+    <div id="confirmModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeConfirm()"></div>
+        <div class="relative bg-white rounded-xl shadow-xl w-full max-w-sm z-10">
+            <div class="px-6 py-5">
+                <h3 id="cf_title" class="text-base font-semibold text-slate-900 mb-1">Confirm</h3>
+                <p id="cf_text" class="text-sm text-slate-500"></p>
+            </div>
+            <div class="px-6 pb-5 flex justify-end gap-3">
+                <button onclick="closeConfirm()" class="h-9 px-4 border border-slate-200 rounded-lg text-sm text-slate-700 hover:bg-slate-50">Cancel</button>
+                <button id="cf_ok" class="h-9 px-4 text-white text-sm font-medium rounded-lg">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Alert modal (activation-code notices) ───────────────────────── -->
+    <div id="alertModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeAlert()"></div>
+        <div class="relative bg-white rounded-xl shadow-xl w-full max-w-sm z-10">
+            <div class="px-6 py-5 flex gap-3">
+                <div class="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19H19a2 2 0 001.75-2.98l-6.93-12a2 2 0 00-3.5 0l-6.93 12A2 2 0 005.07 19z"/></svg>
+                </div>
+                <div>
+                    <h3 id="al_title" class="text-base font-semibold text-slate-900">Notice</h3>
+                    <p id="al_text" class="text-sm text-slate-500 mt-1"></p>
+                </div>
+            </div>
+            <div class="px-6 pb-5 flex justify-end">
+                <button onclick="closeAlert()" class="h-9 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-[60] space-y-2"></div>
+
+    <script>
+        const BASE = '/api/v1';
+        function getToken() { return localStorage.getItem('tenant_token'); }
+
+        async function apiFetch(path, opts = {}) {
+            const res = await fetch(BASE + path, {
+                ...opts,
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken(), ...(opts.headers || {}) }
+            });
+            if (res.status === 401) { localStorage.removeItem('tenant_token'); location.href = '/tenant/login.html'; throw new Error('Unauthorized'); }
+            if (res.status === 204) return null;
+            const body = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(errMsg(body, res.status, path));
+            return body;
+        }
+
+        // FastAPI errors come back as {detail: "..."} OR {detail: [{loc,msg}, ...]} (422).
+        // Never let the raw object stringify to "[object Object]".
+        function errMsg(body, status, path) {
+            const d = body && body.detail;
+            if (typeof d === 'string') return d;
+            if (Array.isArray(d) && d.length) {
+                return d.map(x => (x.loc ? x.loc.join('.') + ': ' : '') + (x.msg || JSON.stringify(x))).join('; ');
+            }
+            if (d && typeof d === 'object') return JSON.stringify(d);
+            return `HTTP ${status}${path ? ' on ' + path : ''}`;
+        }
+        function logout() { localStorage.removeItem('tenant_token'); localStorage.removeItem('tenant_me'); location.href = '/tenant/login.html'; }
+
+        function showToast(msg, type = 'success') {
+            const c = document.getElementById('toastContainer');
+            const t = document.createElement('div');
+            const ok = type === 'success';
+            t.className = `px-4 py-3 rounded-lg shadow-lg text-sm font-medium border ${ok ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`;
+            t.textContent = msg;
+            c.appendChild(t);
+            setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3500);
+        }
+
+        function timeAgo(iso) {
+            if (!iso) return 'Never';
+            const s = Math.floor((Date.now() - new Date(iso)) / 1000);
+            if (s < 60) return 'Just now';
+            if (s < 3600) return Math.floor(s / 60) + 'm ago';
+            if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+            if (s < 604800) return Math.floor(s / 86400) + 'd ago';
+            return new Date(iso).toLocaleDateString();
+        }
+        function esc(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+        function fmtCode(c) { return c ? `${c.slice(0,2)} ${c.slice(2)}` : '— —'; }
+
+        async function initSidebar() {
+            const token = localStorage.getItem('tenant_token');
+            if (!token) { location.href = '/tenant/login.html'; return false; }
+            try {
+                const me = await apiFetch('/auth/me');
+                document.getElementById('sidebarTenantName').textContent = me.tenant?.name || 'My Business';
+                document.getElementById('sidebarTenantCode').textContent = me.tenant?.code || '';
+                document.getElementById('sidebarUserName').textContent = me.full_name || me.username;
+                document.getElementById('userInitial').textContent = (me.full_name || me.username || '?')[0].toUpperCase();
+                document.getElementById('sidebarUserRoles').textContent = me.roles?.length ? me.roles.join(', ') : 'No roles';
+                return me;
+            } catch (e) { return false; }
+        }
+
+        // ── State ──────────────────────────────────────────────────────────
+        let devices = [];
+        let branches = [];
+        let limits = { used: 0, limit: -1 };
+        let codeDeviceId = null;
+        let codeTimer = null;
+
+        // ── Status badge ──────────────────────────────────────────────────
+        function statusBadge(d) {
+            const base = 'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ';
+            if (d.status === 'ACTIVE') {
+                if (d.sync_status === 'offline' || d.sync_status === 'stale')
+                    return `<span class="${base}bg-amber-100 text-amber-700">Active · offline</span>`;
+                return `<span class="${base}bg-green-100 text-green-700">Active</span>`;
+            }
+            if (d.status === 'PENDING') {
+                if (d.activation_state === 'code_expired')
+                    return `<span class="${base}bg-rose-100 text-rose-700">Not activated · code expired</span>`;
+                return `<span class="${base}bg-amber-100 text-amber-700">Not activated · awaiting code</span>`;
+            }
+            if (d.status === 'SUSPENDED') {
+                const by = d.suspended_scope === 'PLATFORM' ? ' · by platform' : '';
+                return `<span class="${base}bg-red-100 text-red-700">Suspended${by}</span>`;
+            }
+            if (d.status === 'REVOKED')  return `<span class="${base}bg-slate-800 text-white">Revoked</span>`;
+            return `<span class="${base}bg-slate-100 text-slate-500">${esc(d.status)}</span>`;
+        }
+
+        function rowActions(d) {
+            const btn = (label, fn, cls) => `<button onclick="${fn}" class="text-xs font-medium ${cls}">${label}</button>`;
+            const parts = [];
+            if (d.status === 'PENDING') {
+                parts.push(btn('Show code', `showExistingCode('${d.id}')`, 'text-indigo-600 hover:text-indigo-800'));
+                parts.push(btn('New code', `newCodeFromRow('${d.id}')`, 'text-indigo-600 hover:text-indigo-800'));
+            }
+            if (d.status === 'ACTIVE' || (d.status === 'SUSPENDED' && d.suspended_scope !== 'PLATFORM'))
+                                          parts.push(btn('Reset', `confirmAction('${d.id}','reset')`, 'text-indigo-600 hover:text-indigo-800'));
+            if (d.status === 'ACTIVE')    parts.push(btn('Suspend', `confirmAction('${d.id}','suspend')`, 'text-amber-600 hover:text-amber-800'));
+            if (d.status === 'SUSPENDED' && d.suspended_scope !== 'PLATFORM')
+                                          parts.push(btn('Reactivate', `confirmAction('${d.id}','reactivate')`, 'text-green-600 hover:text-green-800'));
+            if (d.status !== 'REVOKED')   parts.push(btn('Revoke', `confirmAction('${d.id}','revoke')`, 'text-red-600 hover:text-red-800'));
+            parts.push(btn('Delete', `confirmAction('${d.id}','delete')`, 'text-slate-400 hover:text-slate-600'));
+            return parts.join('<span class="text-slate-200 mx-1.5">·</span>');
+        }
+
+        // ── Alert modal ──────────────────────────────────────────────────
+        function showAlert(title, text) {
+            document.getElementById('al_title').textContent = title;
+            document.getElementById('al_text').textContent = text;
+            document.getElementById('alertModal').classList.remove('hidden');
+        }
+        function closeAlert() { document.getElementById('alertModal').classList.add('hidden'); }
+
+        // ── Render ────────────────────────────────────────────────────────
+        function renderLimitHint() {
+            const el = document.getElementById('limitHint');
+            const lim = limits.limit === -1 ? '∞' : limits.limit;
+            el.textContent = `${limits.used} / ${lim} devices used`;
+            const full = limits.limit !== -1 && limits.used >= limits.limit;
+            const btn = document.getElementById('addBtn');
+            btn.disabled = full;
+            btn.title = full ? 'Device limit reached — upgrade your plan' : '';
+        }
+
+        function renderTable() {
+            const branch = document.getElementById('filterBranch').value;
+            const st = document.getElementById('filterStatus').value;
+            const rows = devices.filter(d =>
+                (!branch || d.branch_name === branch) && (!st || d.status === st));
+
+            const tbody = document.getElementById('deviceTableBody');
+            const empty = document.getElementById('emptyState');
+            document.getElementById('filterCount').textContent = `Showing ${rows.length} of ${devices.length}`;
+
+            if (!rows.length) { tbody.innerHTML = ''; empty.classList.remove('hidden'); return; }
+            empty.classList.add('hidden');
+            tbody.innerHTML = rows.map(d => `
+                <tr class="hover:bg-slate-50">
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-2.5">
+                            <span class="flex-shrink-0 w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center"
+                                  title="Device letter — distinguishes this device on receipts and sale numbers">${esc(d.letter || '—')}</span>
+                            <div>
+                                <p class="text-sm font-medium text-slate-900">${esc(d.name)}</p>
+                                <p class="text-xs font-mono text-slate-400 mt-0.5">${esc(d.device_code)}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-sm text-slate-700">${esc(d.branch_name)}</td>
+                    <td class="px-4 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">${esc(d.device_type)}</span></td>
+                    <td class="px-4 py-3">${statusBadge(d)}</td>
+                    <td class="px-4 py-3 text-sm text-slate-500">${timeAgo(d.last_sync_at)}</td>
+                    <td class="px-4 py-3 text-right whitespace-nowrap">${rowActions(d)}</td>
+                </tr>`).join('');
+        }
+
+        // ── Load ──────────────────────────────────────────────────────────
+        // The device list is the only hard dependency. `limits` and `branches`
+        // are best-effort — if either fails (e.g. the module is gated, or a
+        // transient error) we still render the devices instead of spinning
+        // forever on "Loading devices…".
+        async function load() {
+            const [devsR, limR, brsR] = await Promise.allSettled([
+                apiFetch('/devices'),
+                apiFetch('/devices/limits'),
+                apiFetch('/branches/stats'),   // tenant-scoped; gives id/name/is_active
+            ]);
+
+            document.getElementById('pageLoading').classList.add('hidden');
+
+            if (devsR.status !== 'fulfilled') {
+                const b = document.getElementById('errorBanner');
+                b.innerHTML = `Couldn't load devices: ${esc((devsR.reason && devsR.reason.message) || 'unknown error')}
+                    <button onclick="retryLoad()" class="ml-2 underline font-medium">Retry</button>`;
+                b.classList.remove('hidden');
+                return;
+            }
+            document.getElementById('errorBanner').classList.add('hidden');
+
+            devices = Array.isArray(devsR.value) ? devsR.value : [];
+            limits  = limR.status === 'fulfilled' && limR.value ? limR.value : { used: devices.length, limit: -1 };
+            branches = brsR.status === 'fulfilled'
+                ? (brsR.value || []).filter(b => b.is_active !== false)
+                : [];
+
+            document.getElementById('tableCard').classList.remove('hidden');
+            document.getElementById('filterBar').classList.remove('hidden');
+
+            const fb = document.getElementById('filterBranch');
+            fb.querySelectorAll('option:not([value=""])').forEach(o => o.remove());
+            [...new Set(devices.map(d => d.branch_name))].sort().forEach(b => {
+                const o = document.createElement('option'); o.value = b; o.textContent = b; fb.appendChild(o);
+            });
+
+            renderLimitHint();
+            renderTable();
+        }
+        async function retryLoad() {
+            document.getElementById('errorBanner').classList.add('hidden');
+            document.getElementById('pageLoading').classList.remove('hidden');
+            try { await load(); } catch (e) { showToast((e && e.message) || 'Retry failed', 'error'); }
+        }
+
+        // ── Add ───────────────────────────────────────────────────────────
+        function openAdd() {
+            document.getElementById('ad_name').value = '';
+            document.getElementById('ad_type').value = 'POS';
+            const sel = document.getElementById('ad_branch');
+            sel.innerHTML = branches.map(b => `<option value="${b.id}">${esc(b.name)}</option>`).join('');
+            document.getElementById('addModal').classList.remove('hidden');
+        }
+        function closeAdd() { document.getElementById('addModal').classList.add('hidden'); }
+
+        async function submitAdd() {
+            const name = document.getElementById('ad_name').value.trim();
+            const branch_id = document.getElementById('ad_branch').value;
+            const device_type = document.getElementById('ad_type').value;
+            if (!name) { showToast('Enter a device name.', 'error'); return; }
+            if (!branch_id) { showToast('Select a branch.', 'error'); return; }
+            const btn = document.getElementById('ad_submit');
+            btn.disabled = true;
+            try {
+                const created = await apiFetch('/devices', { method: 'POST', body: JSON.stringify({ name, branch_id, device_type }) });
+                closeAdd();
+                await load();
+                openCode(created);
+            } catch (e) {
+                showToast(e.message, 'error');
+            } finally { btn.disabled = false; }
+        }
+
+        // ── Activation code modal ────────────────────────────────────────
+        function openCode(dev, eyebrow) {
+            codeDeviceId = dev.id;
+            document.getElementById('cm_eyebrow').textContent = eyebrow || 'Device created';
+            document.getElementById('cm_name').textContent =
+                dev.name + (dev.letter ? ` (Device ${dev.letter})` : '');
+            const br = branches.find(b => b.id === dev.branch_id);
+            document.getElementById('cm_branch').textContent = dev.branch_name || (br ? br.name : '');
+            document.getElementById('cm_code').textContent = fmtCode(dev.activation_code);
+            startCountdown(dev.activation_code_expires_at);
+            document.getElementById('codeModal').classList.remove('hidden');
+        }
+        function closeCode() {
+            document.getElementById('codeModal').classList.add('hidden');
+            clearInterval(codeTimer);
+            codeDeviceId = null;
+        }
+        function startCountdown(expiresAt) {
+            clearInterval(codeTimer);
+            const end = new Date(expiresAt).getTime();
+            const el = document.getElementById('cm_expiry');
+            const tick = () => {
+                const left = Math.floor((end - Date.now()) / 1000);
+                if (left <= 0) { el.textContent = 'Code expired — generate a new one.'; clearInterval(codeTimer); return; }
+                const m = Math.floor(left / 60), s = left % 60;
+                el.textContent = `Expires in ${m}:${String(s).padStart(2, '0')}`;
+            };
+            tick();
+            codeTimer = setInterval(tick, 1000);
+        }
+        async function regenCode() {
+            if (!codeDeviceId) return;
+            try {
+                const dev = await apiFetch(`/devices/${codeDeviceId}/activation-code`, { method: 'POST' });
+                document.getElementById('cm_eyebrow').textContent = 'New activation code';
+                document.getElementById('cm_code').textContent = fmtCode(dev.activation_code);
+                startCountdown(dev.activation_code_expires_at);
+                showToast('New code generated.');
+                load();
+            } catch (e) {
+                closeCode();
+                showAlert('Device already activated', e.message);
+            }
+        }
+
+        // "Show code" — re-display the CURRENT code; explain if there isn't one.
+        async function showExistingCode(id) {
+            const d = devices.find(x => x.id === id) || {};
+            try {
+                const v = await apiFetch(`/devices/${id}/activation-code`);   // GET — never mints a new code
+                if (v.used) {
+                    showAlert('Device already activated',
+                        'This device is already paired. Use “Reset” on the device row to unpair it, then activate a new device with the fresh code.');
+                    return;
+                }
+                if (v.expired || !v.activation_code) {
+                    showAlert('Activation code expired',
+                        'The last activation code has expired. Click “New code” on the device row to generate a fresh one (valid 15 minutes).');
+                    return;
+                }
+                openCode({
+                    id, name: d.name, branch_name: d.branch_name, branch_id: d.branch_id,
+                    activation_code: v.activation_code,
+                    activation_code_expires_at: v.activation_code_expires_at,
+                }, 'Activation code');
+            } catch (e) { showToast(e.message, 'error'); }
+        }
+
+        // "New code" from a device row — force-regenerate for a PENDING device.
+        async function newCodeFromRow(id) {
+            const d = devices.find(x => x.id === id) || {};
+            try {
+                const dev = await apiFetch(`/devices/${id}/activation-code`, { method: 'POST' });
+                await load();
+                openCode({ ...dev, name: dev.name || d.name, branch_name: d.branch_name }, 'New activation code');
+            } catch (e) {
+                showAlert('Device already activated', e.message);
+            }
+        }
+
+        // ── Lifecycle actions ────────────────────────────────────────────
+        const ACTIONS = {
+            reset:      { title: 'Reset device', text: 'Unpairs this device and issues a new activation code. The current install stops working the next time it connects, and can be paired again — by the same or a different device — with the new code. The device keeps its slot against your plan limit.', cls: 'bg-indigo-600 hover:bg-indigo-700', verb: 'Reset & show code' },
+            suspend:    { title: 'Suspend device', text: 'The device will stop working the next time it connects. You can reactivate it later.', cls: 'bg-amber-500 hover:bg-amber-600', verb: 'Suspend' },
+            reactivate: { title: 'Reactivate device', text: 'The device will be able to sync and take sales again.', cls: 'bg-green-600 hover:bg-green-700', verb: 'Reactivate' },
+            revoke:     { title: 'Revoke device', text: 'This permanently disables the device. It cannot be undone — you would need to add a new device.', cls: 'bg-red-600 hover:bg-red-700', verb: 'Revoke' },
+            delete:     { title: 'Delete device', text: 'Removes the device from this list. Past sales are kept.', cls: 'bg-slate-700 hover:bg-slate-800', verb: 'Delete' },
+        };
+        function confirmAction(id, action) {
+            const a = ACTIONS[action];
+            document.getElementById('cf_title').textContent = a.title;
+            document.getElementById('cf_text').textContent = a.text;
+            const ok = document.getElementById('cf_ok');
+            ok.className = `h-9 px-4 text-white text-sm font-medium rounded-lg ${a.cls}`;
+            ok.textContent = a.verb;
+            ok.onclick = () => { closeConfirm(); runAction(id, action); };
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+        function closeConfirm() { document.getElementById('confirmModal').classList.add('hidden'); }
+        async function runAction(id, action) {
+            try {
+                if (action === 'delete') {
+                    await apiFetch(`/devices/${id}`, { method: 'DELETE' });
+                } else if (action === 'reset') {
+                    const d = devices.find(x => x.id === id) || {};
+                    const dev = await apiFetch(`/devices/${id}/reset`, { method: 'POST' });
+                    showToast('Device reset — new activation code issued.');
+                    await load();
+                    openCode({ ...dev, name: dev.name || d.name, branch_name: d.branch_name }, 'Device reset');
+                    return;
+                } else {
+                    await apiFetch(`/devices/${id}/${action}`, { method: 'POST' });
+                }
+                const past = { suspend: 'suspended', reactivate: 'reactivated', revoke: 'revoked', delete: 'deleted' };
+                showToast(`Device ${past[action] || action + 'd'}.`);
+                await load();
+                // A status-changing action commonly moves the row out of the
+                // active Status filter — render already applied that filter
+                // above, so without this notice the row just vanishes with
+                // no indication it's a filter effect rather than data loss.
+                if (action !== 'delete') {
+                    const st = document.getElementById('filterStatus').value;
+                    if (st) {
+                        const stillThere = devices.some(d => d.id === id);
+                        const branch = document.getElementById('filterBranch').value;
+                        const stillVisible = stillThere && devices.some(d =>
+                            d.id === id && (!branch || d.branch_name === branch) && d.status === st);
+                        if (stillThere && !stillVisible) {
+                            const filterLabel = document.getElementById('filterStatus').selectedOptions[0]?.text || st;
+                            showToast(`This device no longer matches "${filterLabel}", so it's hidden from this view — not deleted.`);
+                        }
+                    }
+                }
+            } catch (e) { showToast(e.message, 'error'); }
+        }
+
+        // ── Boot ─────────────────────────────────────────────────────────
+        (async () => {
+            const me = await initSidebar();
+            if (!me) return;
+            try { await load(); }
+            catch (e) {
+                if (e && e.message === 'Unauthorized') return;
+                document.getElementById('pageLoading').classList.add('hidden');
+                const b = document.getElementById('errorBanner');
+                b.textContent = 'Failed to load devices: ' + ((e && e.message) || e || 'unknown error');
+                b.classList.remove('hidden');
+            }
+        })();
+    </script>
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

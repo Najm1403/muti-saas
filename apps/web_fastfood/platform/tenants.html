@@ -1,0 +1,1814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <!--
+        Tenants List + Create Tenant Drawer
+        =====================================
+        Shows all tenants with search, filter, and per-row action menus.
+        The Create Tenant drawer collects all data needed to onboard a new
+        tenant: business info, owner account, subscription, and initial branch.
+
+        API calls (list):
+          GET /api/platform/tenants?limit=500        → tenant rows
+          GET /api/platform/subscriptions?limit=500  → plan/status per tenant
+          GET /api/platform/plans                    → plan names for filter
+
+        API calls (create):
+          POST /api/platform/onboard/ → create tenant, owner, subscription, and initial branch
+
+        Style: follows web_fastfood/STYLE_GUIDE.md
+    -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tenants - STORIXX</title>
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+    <style>
+        .rounded-card  { border-radius: 10px; }
+        .drawer-open   { transform: translateX(0); }
+        .drawer-closed { transform: translateX(100%); }
+    </style>
+</head>
+
+<body class="flex h-screen bg-slate-50 text-slate-900 overflow-hidden">
+
+
+    <!-- ==================================================================
+         SIDEBAR — identical structure to dashboard.html.
+         Only the active item changes: Tenants is highlighted here.
+         ================================================================== -->
+    <aside class="w-64 flex-shrink-0 h-screen bg-slate-900 flex flex-col overflow-y-auto">
+
+        <!-- Logo area — h-16 to align with header -->
+        <div class="h-16 flex items-center px-5 border-b border-slate-800 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <img src="/assets/logo-mark.png?v=3" alt="STORIXX" class="w-8 h-8 rounded-[6px] flex-shrink-0 object-contain" />
+                <div>
+                    <p class="text-white text-sm font-semibold leading-none">STORIXX</p>
+                    <p class="text-slate-500 text-[11px] leading-none mt-0.5">SaaS Platform</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="flex-1 px-3 py-4 space-y-0.5">
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-1 pb-2">Overview</p>
+
+            <!-- Dashboard — inactive -->
+            <a href="/platform/dashboard.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                <span class="text-sm">Dashboard</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Management</p>
+
+            <!-- Tenants — ACTIVE on this page -->
+            <a href="/platform/tenants.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      bg-slate-800 text-white font-medium
+                      border-l-[3px] border-blue-500">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                <span class="text-sm">Tenants</span>
+            </a>
+            <a href="/platform/business-templates.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M20 7h-4V5a3 3 0 00-3-3h-2a3 3 0 00-3 3v2H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM10 5a1 1 0 011-1h2a1 1 0 011 1v2h-4V5z"/>
+                </svg>
+                <span class="text-sm">Business Templates</span>
+            </a>
+            <a href="/platform/config-reference.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s4.332.477 5.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                <span class="text-sm">Config Reference</span>
+            </a>
+
+            <a href="/platform/platform_users.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm">Platform Users</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Billing</p>
+
+            <a href="/platform/plans.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+                <span class="text-sm">Plans</span>
+            </a>
+
+            <a href="/platform/subscriptions.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                </svg>
+                <span class="text-sm">Subscriptions</span>
+            </a>
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Human Resources</p>
+            <a href="/platform/employees.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm">Employees</span>
+            </a>
+            <a href="/platform/salaries.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="text-sm">Salaries</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">System</p>
+
+            <a href="/platform/reports.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                <span class="text-sm">Reports</span>
+            </a>
+
+            <a href="/platform/activity.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                <span class="text-sm">Activity Logs</span>
+            </a>
+
+        </nav>
+
+        <div class="px-3 py-4 border-t border-slate-800 space-y-0.5 flex-shrink-0">
+            <a href="/platform/settings.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm">Settings</span>
+            </a>
+            <button id="sidebarLogout"
+                    class="w-full flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                           text-slate-300 hover:bg-slate-800 hover:text-white
+                           border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+                <span class="text-sm">Logout</span>
+            </button>
+        </div>
+
+    </aside><!-- /sidebar -->
+
+
+    <!-- ==================================================================
+         MAIN COLUMN
+         ================================================================== -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+
+        <!-- HEADER -->
+        <header class="h-16 flex-shrink-0 bg-white border-b border-slate-200
+                        flex items-center justify-between px-6 z-10">
+            <h1 class="text-2xl font-semibold text-slate-900">Tenants</h1>
+            <div class="flex items-center gap-2">
+                <button aria-label="Notifications"
+                        class="w-9 h-9 flex items-center justify-center rounded-card
+                               text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                </button>
+                <div class="relative">
+                    <button id="userMenuBtn"
+                            class="flex items-center gap-2 pl-2 pr-3 h-9 rounded-card
+                                   text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                        <div class="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center">
+                            <span id="avatarInitial" class="text-white text-xs font-semibold select-none">S</span>
+                        </div>
+                        <span id="usernameDisplay">SuperAdmin</span>
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div id="userDropdown" class="hidden absolute right-0 top-full mt-1.5 w-44 bg-white border border-slate-200 rounded-card shadow-lg py-1 z-50">
+                        <a href="/platform/settings.html" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50">Profile</a>
+                        <div class="border-t border-slate-100 my-1"></div>
+                        <button id="dropdownLogout" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+
+        <!-- PAGE CONTENT -->
+        <main class="flex-1 overflow-y-auto p-6 space-y-5">
+
+            <!-- ── Page header: title + primary action ────────────── -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <p id="tenantCount" class="text-[13px] text-slate-500 mt-0.5"></p>
+                </div>
+                <!-- Primary button — STYLE_GUIDE §11 -->
+                <a href="/platform/create-tenant.html"
+                   class="h-10 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm
+                          font-medium rounded-card transition-colors flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Create Tenant
+                </a>
+            </div>
+
+            <!-- ── Search + Filters ────────────────────────────────── -->
+            <div class="bg-white border border-slate-200 rounded-card shadow-sm p-4">
+                <div class="flex items-center gap-3 flex-wrap">
+
+                    <!-- Search input -->
+                    <div class="relative flex-1 min-w-[200px] max-w-sm">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+                             fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <input id="searchInput"
+                               type="search"
+                               placeholder="Search tenants..."
+                               class="w-full h-10 pl-9 pr-3 border border-slate-200 rounded-card text-sm
+                                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               oninput="applyFilters()" />
+                    </div>
+
+                    <!-- Status filter -->
+                    <select id="filterStatus"
+                            onchange="applyFilters()"
+                            class="h-10 pl-3 pr-8 border border-slate-200 rounded-card text-sm
+                                   text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500
+                                   bg-white appearance-none cursor-pointer">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="trial">Trial</option>
+                        <option value="suspended">Suspended</option>
+                        <option value="expired">Expired</option>
+                    </select>
+
+                    <!-- Plan filter — options populated from API -->
+                    <select id="filterPlan"
+                            onchange="applyFilters()"
+                            class="h-10 pl-3 pr-8 border border-slate-200 rounded-card text-sm
+                                   text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500
+                                   bg-white appearance-none cursor-pointer">
+                        <option value="">All Plans</option>
+                        <!-- Populated by JS after plans load -->
+                    </select>
+
+                    <!-- Created filter -->
+                    <select id="filterCreated"
+                            onchange="applyFilters()"
+                            class="h-10 pl-3 pr-8 border border-slate-200 rounded-card text-sm
+                                   text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500
+                                   bg-white appearance-none cursor-pointer">
+                        <option value="">All Time</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                        <option value="quarter">Last 3 Months</option>
+                    </select>
+
+                    <!-- Clear filters (shown only when filters are active) -->
+                    <button id="clearFiltersBtn"
+                            onclick="clearFilters()"
+                            class="hidden h-10 px-3 border border-slate-200 bg-white rounded-card
+                                   text-sm text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors">
+                        Clear filters
+                    </button>
+
+                </div>
+            </div>
+
+            <!-- ── Tenants table ───────────────────────────────────── -->
+            <div class="bg-white border border-slate-200 rounded-card shadow-sm overflow-hidden">
+                <table class="w-full">
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Business</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Code</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Owner</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">Branches</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">Devices</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Plan</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Created</th>
+                            <th class="px-6 py-3 w-12"></th><!-- Actions column -->
+                        </tr>
+                    </thead>
+                    <tbody id="tenantsTableBody" class="divide-y divide-slate-100 bg-white">
+                        <tr>
+                            <td colspan="9" class="px-6 py-10 text-center text-sm text-slate-400">Loading…</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+
+    </div><!-- /main column -->
+
+
+    <!-- ==================================================================
+         FLOATING ROW ACTION MENU
+         A single shared dropdown div, repositioned by JS for each row's
+         ⋮ button. This avoids z-index stacking issues inside table cells.
+         ================================================================== -->
+    <div id="rowMenu"
+         class="hidden fixed w-48 bg-white border border-slate-200 rounded-card shadow-lg py-1 z-50">
+
+        <!-- View — navigate to tenant detail -->
+        <button onclick="rowAction('view')"
+                class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+            View Details
+        </button>
+
+        <!-- Edit -->
+        <button onclick="rowAction('edit')"
+                class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+            </svg>
+            Edit
+        </button>
+
+        <!-- Account Recovery -->
+        <button onclick="rowAction('recovery')"
+                class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+            </svg>
+            Account Recovery
+        </button>
+
+        <!-- Message — set/clear the admin notice shown as a popup on tenant login -->
+        <button onclick="rowAction('message')"
+                class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+            </svg>
+            Message
+        </button>
+
+        <div class="border-t border-slate-100 my-1"></div>
+
+        <!-- Activate (shown when tenant is suspended) -->
+        <button id="rowActivateBtn" onclick="rowAction('activate')"
+                class="hidden w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-green-600 hover:bg-green-50 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Activate
+        </button>
+
+        <!-- Suspend (shown when tenant is active) -->
+        <button id="rowSuspendBtn" onclick="rowAction('suspend')"
+                class="hidden w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+            </svg>
+            Suspend
+        </button>
+
+    </div><!-- /row menu -->
+
+
+    <!-- ==================================================================
+         CONFIRM MODAL
+         Reusable — text and callback set dynamically before opening.
+         ================================================================== -->
+    <div id="confirmModal"
+         class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeConfirm()"></div>
+        <!-- Dialog -->
+        <div class="relative bg-white rounded-card shadow-xl p-6 w-full max-w-sm z-10">
+            <h3 id="confirmTitle" class="text-base font-semibold text-slate-900 mb-2">Confirm</h3>
+            <p  id="confirmMessage" class="text-sm text-slate-600 mb-5"></p>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeConfirm()"
+                        class="h-10 px-4 border border-slate-200 bg-white rounded-card
+                               text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                    Cancel
+                </button>
+                <button id="confirmOkBtn"
+                        class="h-10 px-4 rounded-card text-sm text-white font-medium transition-colors">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==================================================================
+         MESSAGE MODAL
+         Sets/clears Tenant.admin_message — shown as a dismissible popup on
+         the tenant dashboard the moment the tenant next loads a page.
+         ================================================================== -->
+    <div id="messageModal"
+         class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeMessageModal()"></div>
+        <div class="relative bg-white rounded-card shadow-xl p-6 w-full max-w-md z-10">
+            <h3 class="text-base font-semibold text-slate-900 mb-1">Message to tenant</h3>
+            <p id="messageSubtitle" class="text-xs text-slate-400 mb-4"></p>
+            <textarea id="messageText" rows="4" maxlength="2000"
+                      placeholder="e.g. Please renew your subscription before it lapses, or any other instruction…"
+                      class="w-full px-3 py-2 border border-slate-200 rounded-card text-sm
+                             focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            <p id="messageSetAt" class="text-xs text-slate-400 mt-1.5"></p>
+            <div class="flex justify-between gap-3 mt-5">
+                <button id="messageClearBtn" onclick="clearMessage()"
+                        class="h-10 px-4 border border-slate-200 bg-white rounded-card
+                               text-sm text-red-600 hover:bg-red-50 transition-colors">
+                    Clear
+                </button>
+                <div class="flex gap-3">
+                    <button onclick="closeMessageModal()"
+                            class="h-10 px-4 border border-slate-200 bg-white rounded-card
+                                   text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button onclick="submitMessage()"
+                            class="h-10 px-4 rounded-card text-sm text-white font-medium bg-blue-600 hover:bg-blue-700 transition-colors">
+                        Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==================================================================
+         BACKDROP + CREATE TENANT DRAWER
+         Slides in from the right. Fixed width 640px, full height,
+         scrollable form body, sticky header and footer.
+         ================================================================== -->
+
+    <!-- Semi-transparent backdrop — click to close -->
+    <div id="drawerBackdrop"
+         class="hidden fixed inset-0 bg-slate-900/50 z-40 transition-opacity duration-200"
+         onclick="closeCreateDrawer()"></div>
+
+    <!-- Drawer panel -->
+    <div id="createDrawer"
+         class="fixed right-0 top-0 h-full w-full max-w-[640px] bg-white border-l border-slate-200
+                z-50 flex flex-col drawer-closed transition-transform duration-300">
+
+        <!-- Drawer header — sticky, matches page header height -->
+        <div class="h-16 flex items-center justify-between px-6 border-b border-slate-200 flex-shrink-0">
+            <h2 class="text-base font-semibold text-slate-900">Create New Tenant</h2>
+            <button onclick="closeCreateDrawer()"
+                    class="w-9 h-9 flex items-center justify-center rounded-card
+                           text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors"
+                    aria-label="Close">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Scrollable form body -->
+        <div class="flex-1 overflow-y-auto">
+            <form id="createTenantForm" novalidate>
+
+                <!-- Error banner inside drawer -->
+                <div id="drawerError"
+                     class="hidden mx-6 mt-5 px-4 py-3 bg-red-50 border border-red-200 rounded-card
+                            flex items-start gap-2.5">
+                    <svg class="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                    <p id="drawerErrorText" class="text-sm text-red-600"></p>
+                </div>
+
+                <!-- ─────────────────────────────────────────────────
+                     SECTION 1: BUSINESS INFORMATION
+                     ───────────────────────────────────────────────── -->
+                <div class="px-6 pt-6 pb-5">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">
+                        Business Information
+                    </p>
+
+                    <!-- Business Name -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                            Business Name <span class="text-red-500">*</span>
+                        </label>
+                        <input id="f_name" type="text" placeholder="ABC Shop"
+                               class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               oninput="autoGenerateCodes()" required />
+                    </div>
+
+                    <!-- Tenant Code — auto-generated, editable -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                            Tenant Code <span class="text-red-500">*</span>
+                        </label>
+                        <input id="f_tenant_code" type="text" placeholder="ABC001"
+                               maxlength="20"
+                               class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm font-mono
+                                      uppercase focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               required />
+                        <p class="mt-1 text-[12px] text-slate-400">
+                            Auto-generated from name — letters and numbers only, no spaces.
+                        </p>
+                    </div>
+
+                    <!-- Business Template -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                            Business Template <span class="text-red-500">*</span>
+                        </label>
+                        <select id="f_business_template_id"
+                                class="w-full h-10 pl-3 pr-3 border border-slate-200 rounded-card text-sm
+                                       focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" required>
+                            <option value="">— Select a business type —</option>
+                            <!-- Options inserted by JS after templates load -->
+                        </select>
+                        <p class="mt-1 text-[12px] text-slate-400">
+                            Drives starting Variant/Add-on groups, inventory rules and POS layout.
+                            Manage presets in <a href="/platform/business-templates.html" class="text-blue-600 hover:underline">Business Templates</a>.
+                        </p>
+                    </div>
+
+                    <!-- Country + Timezone side by side -->
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Country</label>
+                            <select id="f_country"
+                                    class="w-full h-10 pl-3 pr-3 border border-slate-200 rounded-card text-sm
+                                           focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                <option value="Pakistan" selected>Pakistan</option>
+                                <option value="United Arab Emirates">United Arab Emirates</option>
+                                <option value="Saudi Arabia">Saudi Arabia</option>
+                                <option value="United Kingdom">United Kingdom</option>
+                                <option value="United States">United States</option>
+                                <option value="India">India</option>
+                                <option value="Bangladesh">Bangladesh</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Timezone</label>
+                            <select id="f_timezone"
+                                    class="w-full h-10 pl-3 pr-3 border border-slate-200 rounded-card text-sm
+                                           focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                <option value="Asia/Karachi" selected>Asia/Karachi (PKT)</option>
+                                <option value="Asia/Dubai">Asia/Dubai (GST)</option>
+                                <option value="Asia/Riyadh">Asia/Riyadh (AST)</option>
+                                <option value="Europe/London">Europe/London (GMT)</option>
+                                <option value="America/New_York">America/New_York (EST)</option>
+                                <option value="America/Los_Angeles">America/Los_Angeles (PST)</option>
+                                <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                                <option value="Asia/Dhaka">Asia/Dhaka (BST)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100 mx-6"></div>
+
+                <!-- ─────────────────────────────────────────────────
+                     SECTION 2: TENANT OWNER
+                     The owner is the primary admin user for this tenant.
+                     A temporary password is auto-generated — the owner
+                     must use Account Recovery to set their own password.
+                     ───────────────────────────────────────────────── -->
+                <div class="px-6 pt-5 pb-5">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">
+                        Tenant Owner
+                    </p>
+
+                    <!-- Full Name -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                            Full Name <span class="text-red-500">*</span>
+                        </label>
+                        <input id="f_owner_name" type="text" placeholder="Muhammad Ali"
+                               class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               required />
+                    </div>
+
+                    <!-- Username -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                            Username <span class="text-red-500">*</span>
+                        </label>
+                        <input id="f_owner_username" type="text" placeholder="abcadmin"
+                               autocomplete="off" spellcheck="false"
+                               class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               required />
+                        <p class="mt-1 text-[12px] text-slate-400">
+                            Used to log in to the tenant panel. Must be unique within the tenant.
+                        </p>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                            Email <span class="text-red-500">*</span>
+                        </label>
+                        <input id="f_owner_email" type="email" placeholder="admin@abc.com"
+                               class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               required />
+                    </div>
+
+                    <!-- Info note about password -->
+                    <div class="flex items-start gap-2 px-3 py-2.5 bg-blue-50 border border-blue-100 rounded-card">
+                        <svg class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                        <p class="text-[12px] text-blue-700 leading-snug">
+                            A temporary password is auto-generated. The owner must use
+                            <strong>Account Recovery</strong> to set their own password before logging in.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100 mx-6"></div>
+
+                <!-- ─────────────────────────────────────────────────
+                     SECTION 3: SUBSCRIPTION
+                     Plan is loaded from GET /api/platform/plans.
+                     Trial period applies before billing begins.
+                     ───────────────────────────────────────────────── -->
+                <div class="px-6 pt-5 pb-5">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">
+                        Subscription
+                    </p>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Plan — populated from API plans -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Plan</label>
+                            <select id="f_plan_id"
+                                    class="w-full h-10 pl-3 pr-3 border border-slate-200 rounded-card text-sm
+                                           focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                <option value="">— No Plan —</option>
+                                <!-- Options inserted by JS after plans load -->
+                            </select>
+                        </div>
+
+                        <!-- Trial Period -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Trial Period</label>
+                            <select id="f_trial_days"
+                                    class="w-full h-10 pl-3 pr-3 border border-slate-200 rounded-card text-sm
+                                           focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                <option value="0">No Trial</option>
+                                <option value="7">7 days</option>
+                                <option value="14" selected>14 days</option>
+                                <option value="30">30 days</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100 mx-6"></div>
+
+                <!-- ─────────────────────────────────────────────────
+                     SECTION 4: INITIAL BRANCH
+                     Every tenant needs at least one branch to record sales.
+                     The initial branch is created by POST /api/platform/onboard/.
+                     ───────────────────────────────────────────────── -->
+                <div class="px-6 pt-5 pb-6">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">
+                        Initial Branch
+                    </p>
+                    <p class="text-[12px] text-slate-400 mb-4">
+                        This branch is created together with the tenant and owner account.
+                    </p>
+
+                    <!-- Branch Name + Code side by side -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                                Branch Name <span class="text-red-500">*</span>
+                            </label>
+                            <input id="f_branch_name" type="text" placeholder="Main Branch"
+                                   class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   oninput="autoGenerateBranchCode()" required />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                                Branch Code <span class="text-red-500">*</span>
+                            </label>
+                            <input id="f_branch_code" type="text" placeholder="MAIN01"
+                                   maxlength="10"
+                                   class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm font-mono
+                                          uppercase focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   required />
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </div><!-- /scrollable form body -->
+
+        <!-- Drawer footer — sticky at bottom -->
+        <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 flex-shrink-0">
+            <button onclick="closeCreateDrawer()"
+                    class="h-10 px-4 border border-slate-300 bg-white rounded-card
+                           text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                Cancel
+            </button>
+            <button id="createSubmitBtn"
+                    onclick="submitCreateTenant()"
+                    class="h-10 px-5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium
+                           rounded-card transition-colors disabled:opacity-60 disabled:cursor-not-allowed
+                           flex items-center gap-2">
+                <svg id="createSpinner" class="hidden w-4 h-4 animate-spin"
+                     fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                </svg>
+                <span id="createSubmitText">Create Tenant</span>
+            </button>
+        </div>
+
+    </div><!-- /create drawer -->
+
+
+    <!-- ==================================================================
+         EDIT TENANT DRAWER
+         Slides in from the right. Pre-filled from rowMenuTarget.
+         PATCH /api/platform/tenants/{id} — accepts: name, is_active
+         ================================================================== -->
+
+    <div id="editDrawerBackdrop"
+         class="hidden fixed inset-0 bg-slate-900/50 z-40 transition-opacity duration-200"
+         onclick="closeEditDrawer()"></div>
+
+    <div id="editDrawer"
+         class="fixed right-0 top-0 h-full w-full max-w-[480px] bg-white border-l border-slate-200
+                z-50 flex flex-col drawer-closed transition-transform duration-300">
+
+        <!-- Drawer header -->
+        <div class="h-16 flex items-center justify-between px-6 border-b border-slate-200 flex-shrink-0">
+            <div>
+                <h2 class="text-base font-semibold text-slate-900">Edit Tenant</h2>
+                <p id="editDrawerSubtitle" class="text-xs text-slate-400 font-mono"></p>
+            </div>
+            <button onclick="closeEditDrawer()"
+                    class="w-9 h-9 flex items-center justify-center rounded-card
+                           text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors"
+                    aria-label="Close">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Scrollable body -->
+        <div class="flex-1 overflow-y-auto">
+
+            <!-- Error banner -->
+            <div id="editDrawerError"
+                 class="hidden mx-6 mt-5 px-4 py-3 bg-red-50 border border-red-200 rounded-card
+                        flex items-start gap-2.5">
+                <svg class="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
+                <p id="editDrawerErrorText" class="text-sm text-red-600"></p>
+            </div>
+
+            <div class="px-6 pt-6 pb-5 space-y-5">
+
+                <!-- Business Name -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                        Business Name <span class="text-red-500">*</span>
+                    </label>
+                    <input id="ef_name" type="text" placeholder="Business name"
+                           class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           required />
+                </div>
+
+                <!-- Tenant Code — read-only reference -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1.5">Tenant Code</label>
+                    <div id="ef_tenant_code_display"
+                         class="h-10 px-3 flex items-center bg-slate-50 border border-slate-200
+                                rounded-card text-sm font-mono text-slate-500 tracking-wide select-all">
+                    </div>
+                    <p class="mt-1 text-[12px] text-slate-400">Tenant code cannot be changed.</p>
+                </div>
+
+                <div class="border-t border-slate-100"></div>
+
+                <!-- Status toggle -->
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-700">Account Active</p>
+                        <p class="text-[12px] text-slate-400 mt-0.5">
+                            Inactive tenants lose access immediately.
+                        </p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input id="ef_is_active" type="checkbox" class="sr-only peer" />
+                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2
+                                    peer-focus:ring-blue-500 rounded-full peer
+                                    peer-checked:after:translate-x-full peer-checked:after:border-white
+                                    after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                                    after:bg-white after:border-slate-300 after:border after:rounded-full
+                                    after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                        </div>
+                    </label>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 flex-shrink-0">
+            <button onclick="closeEditDrawer()"
+                    class="h-10 px-4 border border-slate-300 bg-white rounded-card
+                           text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                Cancel
+            </button>
+            <button id="editSubmitBtn"
+                    onclick="submitEditTenant()"
+                    class="h-10 px-5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium
+                           rounded-card transition-colors disabled:opacity-60 disabled:cursor-not-allowed
+                           flex items-center gap-2">
+                <svg id="editSpinner" class="hidden w-4 h-4 animate-spin"
+                     fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                </svg>
+                <span id="editSubmitText">Save Changes</span>
+            </button>
+        </div>
+
+    </div><!-- /edit drawer -->
+
+
+    <!-- ==================================================================
+         TENANT CREATED SUCCESS MODAL
+         Opens after a successful POST /api/platform/onboard/ call.
+         Displays all created entity details from OnboardingResponse.
+         ================================================================== -->
+    <div id="successModal"
+         class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeSuccessModal()"></div>
+        <div class="relative bg-white rounded-card shadow-xl w-full max-w-md z-10 overflow-hidden">
+
+            <!-- Green header -->
+            <div class="bg-green-50 px-6 py-5 border-b border-green-100 flex items-center gap-3">
+                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor"
+                         stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-xs text-green-600 font-medium uppercase tracking-wider">Tenant Created</p>
+                    <h3 id="sm_title" class="text-base font-semibold text-slate-900 mt-0.5"></h3>
+                </div>
+            </div>
+
+            <!-- Detail rows -->
+            <div class="px-6 py-5">
+                <dl class="grid grid-cols-[130px_1fr] gap-x-4 gap-y-3 text-sm">
+                    <dt class="text-slate-500 pt-px">Tenant Code</dt>
+                    <dd id="sm_tenant_code" class="font-mono font-semibold text-slate-900 tracking-wide"></dd>
+
+                    <dt class="text-slate-500 pt-px">Owner</dt>
+                    <dd id="sm_owner_name" class="font-medium text-slate-900"></dd>
+
+                    <dt class="text-slate-500 pt-px">Username</dt>
+                    <dd id="sm_owner_username" class="font-mono text-slate-700"></dd>
+
+                    <dt class="text-slate-500 pt-px">Email</dt>
+                    <dd id="sm_owner_email" class="text-slate-700 break-all"></dd>
+
+                    <dt class="text-slate-500 pt-px">Plan</dt>
+                    <dd id="sm_plan" class="text-slate-700"></dd>
+
+                    <dt class="text-slate-500 pt-px">Initial Branch</dt>
+                    <dd id="sm_branch" class="text-slate-700"></dd>
+
+                    <dt class="text-slate-500 pt-px">Temp Password</dt>
+                    <dd class="flex items-center gap-2">
+                        <span id="sm_temp_password"
+                              class="font-mono text-sm text-slate-900 bg-slate-100 px-2 py-0.5 rounded select-all"></span>
+                        <button onclick="copyTempPassword()" title="Copy password"
+                                class="text-slate-400 hover:text-slate-700 transition-colors flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6
+                                         12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                        </button>
+                    </dd>
+                </dl>
+
+                <!-- Warning -->
+                <div class="flex items-start gap-2 px-3 py-2.5 bg-amber-50 border border-amber-100
+                            rounded-card mt-4">
+                    <svg class="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58
+                            9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11
+                            13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                              clip-rule="evenodd"/>
+                    </svg>
+                    <p class="text-[12px] text-amber-700 leading-snug">
+                        <strong>This password is shown once.</strong> Copy it now — the owner
+                        needs it to log in for the first time, or use Account Recovery to reset it.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between gap-3">
+                <button onclick="copyTenantCode()"
+                        class="h-10 px-4 border border-slate-300 bg-white rounded-card text-sm
+                               text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6
+                                 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                    Copy Tenant Code
+                </button>
+                <div class="flex items-center gap-3">
+                    <button onclick="closeSuccessModal()"
+                            class="h-10 px-4 border border-slate-200 bg-white rounded-card
+                                   text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                        Done
+                    </button>
+                    <a id="sm_view_link" href="#"
+                       class="h-10 px-5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium
+                              rounded-card transition-colors flex items-center gap-2">
+                        View Tenant
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ==================================================================
+         TOAST NOTIFICATION
+         Appears bottom-right. Auto-dismisses after 4 seconds.
+         ================================================================== -->
+    <div id="toast"
+         class="hidden fixed bottom-6 right-6 z-50 flex items-center gap-3
+                px-4 py-3 rounded-card shadow-lg border text-sm font-medium
+                transition-opacity duration-200">
+        <svg id="toastIcon" class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"></svg>
+        <span id="toastText"></span>
+    </div>
+
+
+    <!-- ==================================================================
+         JAVASCRIPT
+         ================================================================== -->
+    <script>
+        /**
+         * Tenants page controller
+         * -----------------------
+         * State:     allTenants, filteredTenants, planMap, subByTenant
+         * Sections:  data loading, table rendering, filtering, row menus,
+         *            create drawer, confirm modal, toast notifications.
+         */
+
+        const API_BASE  = window.API_BASE_URL ?? '';
+        const TOKEN_KEY = 'platform_token';
+
+        // ── Auth guard ─────────────────────────────────────────────────────
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (!token) window.location.replace('/platform/login.html');
+
+        async function loadAdminHeader() {
+            try {
+                const me = await apiFetch('/api/platform/auth/me');
+                if (!me) return;
+                const display = me.full_name || me.email;
+                document.getElementById('usernameDisplay').textContent = display;
+                document.getElementById('avatarInitial').textContent   = display.charAt(0).toUpperCase();
+            } catch { /* keep placeholder */ }
+        }
+
+        // ── API helper ─────────────────────────────────────────────────────
+        async function apiFetch(path, options = {}) {
+            const res = await fetch(API_BASE + path, {
+                ...options,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type':  'application/json',
+                    ...(options.headers ?? {}),
+                },
+            });
+            if (res.status === 401) {
+                localStorage.removeItem(TOKEN_KEY);
+                window.location.replace('/platform/login.html');
+                return null;
+            }
+            if (!res.ok) {
+                const body = await res.json().catch(() => ({}));
+                throw new Error(body.detail ?? `API ${res.status}`);
+            }
+            return res.json();
+        }
+
+        // ── XSS-safe string escape ─────────────────────────────────────────
+        function esc(v) {
+            if (v == null) return '—';
+            return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                            .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        // ── Format date ────────────────────────────────────────────────────
+        function fmtDate(iso) {
+            if (!iso) return '—';
+            return new Date(iso).toLocaleDateString('en-PK', { day:'2-digit', month:'short', year:'numeric' });
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // PAGE STATE
+        // ════════════════════════════════════════════════════════════════
+
+        let allTenants    = [];   // raw tenant objects from API
+        let planMap       = {};   // plan_id → plan object
+        let subByTenant   = {};   // tenant_id → { status, plan }
+        let rowMenuTarget = null; // tenant object currently targeted by the row menu
+
+
+        // ════════════════════════════════════════════════════════════════
+        // STATUS BADGE (shared with dashboard pattern)
+        // ════════════════════════════════════════════════════════════════
+
+        function buildStatusBadge(isActive, subStatus) {
+            if (!isActive) return badge('bg-red-100 text-red-700', 'Suspended');
+            const map = {
+                ACTIVE:    ['bg-green-100 text-green-700', 'Active'],
+                TRIAL:     ['bg-amber-100 text-amber-700', 'Trial'],
+                EXPIRED:   ['bg-red-100   text-red-700',   'Expired'],
+                CANCELLED: ['bg-red-100   text-red-700',   'Cancelled'],
+                PENDING:   ['bg-amber-100 text-amber-700', 'Pending'],
+            };
+            const [cls, label] = map[subStatus] ?? ['bg-slate-100 text-slate-600', subStatus ?? 'No Plan'];
+            return badge(cls, label);
+        }
+
+        function badge(cls, label) {
+            return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${cls}">${esc(label)}</span>`;
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // DATA LOADING
+        // ════════════════════════════════════════════════════════════════
+
+        async function loadData() {
+            try {
+                const [tenants, subscriptions, plans, businessTemplates] = await Promise.all([
+                    apiFetch('/api/platform/tenants?limit=500'),
+                    apiFetch('/api/platform/subscriptions?limit=500'),
+                    apiFetch('/api/platform/plans'),
+                    apiFetch('/api/platform/business-templates/').catch(() => []),
+                ]);
+
+                const formTemplate = document.getElementById('f_business_template_id');
+                for (const t of businessTemplates) {
+                    const opt = document.createElement('option');
+                    opt.value = t.id;
+                    opt.textContent = t.name;
+                    formTemplate.appendChild(opt);
+                }
+
+                // Build lookup maps
+                planMap = {};
+                for (const p of plans) planMap[p.id] = p;
+
+                subByTenant = {};
+                for (const sub of subscriptions) {
+                    subByTenant[sub.tenant_id] = { ...sub, plan: planMap[sub.plan_id] ?? null };
+                }
+
+                allTenants = tenants.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+                // Populate plan filter dropdown
+                const filterPlan = document.getElementById('filterPlan');
+                for (const p of plans) {
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = p.name;
+                    filterPlan.appendChild(opt);
+                }
+
+                // Populate create-form plan dropdown
+                const formPlan = document.getElementById('f_plan_id');
+                for (const p of plans) {
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = p.name;
+                    formPlan.appendChild(opt);
+                }
+
+                applyFilters();
+
+            } catch (err) {
+                document.getElementById('tenantsTableBody').innerHTML = `
+                    <tr><td colspan="9" class="px-6 py-10 text-center text-sm text-red-500">
+                        Failed to load tenants. ${esc(err.message)}
+                    </td></tr>`;
+            }
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // TABLE RENDERING
+        // ════════════════════════════════════════════════════════════════
+
+        function renderTable(tenants) {
+            const tbody = document.getElementById('tenantsTableBody');
+            document.getElementById('tenantCount').textContent =
+                `${tenants.length} tenant${tenants.length !== 1 ? 's' : ''}`;
+
+            if (!tenants.length) {
+                tbody.innerHTML = `
+                    <tr><td colspan="9" class="px-6 py-12 text-center text-sm text-slate-400">
+                        No tenants match your filters.
+                    </td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = tenants.map(t => {
+                const sub      = subByTenant[t.id] ?? null;
+                const planName = sub?.plan?.name ?? '—';
+                const isActive = t.is_active;
+
+                return `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <!-- Business name — click to view detail -->
+                    <td class="px-6 py-4">
+                        <a href="/platform/tenant-detail.html?id=${esc(t.id)}"
+                           class="text-sm font-medium text-slate-900 hover:text-blue-600 transition-colors">
+                            ${esc(t.name)}
+                        </a>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-500 font-mono tracking-wide">${esc(t.tenant_code)}</td>
+                    <td class="px-6 py-4 text-sm text-slate-700">${esc(t.owner_name)}</td>
+                    <!-- Branches / Devices: need /api/platform/tenants/{id}/stats -->
+                    <td class="px-6 py-4 text-sm text-slate-400 text-center">
+                        ${t.branch_count != null ? t.branch_count : '—'}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-400 text-center">
+                        ${t.device_count != null ? t.device_count : '—'}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-700">${esc(planName)}</td>
+                    <td class="px-6 py-4">${buildStatusBadge(isActive, sub?.status ?? null)}</td>
+                    <td class="px-6 py-4 text-sm text-slate-400">${fmtDate(t.created_at)}</td>
+
+                    <!-- ⋮ action button — opens floating row menu -->
+                    <td class="px-4 py-4 text-right">
+                        <button onclick="openRowMenu(event, '${escapeJSAttribute(t.id)}')"
+                                class="w-8 h-8 flex items-center justify-center rounded-card
+                                       text-slate-400 hover:text-slate-700 hover:bg-slate-100
+                                       transition-colors">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                            </svg>
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // CLIENT-SIDE FILTERING + SEARCH
+        // ════════════════════════════════════════════════════════════════
+
+        function applyFilters() {
+            const query   = document.getElementById('searchInput').value.trim().toLowerCase();
+            const status  = document.getElementById('filterStatus').value;
+            const planId  = document.getElementById('filterPlan').value;
+            const created = document.getElementById('filterCreated').value;
+
+            // Show/hide clear button
+            const hasFilters = query || status || planId || created;
+            document.getElementById('clearFiltersBtn').classList.toggle('hidden', !hasFilters);
+
+            const now  = new Date();
+            const msOf = {
+                today:   24 * 60 * 60 * 1000,
+                week:    7  * 24 * 60 * 60 * 1000,
+                month:   30 * 24 * 60 * 60 * 1000,
+                quarter: 90 * 24 * 60 * 60 * 1000,
+            };
+
+            const filtered = allTenants.filter(t => {
+                const sub = subByTenant[t.id] ?? null;
+
+                // Search: name, code, owner
+                if (query) {
+                    const haystack = [t.name, t.tenant_code, t.owner_name]
+                        .filter(Boolean).join(' ').toLowerCase();
+                    if (!haystack.includes(query)) return false;
+                }
+
+                // Status filter
+                if (status) {
+                    const s = (sub?.status ?? '').toLowerCase();
+                    const active = t.is_active;
+                    if (status === 'active'    && !(active && s === 'active'))    return false;
+                    if (status === 'trial'     && !(active && s === 'trial'))     return false;
+                    if (status === 'suspended' && active)                         return false;
+                    if (status === 'expired'   && !(active && s === 'expired'))   return false;
+                }
+
+                // Plan filter
+                if (planId && sub?.plan_id !== planId) return false;
+
+                // Created date filter
+                if (created && msOf[created]) {
+                    const age = now - new Date(t.created_at);
+                    if (age > msOf[created]) return false;
+                }
+
+                return true;
+            });
+
+            renderTable(filtered);
+        }
+
+        function clearFilters() {
+            document.getElementById('searchInput').value  = '';
+            document.getElementById('filterStatus').value = '';
+            document.getElementById('filterPlan').value   = '';
+            document.getElementById('filterCreated').value = '';
+            applyFilters();
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // ROW ACTION MENU
+        // Single floating menu repositioned per row button click.
+        // ════════════════════════════════════════════════════════════════
+
+        const rowMenu = document.getElementById('rowMenu');
+
+        function openRowMenu(event, tenantId) {
+            event.stopPropagation();
+
+            rowMenuTarget = allTenants.find(t => t.id === tenantId) ?? null;
+            if (!rowMenuTarget) return;
+
+            // Show correct action (Activate vs Suspend) based on current state
+            const isActive = rowMenuTarget.is_active;
+            document.getElementById('rowActivateBtn').classList.toggle('hidden', isActive);
+            document.getElementById('rowSuspendBtn').classList.toggle('hidden', !isActive);
+
+            // Position the menu below the ⋮ button
+            const btn  = event.currentTarget;
+            const rect = btn.getBoundingClientRect();
+            rowMenu.style.top   = `${rect.bottom + 4}px`;
+            rowMenu.style.right = `${window.innerWidth - rect.right}px`;
+
+            rowMenu.classList.remove('hidden');
+        }
+
+        // Route row menu button clicks to the correct handler
+        function rowAction(action) {
+            if (!rowMenuTarget) return;
+            const t = rowMenuTarget;
+            rowMenu.classList.add('hidden');
+
+            if (action === 'view') {
+                window.location.href = `/platform/tenant-detail.html?id=${t.id}`;
+                return;
+            }
+            if (action === 'edit') {
+                openEditDrawer(t);
+                return;
+            }
+            if (action === 'message') {
+                openMessageModal(t);
+                return;
+            }
+            if (action === 'recovery') {
+                openConfirm(
+                    'Account Recovery',
+                    `Send a password reset link to the owner of "${t.name}"?`,
+                    'bg-blue-600 hover:bg-blue-700',
+                    () => doAccountRecovery(t.id)
+                );
+                return;
+            }
+            if (action === 'suspend') {
+                openConfirm(
+                    'Suspend Tenant',
+                    `Suspend "${t.name}"? They will lose access immediately.`,
+                    'bg-red-600 hover:bg-red-700',
+                    () => doToggleActive(t.id, false)
+                );
+                return;
+            }
+            if (action === 'activate') {
+                openConfirm(
+                    'Activate Tenant',
+                    `Re-activate "${t.name}" and restore their access?`,
+                    'bg-green-600 hover:bg-green-700',
+                    () => doToggleActive(t.id, true)
+                );
+                return;
+            }
+        }
+
+        // Close row menu when clicking anywhere outside it
+        document.addEventListener('click', (e) => {
+            if (!rowMenu.contains(e.target)) rowMenu.classList.add('hidden');
+        });
+
+
+        // ════════════════════════════════════════════════════════════════
+        // ROW ACTION API CALLS
+        // ════════════════════════════════════════════════════════════════
+
+        async function doToggleActive(id, isActive) {
+            try {
+                await apiFetch(`/api/platform/tenants/${id}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ is_active: isActive }),
+                });
+                showToast('success', isActive ? 'Tenant activated.' : 'Tenant suspended.');
+                await loadData();   // refresh table
+            } catch (err) {
+                showToast('error', err.message);
+            }
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // MESSAGE MODAL
+        // ════════════════════════════════════════════════════════════════
+
+        let messageTargetId = null;
+
+        function openMessageModal(t) {
+            messageTargetId = t.id;
+            document.getElementById('messageSubtitle').textContent = `${t.name} (${t.tenant_code ?? ''})`;
+            document.getElementById('messageText').value = t.admin_message || '';
+            document.getElementById('messageClearBtn').classList.toggle('hidden', !t.admin_message);
+            document.getElementById('messageSetAt').textContent = t.admin_message_set_at
+                ? `Currently set ${fmtDate(t.admin_message_set_at)}.`
+                : '';
+            document.getElementById('messageModal').classList.remove('hidden');
+        }
+
+        function closeMessageModal() {
+            document.getElementById('messageModal').classList.add('hidden');
+            messageTargetId = null;
+        }
+
+        async function submitMessage() {
+            if (!messageTargetId) return;
+            const message = document.getElementById('messageText').value.trim();
+            if (!message) { showToast('error', 'Enter a message, or use Clear to remove it.'); return; }
+            try {
+                await apiFetch(`/api/platform/tenants/${messageTargetId}/message`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ message }),
+                });
+                showToast('success', 'Message saved. The tenant will see it next login.');
+                closeMessageModal();
+                await loadData();
+            } catch (err) {
+                showToast('error', err.message);
+            }
+        }
+
+        async function clearMessage() {
+            if (!messageTargetId) return;
+            try {
+                await apiFetch(`/api/platform/tenants/${messageTargetId}/message`, { method: 'DELETE' });
+                showToast('success', 'Message cleared.');
+                closeMessageModal();
+                await loadData();
+            } catch (err) {
+                showToast('error', err.message);
+            }
+        }
+
+        async function doAccountRecovery(id) {
+            try {
+                // Endpoint: POST /api/platform/tenants/{id}/account-recovery
+                // Returns: { message: "Recovery email sent." }
+                await apiFetch(`/api/platform/tenants/${id}/account-recovery`, { method: 'POST' });
+                showToast('success', 'Recovery email sent to the tenant owner.');
+            } catch (err) {
+                showToast('error', err.message);
+            }
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // CONFIRM MODAL
+        // ════════════════════════════════════════════════════════════════
+
+        let confirmCallback = null;
+
+        function openConfirm(title, message, btnClass, callback) {
+            document.getElementById('confirmTitle').textContent   = title;
+            document.getElementById('confirmMessage').textContent = message;
+            const btn = document.getElementById('confirmOkBtn');
+            btn.className = `h-10 px-4 rounded-card text-sm text-white font-medium transition-colors ${btnClass}`;
+            btn.textContent = 'Confirm';
+            confirmCallback = callback;
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+
+        function closeConfirm() {
+            document.getElementById('confirmModal').classList.add('hidden');
+            confirmCallback = null;
+        }
+
+        document.getElementById('confirmOkBtn').addEventListener('click', () => {
+            if (confirmCallback) { confirmCallback(); closeConfirm(); }
+        });
+
+
+        // ════════════════════════════════════════════════════════════════
+        // CREATE TENANT DRAWER
+        // ════════════════════════════════════════════════════════════════
+
+        function openCreateDrawer() {
+            document.getElementById('createDrawer').classList.replace('drawer-closed', 'drawer-open');
+            document.getElementById('drawerBackdrop').classList.remove('hidden');
+            document.getElementById('drawerError').classList.add('hidden');
+            document.getElementById('createTenantForm').reset();
+        }
+
+        function closeCreateDrawer() {
+            document.getElementById('createDrawer').classList.replace('drawer-open', 'drawer-closed');
+            document.getElementById('drawerBackdrop').classList.add('hidden');
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // EDIT TENANT DRAWER
+        // ════════════════════════════════════════════════════════════════
+
+        let editTarget = null;
+
+        function openEditDrawer(tenant) {
+            editTarget = tenant;
+
+            document.getElementById('editDrawerSubtitle').textContent = tenant.tenant_code;
+            document.getElementById('ef_name').value                  = tenant.name;
+            document.getElementById('ef_tenant_code_display').textContent = tenant.tenant_code;
+            document.getElementById('ef_is_active').checked           = tenant.is_active;
+            document.getElementById('editDrawerError').classList.add('hidden');
+
+            document.getElementById('editDrawer').classList.replace('drawer-closed', 'drawer-open');
+            document.getElementById('editDrawerBackdrop').classList.remove('hidden');
+            document.getElementById('ef_name').focus();
+        }
+
+        function closeEditDrawer() {
+            document.getElementById('editDrawer').classList.replace('drawer-open', 'drawer-closed');
+            document.getElementById('editDrawerBackdrop').classList.add('hidden');
+            editTarget = null;
+        }
+
+        async function submitEditTenant() {
+            if (!editTarget) return;
+
+            const btn      = document.getElementById('editSubmitBtn');
+            const spinner  = document.getElementById('editSpinner');
+            const btnText  = document.getElementById('editSubmitText');
+            const errEl    = document.getElementById('editDrawerError');
+            const errText  = document.getElementById('editDrawerErrorText');
+
+            const name      = document.getElementById('ef_name').value.trim();
+            const is_active = document.getElementById('ef_is_active').checked;
+
+            if (!name) {
+                errText.textContent = 'Business Name is required.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            errEl.classList.add('hidden');
+            btn.disabled        = true;
+            spinner.classList.remove('hidden');
+            btnText.textContent = 'Saving…';
+
+            try {
+                await apiFetch(`/api/platform/tenants/${editTarget.id}`, {
+                    method: 'PATCH',
+                    body:   JSON.stringify({ name, is_active }),
+                });
+                closeEditDrawer();
+                showToast('success', 'Tenant updated successfully.');
+                await loadData();
+            } catch (err) {
+                errText.textContent = err.message;
+                errEl.classList.remove('hidden');
+            } finally {
+                btn.disabled        = false;
+                spinner.classList.add('hidden');
+                btnText.textContent = 'Save Changes';
+            }
+        }
+
+
+        // ── Auto-generate tenant code from business name ───────────────────
+        // "ABC Shop" → "ABC001"
+        // Fires on every input event on Business Name field.
+        function autoGenerateCodes() {
+            const name = document.getElementById('f_name').value;
+            const code = name
+                .toUpperCase()
+                .replace(/[^A-Z0-9]/g, '')   // strip non-alphanumeric
+                .substring(0, 3)              // first 3 letters
+                .padEnd(3, 'X')               // pad to 3 if name is short
+                + '001';
+            document.getElementById('f_tenant_code').value = code;
+
+            // Also auto-set owner username: "abcadmin"
+            const slug = name.toLowerCase().replace(/[^a-z0-9]/g,'').substring(0, 6);
+            if (!document.getElementById('f_owner_username').dataset.touched) {
+                document.getElementById('f_owner_username').value = slug + 'admin';
+            }
+        }
+
+        // Track if username was manually edited — if so, don't overwrite it
+        document.getElementById('f_owner_username').addEventListener('input', function() {
+            this.dataset.touched = 'true';
+        });
+
+        // "Main Branch" → "MAIN01"
+        function autoGenerateBranchCode() {
+            const name = document.getElementById('f_branch_name').value;
+            const code = name
+                .toUpperCase()
+                .replace(/[^A-Z0-9]/g, '')
+                .substring(0, 4)
+                .padEnd(4, 'X')
+                + '01';
+            document.getElementById('f_branch_code').value = code;
+        }
+
+        // ── Drawer form submission ─────────────────────────────────────────
+        async function submitCreateTenant() {
+            const btn       = document.getElementById('createSubmitBtn');
+            const spinner   = document.getElementById('createSpinner');
+            const btnText   = document.getElementById('createSubmitText');
+            const errBanner = document.getElementById('drawerError');
+            const errText   = document.getElementById('drawerErrorText');
+
+            // Collect fields
+            const name                 = document.getElementById('f_name').value.trim();
+            const tenant_code          = document.getElementById('f_tenant_code').value.trim().toUpperCase();
+            const business_template_id = document.getElementById('f_business_template_id').value || null;
+            const country        = document.getElementById('f_country').value || null;
+            const timezone       = document.getElementById('f_timezone').value || null;
+            const owner_name     = document.getElementById('f_owner_name').value.trim();
+            const owner_username = document.getElementById('f_owner_username').value.trim().toLowerCase();
+            const owner_email    = document.getElementById('f_owner_email').value.trim();
+            const plan_id        = document.getElementById('f_plan_id').value || null;
+            const trial_days     = parseInt(document.getElementById('f_trial_days').value, 10);
+            const branch_name    = document.getElementById('f_branch_name').value.trim();
+            const branch_code    = document.getElementById('f_branch_code').value.trim().toUpperCase();
+
+            // Required field guard
+            const missing = [];
+            if (!name)                 missing.push('Business Name');
+            if (!tenant_code)          missing.push('Tenant Code');
+            if (!business_template_id) missing.push('Business Template');
+            if (!owner_name)     missing.push('Owner Full Name');
+            if (!owner_username) missing.push('Owner Username');
+            if (!owner_email)    missing.push('Owner Email');
+            if (!branch_name)    missing.push('Branch Name');
+            if (!branch_code)    missing.push('Branch Code');
+            if (missing.length) {
+                errText.textContent = `Required: ${missing.join(', ')}.`;
+                errBanner.classList.remove('hidden');
+                errBanner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                return;
+            }
+
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(owner_email)) {
+                errText.textContent = 'Please enter a valid email address.';
+                errBanner.classList.remove('hidden');
+                return;
+            }
+
+            errBanner.classList.add('hidden');
+            btn.disabled        = true;
+            spinner.classList.remove('hidden');
+            btnText.textContent = 'Creating…';
+
+            try {
+                // Single atomic endpoint — creates all six entities in one DB transaction.
+                // Tenant → Owner → Admin Role → Business → Branch → Subscription → COMMIT
+                const result = await apiFetch('/api/platform/onboard/', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        name, tenant_code, business_template_id, country, timezone,
+                        owner_name, owner_username, owner_email,
+                        plan_id, trial_days, billing_cycle: 'MONTHLY',
+                        branch_name, branch_code,
+                    }),
+                });
+
+                closeCreateDrawer();
+                await loadData();          // refresh table
+                openSuccessModal(result);  // show confirmation with all created entity details
+
+            } catch (err) {
+                errText.textContent = err.message;
+                errBanner.classList.remove('hidden');
+                errBanner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } finally {
+                btn.disabled        = false;
+                spinner.classList.add('hidden');
+                btnText.textContent = 'Create Tenant';
+            }
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // TENANT CREATED SUCCESS MODAL
+        // Populated from OnboardingResponse returned by POST /api/platform/onboard/
+        // ════════════════════════════════════════════════════════════════
+
+        let lastCreatedCode = '';
+
+        let lastTempPassword = '';
+
+        function openSuccessModal(r) {
+            lastCreatedCode  = r.tenant_code;
+            lastTempPassword = r.owner_temp_password || '';
+
+            document.getElementById('sm_title').textContent          = r.tenant_name;
+            document.getElementById('sm_tenant_code').textContent    = r.tenant_code;
+            document.getElementById('sm_owner_name').textContent     = r.owner_name;
+            document.getElementById('sm_owner_username').textContent = r.owner_username;
+            document.getElementById('sm_owner_email').textContent    = r.owner_email;
+            document.getElementById('sm_plan').textContent           = r.plan_name
+                ? `${r.plan_name}${r.trial_days ? ` · ${r.trial_days}-day trial` : ''}`
+                : '— No Plan';
+            document.getElementById('sm_branch').textContent         =
+                `${r.branch_name} (${r.branch_code})`;
+            document.getElementById('sm_temp_password').textContent  = lastTempPassword;
+            document.getElementById('sm_view_link').href =
+                `/platform/tenant-detail.html?id=${r.tenant_id}`;
+
+            document.getElementById('successModal').classList.remove('hidden');
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('successModal').classList.add('hidden');
+        }
+
+        function copyTenantCode() {
+            if (!lastCreatedCode) return;
+            navigator.clipboard.writeText(lastCreatedCode)
+                .then(() => showToast('success', `"${lastCreatedCode}" copied to clipboard.`))
+                .catch(() => showToast('error', 'Copy failed — please copy manually.'));
+        }
+
+        function copyTempPassword() {
+            if (!lastTempPassword) return;
+            navigator.clipboard.writeText(lastTempPassword)
+                .then(() => showToast('success', 'Temp password copied to clipboard.'))
+                .catch(() => showToast('error', 'Copy failed — please copy manually.'));
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // TOAST NOTIFICATION
+        // type: 'success' | 'error' | 'info'
+        // Auto-dismisses after 4 seconds.
+        // ════════════════════════════════════════════════════════════════
+
+        let toastTimer = null;
+
+        function showToast(type, message) {
+            const toast = document.getElementById('toast');
+            const icon  = document.getElementById('toastIcon');
+            const text  = document.getElementById('toastText');
+
+            const styles = {
+                success: { border: 'border-green-200 bg-green-50  text-green-800', fill: '#16A34A',
+                    path: 'M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' },
+                error:   { border: 'border-red-200   bg-red-50    text-red-800',   fill: '#DC2626',
+                    path: 'M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z' },
+                info:    { border: 'border-blue-200  bg-blue-50   text-blue-800',  fill: '#2563EB',
+                    path: 'M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z' },
+            };
+
+            const s = styles[type] ?? styles.info;
+            toast.className = `fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3
+                               rounded-card shadow-lg border text-sm font-medium ${s.border}`;
+            icon.setAttribute('fill', s.fill);
+            icon.innerHTML = `<path fill-rule="evenodd" d="${s.path}" clip-rule="evenodd"/>`;
+            text.textContent = message;
+
+            toast.classList.remove('hidden');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toast.classList.add('hidden'), 4000);
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // HEADER USER MENU + LOGOUT
+        // ════════════════════════════════════════════════════════════════
+
+        const userMenuBtn  = document.getElementById('userMenuBtn');
+        const userDropdown = document.getElementById('userDropdown');
+
+        userMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userDropdown.classList.toggle('hidden');
+        });
+        document.addEventListener('click', () => userDropdown.classList.add('hidden'));
+
+        function logout() {
+            localStorage.removeItem(TOKEN_KEY);
+            window.location.replace('/platform/login.html');
+        }
+        document.getElementById('sidebarLogout').addEventListener('click', logout);
+        document.getElementById('dropdownLogout').addEventListener('click', logout);
+
+
+        // ════════════════════════════════════════════════════════════════
+        // BOOT
+        // ════════════════════════════════════════════════════════════════
+
+        loadAdminHeader();
+        loadData();
+    </script>
+
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

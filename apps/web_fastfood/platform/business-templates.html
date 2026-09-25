@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Business Templates - STORIXX</title>
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+    <style>
+        .rounded-card { border-radius: 10px; }
+        #ed_config { font-family: ui-monospace, monospace; font-size: 12.5px; line-height: 1.5; tab-size: 2; }
+    </style>
+</head>
+<body class="flex h-screen bg-slate-50 text-slate-900">
+
+    <aside class="w-64 flex-shrink-0 h-screen bg-slate-900 flex flex-col overflow-y-auto">
+        <div class="h-16 flex items-center px-5 border-b border-slate-800 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <img src="/assets/logo-mark.png?v=3" alt="STORIXX" class="w-8 h-8 rounded-[6px] flex-shrink-0 object-contain" />
+                <div>
+                    <p class="text-white text-sm font-semibold leading-none">STORIXX</p>
+                    <p class="text-slate-500 text-[11px] leading-none mt-0.5">SaaS Platform</p>
+                </div>
+            </div>
+        </div>
+        <nav class="flex-1 px-3 py-4 space-y-0.5" id="sidebarNav"></nav>
+        <div class="px-3 py-4 border-t border-slate-800 flex-shrink-0">
+            <button onclick="logout()" class="w-full flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card text-slate-400 hover:bg-slate-800 hover:text-red-400 border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                <span class="text-sm">Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col h-screen overflow-hidden">
+        <header class="h-16 flex-shrink-0 bg-white border-b border-slate-200 flex items-center justify-between px-6">
+            <div>
+                <h1 class="text-base font-semibold text-slate-900">Business Templates</h1>
+                <p class="text-xs text-slate-400 mt-0.5">Business types (Fast Food, Electronics, ...) that drive Variant/Add-on seeding, inventory rules, pricing fields, POS layout, and which dashboard modules are visible for every tenant onboarded with them. See <a href="/platform/config-reference.html" class="text-blue-600 hover:underline">Config Reference</a> for the full JSON schema.</p>
+            </div>
+            <button onclick="openNew()" id="newBtn" class="h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-card flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                New Template
+            </button>
+        </header>
+
+        <main class="flex-1 overflow-y-auto px-6 py-5">
+            <div id="errorBanner" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-card p-4 mb-5 text-sm"></div>
+            <div id="grid" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3"></div>
+            <div id="empty" class="hidden text-sm text-slate-400 mt-10 text-center">No business templates yet.</div>
+        </main>
+    </div>
+
+    <!-- Editor drawer -->
+    <div id="edModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeEd()"></div>
+        <div class="relative bg-white rounded-card shadow-xl w-full max-w-2xl z-10 flex flex-col max-h-[90vh]">
+            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                <h3 class="text-base font-semibold" id="edTitle">New Business Template</h3>
+                <button onclick="closeEd()" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            </div>
+            <div class="px-6 py-5 space-y-4 overflow-y-auto">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Name *</label>
+                    <input id="ed_name" type="text" placeholder="Electronics Wholesale" class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm" />
+                </div>
+                <div class="flex items-start gap-2.5 bg-slate-50 border border-slate-200 rounded-card p-3">
+                    <input type="checkbox" id="ed_variants_enabled" checked
+                        class="mt-0.5 w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                    <label for="ed_variants_enabled" class="text-sm text-slate-700 leading-snug">
+                        Enable Variant Option Groups
+                        <span class="block text-xs text-slate-400 mt-0.5">Off for business types that sell one Product priced with delta Add-ons only (e.g. Fast Food — Toppings, Base Ingredients). On for business types with SKU-defining options (e.g. RAM, Storage, Size). Hides "Variant Option Groups" and "Variants" in the tenant dashboard when off; kept in sync with <code class="text-slate-500">config.variants.enabled</code> below on save.</span>
+                    </label>
+                </div>
+                <div class="flex items-start gap-2.5 bg-slate-50 border border-slate-200 rounded-card p-3">
+                    <input type="checkbox" id="ed_addons_enabled" checked
+                        class="mt-0.5 w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                    <label for="ed_addons_enabled" class="text-sm text-slate-700 leading-snug">
+                        Enable Add-on Groups
+                        <span class="block text-xs text-slate-400 mt-0.5">Off for business types where every price-affecting choice is a Variant Option instead (e.g. Laptops — RAM, Storage are Variants, not Add-ons). On for business types with delta-priced extras alongside the base Product (e.g. Fast Food — Toppings, Extra Cheese). Hides "Add-on Groups" in the tenant dashboard when off; kept in sync with <code class="text-slate-500">config.addons.enabled</code> below on save.</span>
+                    </label>
+                </div>
+                <div class="flex items-start gap-2.5 bg-slate-50 border border-slate-200 rounded-card p-3">
+                    <input type="checkbox" id="ed_tracking_default_on"
+                        class="mt-0.5 w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                    <label for="ed_tracking_default_on" class="text-sm text-slate-700 leading-snug">
+                        Track new products and variants by default
+                        <span class="block text-xs text-slate-400 mt-0.5">On for stock-led businesses such as Laptops/Electronics. New products and their variants start tracked, but the tenant may edit that choice. Kept in sync with <code class="text-slate-500">config.inventory.tracking_default_on</code>.</span>
+                    </label>
+                </div>
+                <div class="flex items-start gap-2.5 bg-slate-50 border border-slate-200 rounded-card p-3">
+                    <input type="checkbox" id="ed_tracking_forced_on" class="mt-0.5 w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                    <label for="ed_tracking_forced_on" class="text-sm text-slate-700 leading-snug">Require inventory tracking
+                        <span class="block text-xs text-slate-400 mt-0.5">Use only when tenants must never disable tracking. Enforced server-side through <code class="text-slate-500">config.inventory.tracking_forced_on</code>.</span>
+                    </label>
+                </div>
+                <div class="bg-slate-50 border border-slate-200 rounded-card p-3">
+                    <p class="text-sm text-slate-700 font-medium">Visible dashboard modules</p>
+                    <p class="text-xs text-slate-400 mt-0.5 mb-2">Uncheck a section to hide it from every tenant on this template — the tenant dashboard sidebar and the backend routes both respect this (see <a href="/platform/config-reference.html" class="text-blue-600 hover:underline">Config Reference</a>). Kept in sync with <code class="text-slate-500">config.modules.hidden</code> below on save.</p>
+                    <div id="ed_modules_grid" class="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-1.5 text-sm text-slate-400">Loading…</div>
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1.5 flex-wrap gap-y-1">
+                        <label class="block text-xs font-medium text-slate-600">Config (JSON) *</label>
+                        <div class="flex gap-3 text-xs">
+                            <button type="button" onclick="loadPreset('fastfood')" class="text-blue-600 hover:underline">Load Fast Food preset</button>
+                            <button type="button" onclick="loadPreset('laptop')" class="text-blue-600 hover:underline">Load Laptop Business preset</button>
+                            <button type="button" onclick="formatConfig()" class="text-slate-500 hover:underline">Format</button>
+                        </div>
+                    </div>
+                    <textarea id="ed_config" rows="16" spellcheck="false"
+                        class="w-full px-3 py-2.5 border border-slate-200 rounded-card resize-y"
+                        placeholder='{"variants": {...}, "addons": {...}, "inventory": {...}, "pricing": {...}, "product_fields": {...}, "pos": {...}, "categories": {...}}'></textarea>
+                    <p id="ed_config_err" class="hidden mt-1.5 text-xs text-red-600"></p>
+                    <p class="mt-1.5 text-[11px] text-slate-400">
+                        Shape: <code class="text-slate-500">variants</code>, <code class="text-slate-500">addons</code>,
+                        <code class="text-slate-500">inventory</code>, <code class="text-slate-500">pricing</code>,
+                        <code class="text-slate-500">product_fields</code>, <code class="text-slate-500">pos</code>,
+                        <code class="text-slate-500">categories</code>. This client-side check only confirms valid JSON — the
+                        real shape validation happens server-side when applied.
+                    </p>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-100 flex justify-between gap-3">
+                <button id="edDelete" onclick="delTpl()" class="h-10 px-4 border border-red-200 text-red-600 rounded-card text-sm hover:bg-red-50 hidden">Delete</button>
+                <div class="flex gap-3 ml-auto">
+                    <button onclick="closeEd()" class="h-10 px-4 border border-slate-200 rounded-card text-sm text-slate-700 hover:bg-slate-50">Cancel</button>
+                    <button id="edSave" onclick="saveTpl()" class="h-10 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-card">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-[60] space-y-2"></div>
+
+    <div id="usageModal" role="dialog" aria-modal="true" aria-labelledby="usageTitle" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeUsage()"></div>
+        <div class="relative bg-white rounded-card shadow-xl w-full max-w-md z-10">
+            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                <h3 id="usageTitle" class="text-base font-semibold">Tenants using template</h3>
+                <button onclick="closeUsage()" class="text-slate-400 hover:text-slate-600">×</button>
+            </div>
+            <div id="usageList" class="px-6 py-5 max-h-80 overflow-y-auto text-sm"></div>
+            <div class="px-6 py-4 border-t border-slate-100 flex justify-end">
+                <button onclick="closeUsage()" class="h-10 px-4 border border-slate-200 rounded-card text-sm">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password step-up — required immediately before deleting a template or
+         changing which modules it hides (BUSINESS_TEMPLATE_GUIDE.md). -->
+    <div id="stepUpModal" role="dialog" aria-modal="true" aria-labelledby="stepUpTitle" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="cancelStepUp()"></div>
+        <div class="relative bg-white rounded-card shadow-xl w-full max-w-sm z-10">
+            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                <h3 id="stepUpTitle" class="text-base font-semibold">Confirm your password</h3>
+                <button onclick="cancelStepUp()" class="text-slate-400 hover:text-slate-600">×</button>
+            </div>
+            <div class="px-6 py-5 space-y-3">
+                <p id="stepUpMessage" class="text-sm text-slate-600"></p>
+                <input id="stepUpPassword" type="password" placeholder="Your password"
+                    class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm"
+                    onkeydown="if (event.key === 'Enter') confirmStepUp()" />
+                <p id="stepUpErr" class="hidden text-xs text-red-600"></p>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
+                <button onclick="cancelStepUp()" class="h-10 px-4 border border-slate-200 rounded-card text-sm text-slate-700 hover:bg-slate-50">Cancel</button>
+                <button id="stepUpConfirmBtn" onclick="confirmStepUp()" class="h-10 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-card">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/platform/hr-common.js"></script>
+    <script>
+        renderPlatformSidebarNav('business-templates');
+        let TEMPLATES = [], IS_SUPER = false, CAN_MANAGE = false, editId = null, MODULE_CATALOG = [];
+
+        async function loadModuleCatalog() {
+            try { MODULE_CATALOG = await apiFetch('/api/platform/business-templates/modules/catalog'); }
+            catch (e) { MODULE_CATALOG = []; }
+        }
+
+        // Mirrors the ed_variants_enabled treatment above: a real checkbox
+        // grid layered onto the raw JSON textarea, synced into
+        // config.modules.hidden on save (openEd()/openNew() populate it from
+        // whatever's already in config.modules.hidden when editing).
+        function renderModulesGrid(hidden) {
+            const hiddenSet = new Set(hidden || []);
+            document.getElementById('ed_modules_grid').innerHTML = MODULE_CATALOG.map(m => `
+                <label class="flex items-center gap-1.5 ${m.mandatory ? 'text-slate-400' : 'text-slate-700'}">
+                    <input type="checkbox" class="ed-module-cb w-3.5 h-3.5 accent-blue-600" value="${m.key}"
+                           ${(m.mandatory || !hiddenSet.has(m.key)) ? 'checked' : ''}
+                           ${m.mandatory ? 'disabled' : ''} />
+                    ${esc(m.label)}
+                </label>`).join('');
+        }
+        function modulesGridHidden() {
+            return [...document.querySelectorAll('.ed-module-cb:not(:checked)')].map(cb => cb.value);
+        }
+
+        // Presets straight from apps/COMPLETE-IMPLEMENTATION-SPEC.md Part C —
+        // a starting point so operators aren't typing the full shape from scratch.
+        const PRESETS = {
+            fastfood: {
+                // Variant Option Groups off — a burger is one Product; size/
+                // spice/extras are all delta-priced Add-ons instead (D4).
+                variants: { enabled: false, max_option_groups: 1, seed_groups: [] },
+                addons: { enabled: true, seed_groups: [
+                    { name: "Toppings", selection_type: "multiple", min_select: 0, max_select: 5, items: [
+                        { name: "Extra Cheese", price_delta: 100 }, { name: "Mushroom", price_delta: 80 },
+                        { name: "Olives", price_delta: 80 }, { name: "Jalapeño", price_delta: 80 },
+                    ]},
+                    { name: "Base Ingredients", selection_type: "multiple", min_select: 0, max_select: null, items: [
+                        { name: "Onion", price_delta: 0, default_selected: true }, { name: "Tomato", price_delta: 0, default_selected: true },
+                    ]},
+                ]},
+                inventory: { tracking_editable: true, tracking_default_on: false, tracking_forced_on: false, low_stock_threshold: 5 },
+                pricing: { show_cost_price: false, require_cost_price: false, show_compare_price: false },
+                product_fields: { sku: false, specs: false, warranty: false, description: true },
+                pos: { layout: "grid_quick_tap" },
+                categories: { default_categories: ["Burgers", "Sides", "Beverages", "Deals"] },
+            },
+            laptop: {
+                variants: { enabled: true, max_option_groups: null, seed_groups: [
+                    { name: "RAM", values: ["4GB", "8GB", "16GB", "32GB"] },
+                    { name: "Storage", values: ["128GB", "256GB", "512GB", "1TB"] },
+                ]},
+                addons: { enabled: true, seed_groups: [] },
+                inventory: { tracking_editable: true, tracking_default_on: true, tracking_forced_on: false, low_stock_threshold: 5 },
+                pricing: { show_cost_price: true, require_cost_price: false, show_compare_price: false },
+                product_fields: { sku: true, specs: true, warranty: true, description: true },
+                pos: { layout: "grid_with_variant_picker" },
+                // Laptops only — attach more categories manually per tenant if needed
+                // (e.g. a shop that also carries Mobiles/Accessories).
+                categories: { default_categories: ["Laptops"] },
+            },
+        };
+
+        async function load() {
+            const [tpls, me] = await Promise.all([
+                apiFetch('/api/platform/business-templates/'),
+                apiFetch('/api/platform/auth/me').catch(() => ({})),
+                loadModuleCatalog(),
+            ]);
+            TEMPLATES = tpls; IS_SUPER = !!me.is_super;
+            // Owners can always create/edit/delete. A manager needs the
+            // explicit can_manage_business_templates grant (Platform Users)
+            // to edit/delete — but NOT to create; creating a brand-new
+            // template stays owner-only (unchanged from before this flag
+            // existed). See api/platform/business_templates.py's dependencies.
+            CAN_MANAGE = IS_SUPER || !!me.can_manage_business_templates;
+            if (!IS_SUPER) document.getElementById('newBtn').classList.add('hidden');
+            renderGrid();
+            // Deep link from Tenant Detail's Modules tab ("Edit in Business Templates").
+            const editParam = new URLSearchParams(window.location.search).get('edit');
+            if (editParam && TEMPLATES.some(t => t.id === editParam)) openEdit(editParam);
+        }
+
+        function configSummary(config) {
+            const parts = [];
+            if (config.variants && config.variants.enabled === false) parts.push('Variants off — Add-ons only');
+            const groups = (config.variants && config.variants.seed_groups) || [];
+            if (groups.length) parts.push(`${groups.length} variant group${groups.length === 1 ? '' : 's'}`);
+            const addonGroups = (config.addons && config.addons.seed_groups) || [];
+            if (addonGroups.length) parts.push(`${addonGroups.length} add-on group${addonGroups.length === 1 ? '' : 's'}`);
+            const cats = (config.categories && config.categories.default_categories) || [];
+            if (cats.length) parts.push(`${cats.length} default categor${cats.length === 1 ? 'y' : 'ies'}`);
+            const hiddenMods = (config.modules && config.modules.hidden) || [];
+            if (hiddenMods.length) parts.push(`${hiddenMods.length} module${hiddenMods.length === 1 ? '' : 's'} hidden`);
+            return parts.length ? parts.join(' · ') : 'No seed data configured';
+        }
+
+        function renderGrid() {
+            const g = document.getElementById('grid'), e = document.getElementById('empty');
+            if (!TEMPLATES.length) { g.innerHTML = ''; e.classList.remove('hidden'); return; }
+            e.classList.add('hidden');
+            g.innerHTML = TEMPLATES.map((t, index) => {
+                const cats = ((t.config.categories && t.config.categories.default_categories) || []).slice(0, 6);
+                const chips = cats.map(c => `<span class="inline-block px-2 py-0.5 rounded-full text-[11px] bg-slate-100 text-slate-600 mr-1 mb-1">${esc(c)}</span>`).join('');
+                return `<div class="bg-white border border-slate-200 rounded-card p-4 ${CAN_MANAGE ? 'cursor-pointer hover:border-blue-300' : ''}" ${CAN_MANAGE ? `onclick='openEdit(${JSON.stringify(t.id)})'` : ''}>
+                    <p class="font-semibold text-slate-900">${esc(t.name)}</p>
+                    <p class="text-xs text-slate-500 mt-1">${esc(configSummary(t.config))}</p>
+                    ${chips ? `<div class="mt-3">${chips}</div>` : ''}
+                    <button type="button" onclick="event.stopPropagation(); showUsage(TEMPLATES[${index}].id, TEMPLATES[${index}].name)" class="mt-3 flex w-full items-center justify-between gap-2 rounded-card border border-blue-100 bg-blue-50 px-3 py-2 text-left text-xs font-medium text-blue-700 hover:bg-blue-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600" aria-haspopup="dialog" aria-controls="usageModal">
+                        <span>View tenants using this template</span>
+                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                </div>`;
+            }).join('');
+        }
+
+        function openNew() {
+            editId = null;
+            document.getElementById('edTitle').textContent = 'New Business Template';
+            document.getElementById('ed_name').value = '';
+            document.getElementById('ed_config').value = '';
+            document.getElementById('ed_variants_enabled').checked = true;
+            document.getElementById('ed_addons_enabled').checked = true;
+            document.getElementById('ed_tracking_forced_on').checked = false;
+            document.getElementById('ed_tracking_default_on').checked = false;
+            renderModulesGrid([]);
+            document.getElementById('ed_config_err').classList.add('hidden');
+            document.getElementById('edDelete').classList.add('hidden');
+            document.getElementById('edModal').classList.remove('hidden');
+        }
+        function openEdit(id) {
+            const t = TEMPLATES.find(x => x.id === id); if (!t) return;
+            editId = id;
+            document.getElementById('edTitle').textContent = `Edit — ${t.name}`;
+            document.getElementById('ed_name').value = t.name;
+            document.getElementById('ed_config').value = JSON.stringify(t.config, null, 2);
+            document.getElementById('ed_variants_enabled').checked = !(t.config.variants && t.config.variants.enabled === false);
+            document.getElementById('ed_addons_enabled').checked = !(t.config.addons && t.config.addons.enabled === false);
+            document.getElementById('ed_tracking_forced_on').checked = !!(t.config.inventory && t.config.inventory.tracking_forced_on);
+            document.getElementById('ed_tracking_default_on').checked = !!(t.config.inventory && t.config.inventory.tracking_default_on);
+            renderModulesGrid((t.config.modules && t.config.modules.hidden) || []);
+            document.getElementById('ed_config_err').classList.add('hidden');
+            document.getElementById('edDelete').classList.remove('hidden');
+            document.getElementById('edModal').classList.remove('hidden');
+        }
+        function closeEd() { document.getElementById('edModal').classList.add('hidden'); }
+        function closeUsage() { document.getElementById('usageModal').classList.add('hidden'); }
+        async function showUsage(id, name) {
+            document.getElementById('usageTitle').textContent = `Tenants using ${name}`;
+            const list = document.getElementById('usageList');
+            list.innerHTML = '<p class="text-slate-400">Loading…</p>';
+            document.getElementById('usageModal').classList.remove('hidden');
+            try {
+                const tenants = await apiFetch(`/api/platform/business-templates/${id}/tenants`);
+                list.innerHTML = tenants.length
+                    ? `<ul class="divide-y divide-slate-100">${tenants.map(t => `<li class="py-2 flex justify-between"><span>${esc(t.name)}</span><span class="text-xs text-slate-400 font-mono">${esc(t.tenant_code)}</span></li>`).join('')}</ul>`
+                    : '<p class="text-slate-400">No tenants are using this template.</p>';
+            } catch (e) { list.innerHTML = `<p class="text-red-600">${esc(e.message || 'Could not load tenants.')}</p>`; }
+        }
+
+        function loadPreset(key) {
+            document.getElementById('ed_config').value = JSON.stringify(PRESETS[key], null, 2);
+            document.getElementById('ed_variants_enabled').checked = PRESETS[key].variants.enabled !== false;
+            document.getElementById('ed_addons_enabled').checked = PRESETS[key].addons.enabled !== false;
+            document.getElementById('ed_tracking_forced_on').checked = !!(PRESETS[key].inventory && PRESETS[key].inventory.tracking_forced_on);
+            document.getElementById('ed_tracking_default_on').checked = !!(PRESETS[key].inventory && PRESETS[key].inventory.tracking_default_on);
+            renderModulesGrid((PRESETS[key].modules && PRESETS[key].modules.hidden) || []);
+            document.getElementById('ed_config_err').classList.add('hidden');
+            if (!document.getElementById('ed_name').value.trim()) {
+                document.getElementById('ed_name').value = key === 'fastfood' ? 'Fast Food' : 'Laptop Business';
+            }
+        }
+        function formatConfig() {
+            const el = document.getElementById('ed_config');
+            try { el.value = JSON.stringify(JSON.parse(el.value), null, 2); document.getElementById('ed_config_err').classList.add('hidden'); }
+            catch (e) { showConfigErr('Not valid JSON — fix syntax before formatting: ' + e.message); }
+        }
+        function showConfigErr(msg) {
+            const el = document.getElementById('ed_config_err');
+            el.textContent = msg; el.classList.remove('hidden');
+        }
+
+        // ── Password step-up — deleting a template or changing config.modules.hidden
+        // is enforced server-side to need BOTH the can_manage_business_templates
+        // capability (checked before the modal ever opens — see CAN_MANAGE) AND a
+        // fresh password re-confirmation, every time, regardless of how long the
+        // capability has been held. callGuarded() always tries the real request
+        // first; only on a 403 STEP_UP_REQUIRED does it prompt for the password
+        // and retry once with the token — so a non-modules save (which never needs
+        // a step-up) never shows this modal at all. ────────────────────────────
+        let stepUpResolve = null, stepUpReject = null;
+
+        function requestStepUp(action, templateId, message) {
+            document.getElementById('stepUpMessage').textContent = message;
+            document.getElementById('stepUpPassword').value = '';
+            document.getElementById('stepUpErr').classList.add('hidden');
+            document.getElementById('stepUpModal').dataset.action = action;
+            document.getElementById('stepUpModal').dataset.templateId = templateId;
+            document.getElementById('stepUpModal').classList.remove('hidden');
+            document.getElementById('stepUpPassword').focus();
+            return new Promise((resolve, reject) => { stepUpResolve = resolve; stepUpReject = reject; });
+        }
+        function cancelStepUp() {
+            document.getElementById('stepUpModal').classList.add('hidden');
+            const reject = stepUpReject;
+            stepUpResolve = stepUpReject = null;
+            if (reject) reject(new Error('cancelled'));
+        }
+        async function confirmStepUp() {
+            const password = document.getElementById('stepUpPassword').value;
+            const modal = document.getElementById('stepUpModal');
+            if (!password) {
+                document.getElementById('stepUpErr').textContent = 'Enter your password.';
+                document.getElementById('stepUpErr').classList.remove('hidden');
+                return;
+            }
+            const btn = document.getElementById('stepUpConfirmBtn'); btn.disabled = true;
+            try {
+                const resp = await apiFetch('/api/platform/auth/step-up', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        password,
+                        action: modal.dataset.action,
+                        template_id: modal.dataset.templateId,
+                    }),
+                });
+                modal.classList.add('hidden');
+                const resolve = stepUpResolve;
+                stepUpResolve = stepUpReject = null;
+                resolve(resp.step_up_token);
+            } catch (e) {
+                document.getElementById('stepUpErr').textContent = e.message || 'Incorrect password.';
+                document.getElementById('stepUpErr').classList.remove('hidden');
+            } finally { btn.disabled = false; }
+        }
+
+        // Runs `apiFetch(path, options)`; if it 403s with STEP_UP_REQUIRED, opens
+        // the password modal and retries exactly once with the confirmed token.
+        async function callGuarded(path, options, action, templateId, message) {
+            try {
+                return await apiFetch(path, options);
+            } catch (e) {
+                if (e.code !== 'STEP_UP_REQUIRED') throw e;
+                const token = await requestStepUp(action, templateId, message);
+                return await apiFetch(path, { ...options, headers: { ...(options.headers || {}), 'X-Step-Up-Token': token } });
+            }
+        }
+
+        async function saveTpl() {
+            const name = document.getElementById('ed_name').value.trim();
+            const raw = document.getElementById('ed_config').value.trim();
+            if (!name) { showToast('Enter a name.', 'error'); return; }
+            let config;
+            try { config = JSON.parse(raw || '{}'); }
+            catch (e) { showConfigErr('Not valid JSON: ' + e.message); return; }
+            document.getElementById('ed_config_err').classList.add('hidden');
+            // The checkbox is the source of truth for variants.enabled — synced
+            // into the JSON here so a plain "on/off" toggle never requires
+            // hand-editing the textarea, but power users can still edit the
+            // full variants block (max_option_groups, seed_groups) directly.
+            config.variants = { ...(config.variants || {}), enabled: document.getElementById('ed_variants_enabled').checked };
+            config.addons = { ...(config.addons || {}), enabled: document.getElementById('ed_addons_enabled').checked };
+            config.inventory = { ...(config.inventory || {}), tracking_default_on: document.getElementById('ed_tracking_default_on').checked, tracking_forced_on: document.getElementById('ed_tracking_forced_on').checked };
+            const hiddenModules = modulesGridHidden();
+            config.modules = { ...(config.modules || {}), hidden: hiddenModules };
+
+            const body = { name, config };
+            const btn = document.getElementById('edSave'); btn.disabled = true;
+            try {
+                if (editId) {
+                    await callGuarded(
+                        `/api/platform/business-templates/${editId}`,
+                        { method: 'PATCH', body: JSON.stringify(body) },
+                        'update_business_template_modules', editId,
+                        'Changing which modules this template hides affects every tenant on it immediately. Re-enter your password to confirm.'
+                    );
+                } else {
+                    await apiFetch('/api/platform/business-templates/', { method: 'POST', body: JSON.stringify(body) });
+                }
+                closeEd(); showToast('Saved.'); await load();
+            } catch (e) {
+                if (e.message !== 'cancelled') showToast(e.message, 'error');
+            } finally { btn.disabled = false; }
+        }
+        async function delTpl() {
+            if (!editId) return;
+            try {
+                await callGuarded(
+                    `/api/platform/business-templates/${editId}`,
+                    { method: 'DELETE' },
+                    'delete_business_template', editId,
+                    'Deleting this template cannot be undone. Re-enter your password to confirm.'
+                );
+                closeEd(); showToast('Deleted.'); await load();
+            } catch (e) {
+                if (e.message !== 'cancelled') showToast(e.message, 'error');
+            }
+        }
+
+        (async () => {
+            try { await load(); }
+            catch (e) {
+                if (e && e.message === 'Unauthorized') return;
+                const b = document.getElementById('errorBanner');
+                b.textContent = 'Failed to load: ' + ((e && e.message) || e);
+                b.classList.remove('hidden');
+            }
+        })();
+    </script>
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

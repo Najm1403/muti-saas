@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <!--
+        Subscriptions — STORIXX
+        =============================================
+        Manage tenant plan subscriptions and manual payments.
+
+        Data sources:
+          GET  /api/platform/subscriptions?limit=500           → list[SubscriptionResponse]
+          POST /api/platform/subscriptions/                    → create subscription
+          POST /api/platform/subscriptions/{id}/suspend        → suspend
+          POST /api/platform/subscriptions/{id}/reactivate     → reactivate
+          POST /api/platform/subscriptions/{id}/cancel         → cancel
+          POST /api/platform/subscriptions/{id}/payments       → record payment
+          GET  /api/platform/subscriptions/{id}/payments       → payment history
+          GET  /api/platform/plans?include_inactive=true       → for plan name lookup
+          GET  /api/platform/tenants?limit=500                 → for tenant name lookup
+
+        SubscriptionResponse fields:
+          id, tenant_id, plan_id, billing_cycle, status,
+          started_at, expires_at, trial_ends_at, cancelled_at,
+          created_at, updated_at
+
+        Status values: TRIAL | ACTIVE | SUSPENDED | CANCELLED | EXPIRED
+        BillingCycle:  MONTHLY | YEARLY
+
+        Style: follows web_fastfood STYLE_GUIDE.md
+    -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Subscriptions - STORIXX</title>
+
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+
+    <style>
+        .rounded-card { border-radius: 10px; }
+        body { overflow: hidden; }
+        .drawer-open   { transform: translateX(0); }
+        .drawer-closed { transform: translateX(100%); }
+    </style>
+</head>
+
+<body class="flex h-screen bg-slate-50 text-slate-900">
+
+
+    <!-- ==================================================================
+         SIDEBAR
+         ================================================================== -->
+    <aside class="w-64 flex-shrink-0 h-screen bg-slate-900 flex flex-col overflow-y-auto">
+
+        <!-- Logo -->
+        <div class="h-16 flex items-center px-5 border-b border-slate-800 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <img src="/assets/logo-mark.png?v=3" alt="STORIXX" class="w-8 h-8 rounded-[6px] flex-shrink-0 object-contain" />
+                <div>
+                    <p class="text-white text-sm font-semibold leading-none">STORIXX</p>
+                    <p class="text-slate-500 text-[11px] leading-none mt-0.5">SaaS Platform</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nav -->
+        <nav class="flex-1 px-3 py-4 space-y-0.5">
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-1 pb-2">Overview</p>
+
+            <a href="/platform/dashboard.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1
+                             0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                <span class="text-sm">Dashboard</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Management</p>
+
+            <a href="/platform/tenants.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1
+                             4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                <span class="text-sm">Tenants</span>
+            </a>
+            <a href="/platform/business-templates.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M20 7h-4V5a3 3 0 00-3-3h-2a3 3 0 00-3 3v2H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM10 5a1 1 0 011-1h2a1 1 0 011 1v2h-4V5z"/>
+                </svg>
+                <span class="text-sm">Business Templates</span>
+            </a>
+            <a href="/platform/config-reference.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s4.332.477 5.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                <span class="text-sm">Config Reference</span>
+            </a>
+
+            <a href="/platform/platform_users.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857
+                             M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002
+                             5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm">Platform Users</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Billing</p>
+
+            <a href="/platform/plans.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0
+                             002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+                <span class="text-sm">Plans</span>
+            </a>
+
+            <!-- Subscriptions — ACTIVE -->
+            <a href="/platform/subscriptions.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      bg-slate-800 text-white font-medium
+                      border-l-[3px] border-blue-500">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                </svg>
+                <span class="text-sm">Subscriptions</span>
+            </a>
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Human Resources</p>
+            <a href="/platform/employees.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm">Employees</span>
+            </a>
+            <a href="/platform/salaries.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="text-sm">Salaries</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">System</p>
+
+            <a href="/platform/activity.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2
+                             2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6
+                             0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                <span class="text-sm">Activity Logs</span>
+            </a>
+
+        </nav>
+
+        <!-- Bottom: logout -->
+        <div class="px-3 py-4 border-t border-slate-800 flex-shrink-0">
+            <button onclick="logout()"
+                    class="w-full flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                           text-slate-400 hover:bg-slate-800 hover:text-red-400
+                           border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+                <span class="text-sm">Logout</span>
+            </button>
+        </div>
+    </aside>
+
+
+    <!-- ==================================================================
+         MAIN COLUMN
+         ================================================================== -->
+    <div class="flex-1 flex flex-col h-screen overflow-hidden">
+
+        <!-- Page header -->
+        <header class="h-16 flex-shrink-0 bg-white border-b border-slate-200
+                        flex items-center justify-between px-6">
+            <div>
+                <h1 class="text-base font-semibold text-slate-900">Subscriptions</h1>
+                <p class="text-xs text-slate-400 mt-0.5">Manage tenant plan subscriptions and payment records.</p>
+            </div>
+            <button onclick="openCreateDrawer()"
+                    class="h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium
+                           rounded-card transition-colors flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                </svg>
+                New Subscription
+            </button>
+        </header>
+
+        <!-- Scrollable content -->
+        <main class="flex-1 overflow-y-auto px-6 py-5">
+
+            <!-- Toolbar -->
+            <div class="flex items-center gap-3 mb-4 flex-wrap">
+
+                <!-- Search -->
+                <div class="relative flex-1 min-w-[180px] max-w-xs">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+                         fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+                    </svg>
+                    <input id="searchInput" type="search" placeholder="Search tenant or plan…"
+                           oninput="applyFilters()"
+                           class="w-full h-10 pl-9 pr-3 border border-slate-200 rounded-card text-sm
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                </div>
+
+                <!-- Status filter -->
+                <select id="statusFilter" onchange="applyFilters()"
+                        class="h-10 pl-3 pr-8 border border-slate-200 rounded-card text-sm text-slate-700
+                               bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">All statuses</option>
+                    <option value="TRIAL">Trial</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="PAST_DUE">Past Due</option>
+                    <option value="SUSPENDED">Suspended</option>
+                    <option value="CANCELLED">Cancelled</option>
+                    <option value="EXPIRED">Expired</option>
+                </select>
+
+                <!-- Plan filter -->
+                <select id="planFilter" onchange="applyFilters()"
+                        class="h-10 pl-3 pr-8 border border-slate-200 rounded-card text-sm text-slate-700
+                               bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">All plans</option>
+                </select>
+
+                <!-- Billing cycle filter -->
+                <select id="cycleFilter" onchange="applyFilters()"
+                        class="h-10 pl-3 pr-8 border border-slate-200 rounded-card text-sm text-slate-700
+                               bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">All cycles</option>
+                    <option value="MONTHLY">Monthly</option>
+                    <option value="YEARLY">Yearly</option>
+                </select>
+
+                <span id="countLabel" class="ml-auto text-xs text-slate-400"></span>
+            </div>
+
+            <!-- Table card -->
+            <div class="bg-white border border-slate-200 rounded-card overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-slate-100 bg-slate-50">
+                                <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Tenant</th>
+                                <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Plan</th>
+                                <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Cycle</th>
+                                <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Status</th>
+                                <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Started</th>
+                                <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Expires</th>
+                                <th class="px-4 py-3"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="subTableBody">
+                            <tr>
+                                <td colspan="7" class="px-4 py-10 text-center text-sm text-slate-400">Loading…</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div><!-- /main column -->
+
+
+    <!-- ==================================================================
+         OVERLAY (shared backdrop)
+         ================================================================== -->
+    <div id="overlay"
+         onclick="closeAll()"
+         class="hidden fixed inset-0 bg-black/40 z-30 transition-opacity"></div>
+
+
+    <!-- ==================================================================
+         CREATE SUBSCRIPTION DRAWER (slides in from right)
+         ================================================================== -->
+    <div id="createDrawer"
+         class="fixed top-0 right-0 h-screen w-[420px] bg-white shadow-2xl z-40
+                flex flex-col drawer-closed transition-transform duration-300">
+
+        <!-- Drawer header -->
+        <div class="h-16 flex items-center justify-between px-6 border-b border-slate-100 flex-shrink-0">
+            <h2 class="text-sm font-semibold text-slate-900">New Subscription</h2>
+            <button onclick="closeDrawer()" class="text-slate-400 hover:text-slate-600 p-1 rounded-card">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Drawer body -->
+        <div class="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+
+            <!-- Tenant -->
+            <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1.5">Tenant <span class="text-red-500">*</span></label>
+                <select id="f_tenant_id"
+                        class="w-full h-10 pl-3 pr-8 border border-slate-200 rounded-card text-sm
+                               focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Select tenant…</option>
+                </select>
+            </div>
+
+            <!-- Plan -->
+            <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1.5">Plan <span class="text-red-500">*</span></label>
+                <select id="f_plan_id"
+                        class="w-full h-10 pl-3 pr-8 border border-slate-200 rounded-card text-sm
+                               focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Select plan…</option>
+                </select>
+            </div>
+
+            <!-- Billing cycle -->
+            <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1.5">Billing Cycle <span class="text-red-500">*</span></label>
+                <div class="flex rounded-card border border-slate-200 overflow-hidden">
+                    <button id="cycle_monthly" onclick="selectCycle('MONTHLY')"
+                            class="flex-1 py-2 text-sm font-medium transition-colors bg-blue-600 text-white">
+                        Monthly
+                    </button>
+                    <button id="cycle_yearly" onclick="selectCycle('YEARLY')"
+                            class="flex-1 py-2 text-sm font-medium transition-colors bg-white text-slate-600 hover:bg-slate-50">
+                        Yearly
+                    </button>
+                </div>
+            </div>
+
+            <!-- Start as -->
+            <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1.5">Start as</label>
+                <div class="flex gap-3">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="start_as" value="TRIAL" checked onchange="toggleTrialDays()"
+                               class="accent-blue-600" />
+                        <span class="text-sm text-slate-700">Trial</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="start_as" value="ACTIVE" onchange="toggleTrialDays()"
+                               class="accent-blue-600" />
+                        <span class="text-sm text-slate-700">Active (paid)</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Trial days (shown only when TRIAL selected) -->
+            <div id="trialDaysRow">
+                <label class="block text-xs font-medium text-slate-700 mb-1.5">Trial Days</label>
+                <input id="f_trial_days" type="number" min="1" max="365" value="14"
+                       class="w-32 h-10 px-3 border border-slate-200 rounded-card text-sm
+                              focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <p class="text-xs text-slate-400 mt-1">Subscription becomes ACTIVE after first payment.</p>
+            </div>
+
+            <!-- Per-tenant discount override -->
+            <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1.5">Discount override (%)</label>
+                <div class="relative w-32">
+                    <input id="f_discount_pct" type="number" min="0" max="100" step="0.01" placeholder="—"
+                           class="w-full h-10 pl-3 pr-7 border border-slate-200 rounded-card text-sm
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">%</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-1">Leave blank to use the plan's own discount for this cycle.</p>
+            </div>
+
+        </div>
+
+        <!-- Drawer footer -->
+        <div class="px-6 py-4 border-t border-slate-100 flex gap-3 flex-shrink-0">
+            <button onclick="closeDrawer()"
+                    class="flex-1 h-10 border border-slate-200 rounded-card text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                Cancel
+            </button>
+            <button onclick="submitCreateSubscription()"
+                    class="flex-1 h-10 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-card transition-colors">
+                Create Subscription
+            </button>
+        </div>
+    </div>
+
+
+    <!-- ==================================================================
+         VIEW / DETAIL MODAL
+         ================================================================== -->
+    <div id="viewModal"
+         class="hidden fixed inset-0 z-40 flex items-center justify-center p-6">
+        <div class="bg-white rounded-card shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+
+            <!-- Modal header -->
+            <div class="flex items-start justify-between px-6 py-5 border-b border-slate-100 flex-shrink-0">
+                <div>
+                    <h2 id="vm_title" class="text-base font-semibold text-slate-900">Subscription</h2>
+                    <p id="vm_subtitle" class="text-xs text-slate-400 mt-0.5"></p>
+                </div>
+                <button onclick="closeViewModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-card ml-4">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Modal body -->
+            <div class="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+
+                <!-- Details grid -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-slate-50 rounded-card px-4 py-3">
+                        <p class="text-[11px] text-slate-400 uppercase tracking-wide font-medium mb-1">Tenant</p>
+                        <p id="vm_tenant" class="text-sm font-medium text-slate-900"></p>
+                    </div>
+                    <div class="bg-slate-50 rounded-card px-4 py-3">
+                        <p class="text-[11px] text-slate-400 uppercase tracking-wide font-medium mb-1">Plan</p>
+                        <p id="vm_plan" class="text-sm font-medium text-slate-900"></p>
+                    </div>
+                    <div class="bg-slate-50 rounded-card px-4 py-3">
+                        <p class="text-[11px] text-slate-400 uppercase tracking-wide font-medium mb-1">Status</p>
+                        <p id="vm_status" class="text-sm font-medium"></p>
+                    </div>
+                    <div class="bg-slate-50 rounded-card px-4 py-3">
+                        <p class="text-[11px] text-slate-400 uppercase tracking-wide font-medium mb-1">Billing Cycle</p>
+                        <p id="vm_cycle" class="text-sm font-medium text-slate-900"></p>
+                    </div>
+                    <div class="bg-slate-50 rounded-card px-4 py-3">
+                        <p class="text-[11px] text-slate-400 uppercase tracking-wide font-medium mb-1">Started</p>
+                        <p id="vm_started" class="text-sm font-medium text-slate-900"></p>
+                    </div>
+                    <div class="bg-slate-50 rounded-card px-4 py-3">
+                        <p class="text-[11px] text-slate-400 uppercase tracking-wide font-medium mb-1">Expires</p>
+                        <p id="vm_expires" class="text-sm font-medium"></p>
+                    </div>
+                    <div class="bg-slate-50 rounded-card px-4 py-3">
+                        <p class="text-[11px] text-slate-400 uppercase tracking-wide font-medium mb-1">Grace Period</p>
+                        <p id="vm_grace" class="text-sm font-medium text-slate-900"></p>
+                    </div>
+                    <div id="vm_trial_row" class="bg-slate-50 rounded-card px-4 py-3">
+                        <p class="text-[11px] text-slate-400 uppercase tracking-wide font-medium mb-1">Trial Ends</p>
+                        <p id="vm_trial_ends" class="text-sm font-medium text-slate-900"></p>
+                    </div>
+                    <div id="vm_cancelled_row" class="bg-slate-50 rounded-card px-4 py-3">
+                        <p class="text-[11px] text-slate-400 uppercase tracking-wide font-medium mb-1">Cancelled At</p>
+                        <p id="vm_cancelled_at" class="text-sm font-medium text-slate-900"></p>
+                    </div>
+                </div>
+
+                <!-- Billing -->
+                <div>
+                    <h3 class="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-3">Billing</h3>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="bg-slate-50 rounded-card px-4 py-3">
+                            <p class="text-[11px] text-slate-400 uppercase tracking-wide font-medium mb-1">List Price</p>
+                            <p id="vm_list_price" class="text-sm font-medium text-slate-900">—</p>
+                        </div>
+                        <div class="bg-slate-50 rounded-card px-4 py-3">
+                            <p class="text-[11px] text-slate-400 uppercase tracking-wide font-medium mb-1">Discount</p>
+                            <p id="vm_discount" class="text-sm font-medium text-emerald-600">—</p>
+                        </div>
+                        <div class="bg-slate-50 rounded-card px-4 py-3">
+                            <p class="text-[11px] text-slate-400 uppercase tracking-wide font-medium mb-1">Net / Renewal</p>
+                            <p id="vm_net_price" class="text-sm font-semibold text-slate-900">—</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment history -->
+                <div>
+                    <h3 class="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-3">Payment History</h3>
+                    <div id="vm_payments_loading" class="text-sm text-slate-400 text-center py-4">Loading payments…</div>
+                    <div id="vm_payments_empty" class="hidden text-sm text-slate-400 text-center py-4">No payments recorded yet.</div>
+                    <div id="vm_payments_table" class="hidden border border-slate-100 rounded-card overflow-hidden">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-100">
+                                    <th class="text-left px-4 py-2.5 text-xs font-medium text-slate-500">Date</th>
+                                    <th class="text-left px-4 py-2.5 text-xs font-medium text-slate-500">Amount</th>
+                                    <th class="text-left px-4 py-2.5 text-xs font-medium text-slate-500">List / Disc</th>
+                                    <th class="text-left px-4 py-2.5 text-xs font-medium text-slate-500">Method</th>
+                                    <th class="text-left px-4 py-2.5 text-xs font-medium text-slate-500">Period</th>
+                                    <th class="text-left px-4 py-2.5 text-xs font-medium text-slate-500">Ref</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vm_payments_body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal footer -->
+            <div class="px-6 py-4 border-t border-slate-100 flex justify-end flex-shrink-0">
+                <button onclick="closeViewModal()"
+                        class="h-9 px-5 border border-slate-200 rounded-card text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==================================================================
+         RECORD PAYMENT MODAL
+         ================================================================== -->
+    <div id="paymentModal"
+         class="hidden fixed inset-0 z-40 flex items-center justify-center p-6">
+        <div class="bg-white rounded-card shadow-2xl w-full max-w-md flex flex-col">
+
+            <!-- Header -->
+            <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+                <div>
+                    <h2 class="text-sm font-semibold text-slate-900">Record Payment</h2>
+                    <p id="pm_subtitle" class="text-xs text-slate-400 mt-0.5"></p>
+                </div>
+                <button onclick="closePaymentModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-card">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="px-6 py-5 space-y-4">
+
+                <!-- Amount -->
+                <div>
+                    <label class="block text-xs font-medium text-slate-700 mb-1.5">Amount (PKR) <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 font-medium">PKR</span>
+                        <input id="pm_amount" type="number" min="1" step="0.01" placeholder="0.00"
+                               class="w-full h-10 pl-14 pr-3 border border-slate-200 rounded-card text-sm
+                                      focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <p id="pm_hint" class="text-xs text-slate-400 mt-1">Pre-filled from the plan price and discount. Edit if the tenant paid a different amount.</p>
+                </div>
+
+                <!-- Payment Method -->
+                <div>
+                    <label class="block text-xs font-medium text-slate-700 mb-1.5">Payment Method <span class="text-red-500">*</span></label>
+                    <select id="pm_method"
+                            class="w-full h-10 pl-3 pr-8 border border-slate-200 rounded-card text-sm
+                                   focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Cheque">Cheque</option>
+                        <option value="JazzCash">JazzCash</option>
+                        <option value="EasyPaisa">EasyPaisa</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <!-- Paid At -->
+                <div>
+                    <label class="block text-xs font-medium text-slate-700 mb-1.5">Payment Date <span class="text-red-500">*</span></label>
+                    <input id="pm_paid_at" type="date"
+                           class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+
+                <!-- Reference Number -->
+                <div>
+                    <label class="block text-xs font-medium text-slate-700 mb-1.5">Reference Number</label>
+                    <input id="pm_reference" type="text" placeholder="TXN123456 (optional)"
+                           class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+
+                <!-- Notes -->
+                <div>
+                    <label class="block text-xs font-medium text-slate-700 mb-1.5">Notes</label>
+                    <textarea id="pm_notes" rows="2" placeholder="Optional notes…"
+                              class="w-full px-3 py-2 border border-slate-200 rounded-card text-sm resize-none
+                                     focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 py-4 border-t border-slate-100 flex gap-3">
+                <button onclick="closePaymentModal()"
+                        class="flex-1 h-10 border border-slate-200 rounded-card text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                    Cancel
+                </button>
+                <button onclick="submitPayment()"
+                        class="flex-1 h-10 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-card transition-colors">
+                    Record Payment
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==================================================================
+         SET DISCOUNT MODAL
+         ================================================================== -->
+    <div id="discountModal"
+         class="hidden fixed inset-0 z-40 flex items-center justify-center p-6">
+        <div class="bg-white rounded-card shadow-2xl w-full max-w-sm flex flex-col">
+            <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+                <div>
+                    <h2 class="text-sm font-semibold text-slate-900">Set Discount</h2>
+                    <p id="dm_subtitle" class="text-xs text-slate-400 mt-0.5"></p>
+                </div>
+                <button onclick="closeDiscountModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-card">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="px-6 py-5 space-y-2">
+                <label class="block text-xs font-medium text-slate-700 mb-1.5">Discount (%) — blank clears the override</label>
+                <div class="relative w-32">
+                    <input id="dm_pct" type="number" min="0" max="100" step="0.01" placeholder="—"
+                           class="w-full h-10 pl-3 pr-7 border border-slate-200 rounded-card text-sm
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">%</span>
+                </div>
+                <p class="text-xs text-slate-400">When cleared, this tenant falls back to the plan's own discount for its billing cycle.</p>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-100 flex gap-3">
+                <button onclick="closeDiscountModal()"
+                        class="flex-1 h-10 border border-slate-200 rounded-card text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                    Cancel
+                </button>
+                <button onclick="submitDiscount()"
+                        class="flex-1 h-10 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-card transition-colors">
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==================================================================
+         EXTEND TRIAL MODAL  (super admin only)
+         ================================================================== -->
+    <div id="extendTrialModal"
+         class="hidden fixed inset-0 z-40 flex items-center justify-center p-6">
+        <div class="bg-white rounded-card shadow-2xl w-full max-w-sm flex flex-col">
+            <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+                <div>
+                    <h2 class="text-sm font-semibold text-slate-900">Extend Trial</h2>
+                    <p id="et_subtitle" class="text-xs text-slate-400 mt-0.5"></p>
+                </div>
+                <button onclick="closeExtendTrialModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-card">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="px-6 py-5 space-y-2">
+                <p id="et_current" class="text-xs text-slate-500"></p>
+                <label class="block text-xs font-medium text-slate-700 mb-1.5 mt-2">Extend by (days)</label>
+                <input id="et_days" type="number" min="1" max="365" step="1" placeholder="e.g. 7"
+                       class="w-32 h-10 px-3 border border-slate-200 rounded-card text-sm
+                              focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <p class="text-xs text-slate-400">
+                    Any number of days — not limited to fixed presets. Adds to the current trial end
+                    (and expiry) date; does not reset it.
+                </p>
+                <p id="et_preview" class="text-xs font-medium text-blue-600 hidden"></p>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-100 flex gap-3">
+                <button onclick="closeExtendTrialModal()"
+                        class="flex-1 h-10 border border-slate-200 rounded-card text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                    Cancel
+                </button>
+                <button onclick="submitExtendTrial()"
+                        class="flex-1 h-10 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-card transition-colors">
+                    Extend
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==================================================================
+         EXTEND GRACE PERIOD MODAL
+         ================================================================== -->
+    <div id="extendGraceModal"
+         class="hidden fixed inset-0 z-40 flex items-center justify-center p-6">
+        <div class="bg-white rounded-card shadow-2xl w-full max-w-sm flex flex-col">
+            <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+                <div>
+                    <h2 class="text-sm font-semibold text-slate-900">Extend Grace Period</h2>
+                    <p id="eg_subtitle" class="text-xs text-slate-400 mt-0.5"></p>
+                </div>
+                <button onclick="closeExtendGraceModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-card">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="px-6 py-5 space-y-2">
+                <p id="eg_current" class="text-xs text-slate-500"></p>
+                <label class="block text-xs font-medium text-slate-700 mb-1.5 mt-2">Extend by (days)</label>
+                <input id="eg_days" type="number" min="1" max="365" step="1" placeholder="e.g. 7"
+                       class="w-32 h-10 px-3 border border-slate-200 rounded-card text-sm
+                              focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <p class="text-xs text-slate-400">
+                    Gives this tenant more time before an overdue subscription is automatically suspended.
+                    Only affects this tenant — the plan's default grace period is unchanged for everyone else.
+                </p>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-100 flex gap-3">
+                <button onclick="closeExtendGraceModal()"
+                        class="flex-1 h-10 border border-slate-200 rounded-card text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                    Cancel
+                </button>
+                <button onclick="submitExtendGrace()"
+                        class="flex-1 h-10 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-card transition-colors">
+                    Extend
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==================================================================
+         WAIVE DUE PERIOD MODAL
+         ================================================================== -->
+    <div id="waiveModal"
+         class="hidden fixed inset-0 z-40 flex items-center justify-center p-6">
+        <div class="bg-white rounded-card shadow-2xl w-full max-w-sm flex flex-col">
+            <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+                <div>
+                    <h2 class="text-sm font-semibold text-slate-900">Waive Due Period</h2>
+                    <p id="wv_subtitle" class="text-xs text-slate-400 mt-0.5"></p>
+                </div>
+                <button onclick="closeWaiveModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-card">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="px-6 py-5 space-y-2">
+                <p class="text-xs text-slate-500">
+                    Forgives the current billing period without payment — extends the subscription by one
+                    full billing cycle and restores ACTIVE status, exactly like a payment except recorded
+                    as waived (amount 0) for accounting.
+                </p>
+                <label class="block text-xs font-medium text-slate-700 mb-1.5 mt-2">Note (optional)</label>
+                <textarea id="wv_note" rows="2" maxlength="500" placeholder="Why this period was waived…"
+                          class="w-full px-3 py-2 border border-slate-200 rounded-card text-sm
+                                 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-100 flex gap-3">
+                <button onclick="closeWaiveModal()"
+                        class="flex-1 h-10 border border-slate-200 rounded-card text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                    Cancel
+                </button>
+                <button onclick="submitWaive()"
+                        class="flex-1 h-10 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-card transition-colors">
+                    Waive Period
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==================================================================
+         LIFECYCLE CONFIRM MODAL  (Suspend / Reactivate / Cancel)
+         ================================================================== -->
+    <div id="confirmModal"
+         class="hidden fixed inset-0 z-40 flex items-center justify-center p-6">
+        <div class="bg-white rounded-card shadow-2xl w-full max-w-sm">
+
+            <!-- Header -->
+            <div class="px-6 py-5 border-b border-slate-100">
+                <h2 id="cm_title" class="text-sm font-semibold text-slate-900"></h2>
+            </div>
+
+            <!-- Body -->
+            <div class="px-6 py-5">
+                <p id="cm_message" class="text-sm text-slate-600"></p>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 py-4 border-t border-slate-100 flex gap-3">
+                <button onclick="closeConfirmModal()"
+                        class="flex-1 h-10 border border-slate-200 rounded-card text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                    Cancel
+                </button>
+                <button id="cm_confirm_btn" onclick=""
+                        class="flex-1 h-10 text-white text-sm font-medium rounded-card transition-colors">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==================================================================
+         TOAST
+         ================================================================== -->
+    <div id="toast" class="hidden fixed bottom-5 right-5 z-[60] flex items-center gap-3 px-4 py-3
+                            border rounded-card shadow-lg max-w-xs">
+        <span id="toastIcon" class="flex-shrink-0 text-sm font-bold"></span>
+        <span id="toastText" class="text-sm"></span>
+    </div>
+
+
+    <!-- ==================================================================
+         SCRIPT
+         ================================================================== -->
+    <script>
+        'use strict';
+
+        // ── State ─────────────────────────────────────────────────────────
+        let allSubs      = [];   // enriched subscription objects
+        let planMap      = {};   // id → PlanResponse
+        let tenantMap    = {};   // id → TenantResponse
+        let allPlans     = [];   // raw plan list (for create form selects)
+        let allTenants   = [];   // raw tenant list
+
+        let selectedCycle       = 'MONTHLY';
+        let paymentSubId        = null;  // which subscription the payment modal is for
+        let paymentPreview      = null;  // billing-preview for the payment modal's subscription
+        let IS_SUPER            = false; // Extend Trial is super-admin only
+        let extendTrialSubId    = null;  // which subscription the extend-trial modal is for
+        let discountSubId       = null;  // which subscription the discount modal is for
+        let extendGraceSubId    = null;  // which subscription the extend-grace modal is for
+        let waiveSubId          = null;  // which subscription the waive modal is for
+        let confirmAction       = null;  // pending lifecycle action function
+        let openMenuId          = null;
+        let toastTimer          = null;
+
+
+        // ── Auth helpers ──────────────────────────────────────────────────
+
+        function logout() {
+            localStorage.removeItem('platform_token');
+            window.location.href = '/platform/login.html';
+        }
+
+        async function apiFetch(path, options = {}) {
+            const token = localStorage.getItem('platform_token');
+            if (!token) { logout(); return; }
+
+            const res = await fetch(path, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    ...(options.headers || {}),
+                },
+            });
+
+            if (res.status === 401) { logout(); return; }
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.detail || `HTTP ${res.status}`);
+            }
+
+            return res.status === 204 ? null : res.json();
+        }
+
+
+        // ── Formatters ────────────────────────────────────────────────────
+
+        function esc(s) {
+            return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function fmtDate(iso) {
+            if (!iso) return '—';
+            return new Date(iso).toLocaleDateString('en-PK', { day:'2-digit', month:'short', year:'numeric' });
+        }
+
+        function fmtDateShort(iso) {
+            if (!iso) return '—';
+            return new Date(iso).toLocaleDateString('en-PK', { day:'2-digit', month:'short', year:'2-digit' });
+        }
+
+        function fmtAmount(v) {
+            return 'PKR ' + Number(v).toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+
+        function fmtPct(v) {
+            const n = Number(v);
+            return isNaN(n) ? '—' : (Number.isInteger(n) ? n : n.toFixed(2)) + '%';
+        }
+
+        function isExpired(iso) {
+            return iso && new Date(iso) < new Date();
+        }
+
+        const STATUS_BADGE = {
+            TRIAL:     'bg-violet-100 text-violet-700',
+            ACTIVE:    'bg-green-100 text-green-700',
+            PAST_DUE:  'bg-orange-100 text-orange-700',
+            SUSPENDED: 'bg-amber-100 text-amber-700',
+            CANCELLED: 'bg-slate-100 text-slate-600',
+            EXPIRED:   'bg-red-100 text-red-700',
+        };
+
+        function statusBadge(status) {
+            const cls = STATUS_BADGE[status] || 'bg-slate-100 text-slate-600';
+            return `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${cls}">${esc(status)}</span>`;
+        }
+
+        function cycleBadge(cycle) {
+            const cls = cycle === 'YEARLY'
+                ? 'bg-blue-100 text-blue-700'
+                : 'bg-slate-100 text-slate-600';
+            const label = cycle === 'YEARLY' ? 'Yearly' : 'Monthly';
+            return `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${cls}">${label}</span>`;
+        }
+
+
+        // ── Data loading ──────────────────────────────────────────────────
+
+        async function init() {
+            try {
+                const [subsRaw, plansRaw, tenantsRaw, me] = await Promise.all([
+                    apiFetch('/api/platform/subscriptions?limit=500'),
+                    apiFetch('/api/platform/plans?include_inactive=true&limit=200'),
+                    apiFetch('/api/platform/tenants?limit=500'),
+                    apiFetch('/api/platform/auth/me').catch(() => ({})),
+                ]);
+                IS_SUPER = !!me.is_super;
+
+                planMap   = Object.fromEntries((plansRaw   || []).map(p => [p.id, p]));
+                tenantMap = Object.fromEntries((tenantsRaw || []).map(t => [t.id, t]));
+                allPlans   = plansRaw   || [];
+                allTenants = tenantsRaw || [];
+
+                // Enrich subscriptions with lookup names
+                allSubs = (subsRaw || []).map(s => ({
+                    ...s,
+                    tenantName: tenantMap[s.tenant_id]?.name  ?? '(unknown)',
+                    tenantCode: tenantMap[s.tenant_id]?.tenant_code ?? '',
+                    planName:   planMap[s.plan_id]?.name ?? '(unknown plan)',
+                }));
+
+                populatePlanFilter();
+                populateFormSelects();
+                applyDeepLink();
+                applyFilters();
+
+            } catch (e) {
+                document.getElementById('subTableBody').innerHTML =
+                    `<tr><td colspan="7" class="px-4 py-10 text-center text-sm text-red-500">Failed to load: ${esc(e.message)}</td></tr>`;
+            }
+        }
+
+        // Handles ?tenant=<code>&extendTrial=1 links from tenant-detail.html's
+        // "Extend Trial →" button: pre-fills the search box, and if that
+        // resolves to exactly one TRIAL subscription and this admin is super,
+        // opens the Extend Trial modal directly instead of making them hunt
+        // for the row themselves.
+        function applyDeepLink() {
+            const params = new URLSearchParams(location.search);
+            const tenantCode = params.get('tenant');
+            if (!tenantCode) return;
+            document.getElementById('searchInput').value = tenantCode;
+            if (params.get('extendTrial') === '1' && IS_SUPER) {
+                const matches = allSubs.filter(s =>
+                    s.tenantCode.toLowerCase() === tenantCode.toLowerCase() && s.status === 'TRIAL');
+                if (matches.length === 1) {
+                    setTimeout(() => openExtendTrialModal(matches[0].id), 0);
+                }
+            }
+        }
+
+        function populatePlanFilter() {
+            const sel = document.getElementById('planFilter');
+            allPlans.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = p.name;
+                sel.appendChild(opt);
+            });
+        }
+
+        function populateFormSelects() {
+            const tSel = document.getElementById('f_tenant_id');
+            allTenants.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t.id;
+                opt.textContent = `${t.name} (${t.tenant_code})`;
+                tSel.appendChild(opt);
+            });
+
+            const pSel = document.getElementById('f_plan_id');
+            allPlans.filter(p => p.is_active).forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = p.name;
+                pSel.appendChild(opt);
+            });
+        }
+
+
+        // ── Render table ──────────────────────────────────────────────────
+
+        function applyFilters() {
+            const q      = document.getElementById('searchInput').value.trim().toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+            const planId = document.getElementById('planFilter').value;
+            const cycle  = document.getElementById('cycleFilter').value;
+
+            const filtered = allSubs.filter(s => {
+                if (status && s.status !== status) return false;
+                if (planId && s.plan_id !== planId) return false;
+                if (cycle  && s.billing_cycle !== cycle) return false;
+                if (q && !s.tenantName.toLowerCase().includes(q)
+                       && !s.planName.toLowerCase().includes(q)
+                       && !s.tenantCode.toLowerCase().includes(q)) return false;
+                return true;
+            });
+
+            document.getElementById('countLabel').textContent =
+                filtered.length === allSubs.length
+                    ? `${allSubs.length} subscriptions`
+                    : `${filtered.length} of ${allSubs.length}`;
+
+            renderTable(filtered);
+        }
+
+        function renderTable(subs) {
+            const tbody = document.getElementById('subTableBody');
+            if (!subs.length) {
+                tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-10 text-center text-sm text-slate-400">No subscriptions found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = subs.map(s => {
+                const expiredClass = isExpired(s.expires_at) && s.status === 'ACTIVE' ? 'text-red-600 font-medium' : 'text-slate-700';
+                return `
+                <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                    <td class="px-4 py-3">
+                        <p class="text-sm font-medium text-slate-900">${esc(s.tenantName)}</p>
+                        <p class="text-xs text-slate-400 font-mono">${esc(s.tenantCode)}</p>
+                    </td>
+                    <td class="px-4 py-3 text-sm text-slate-700">${esc(s.planName)}</td>
+                    <td class="px-4 py-3">${cycleBadge(s.billing_cycle)}</td>
+                    <td class="px-4 py-3">${statusBadge(s.status)}</td>
+                    <td class="px-4 py-3 text-sm text-slate-500">${fmtDate(s.started_at)}</td>
+                    <td class="px-4 py-3 text-sm ${expiredClass}">${fmtDate(s.expires_at)}</td>
+                    <td class="px-4 py-3 text-right relative">
+                        <button onclick="toggleMenu('${escapeJSAttribute(s.id)}', event)"
+                                class="p-1.5 rounded-card hover:bg-slate-100 text-slate-400 hover:text-slate-600">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/>
+                            </svg>
+                        </button>
+                        ${buildMenu(s)}
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function buildMenu(s) {
+            const items = [];
+
+            items.push(`<button onclick="closeMenu(); viewSub('${escapeJSAttribute(s.id)}')"
+                class="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>View Details</button>`);
+
+            if (s.status !== 'CANCELLED' && s.status !== 'EXPIRED') {
+                items.push(`<button onclick="closeMenu(); openPaymentModal('${escapeJSAttribute(s.id)}')"
+                    class="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>Record Payment</button>`);
+            }
+
+            if (s.status !== 'CANCELLED') {
+                items.push(`<button onclick="closeMenu(); openDiscountModal('${escapeJSAttribute(s.id)}')"
+                    class="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2v16z"/>
+                    </svg>Set Discount</button>`);
+            }
+
+            if (s.status !== 'CANCELLED') {
+                items.push(`<button onclick="closeMenu(); openExtendGraceModal('${escapeJSAttribute(s.id)}')"
+                    class="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>Extend Grace Period</button>`);
+
+                items.push(`<button onclick="closeMenu(); openWaiveModal('${escapeJSAttribute(s.id)}')"
+                    class="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>Waive Due Period</button>`);
+            }
+
+            if (s.status === 'TRIAL' && IS_SUPER) {
+                items.push(`<button onclick="closeMenu(); openExtendTrialModal('${escapeJSAttribute(s.id)}')"
+                    class="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>Extend Trial</button>`);
+            }
+
+            if (s.status === 'ACTIVE' || s.status === 'TRIAL' || s.status === 'PAST_DUE') {
+                items.push(`<button onclick="closeMenu(); askSuspend('${escapeJSAttribute(s.id)}', '${escapeJSAttribute(s.tenantName)}')"
+                    class="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-amber-600 hover:bg-amber-50">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>Suspend</button>`);
+            }
+
+            if (s.status === 'SUSPENDED') {
+                items.push(`<button onclick="closeMenu(); askReactivate('${escapeJSAttribute(s.id)}', '${escapeJSAttribute(s.tenantName)}')"
+                    class="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-green-50">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>Reactivate</button>`);
+            }
+
+            if (s.status !== 'CANCELLED') {
+                items.push(`<button onclick="closeMenu(); askCancel('${escapeJSAttribute(s.id)}', '${escapeJSAttribute(s.tenantName)}')"
+                    class="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>Cancel Subscription</button>`);
+            }
+
+            return `<div id="menu_${s.id}"
+                class="hidden absolute right-8 top-1 bg-white border border-slate-100 rounded-card shadow-lg py-1
+                       min-w-[180px] z-20 text-left">
+                ${items.join('')}
+            </div>`;
+        }
+
+
+        // ── Dropdown menu ─────────────────────────────────────────────────
+
+        function toggleMenu(subId, event) {
+            event.stopPropagation();
+            if (openMenuId && openMenuId !== subId) closeMenu();
+            const el = document.getElementById(`menu_${subId}`);
+            if (!el) return;
+            const isOpen = !el.classList.contains('hidden');
+            el.classList.toggle('hidden', isOpen);
+            openMenuId = isOpen ? null : subId;
+        }
+
+        function closeMenu() {
+            if (openMenuId) {
+                const el = document.getElementById(`menu_${openMenuId}`);
+                if (el) el.classList.add('hidden');
+                openMenuId = null;
+            }
+        }
+
+        document.addEventListener('click', () => closeMenu());
+
+
+        // ── View modal ────────────────────────────────────────────────────
+
+        async function viewSub(subId) {
+            const s = allSubs.find(x => x.id === subId);
+            if (!s) return;
+
+            document.getElementById('vm_title').textContent = s.tenantName;
+            document.getElementById('vm_subtitle').textContent = `Subscription ID: ${s.id}`;
+            document.getElementById('vm_tenant').textContent = `${s.tenantName} (${s.tenantCode})`;
+            document.getElementById('vm_plan').textContent   = s.planName;
+            document.getElementById('vm_cycle').textContent  = s.billing_cycle === 'YEARLY' ? 'Yearly' : 'Monthly';
+            document.getElementById('vm_started').textContent = fmtDate(s.started_at);
+
+            const expEl = document.getElementById('vm_expires');
+            expEl.textContent = fmtDate(s.expires_at);
+            expEl.className = `text-sm font-medium ${isExpired(s.expires_at) ? 'text-red-600' : 'text-slate-900'}`;
+
+            document.getElementById('vm_status').innerHTML = statusBadge(s.status);
+
+            const graceDays = s.grace_period_days ?? 0;
+            if (s.expires_at) {
+                const graceEnd = new Date(s.expires_at);
+                graceEnd.setDate(graceEnd.getDate() + graceDays);
+                document.getElementById('vm_grace').textContent =
+                    `${graceDays} day${graceDays === 1 ? '' : 's'} (until ${fmtDate(graceEnd.toISOString())})`;
+            } else {
+                document.getElementById('vm_grace').textContent = `${graceDays} day${graceDays === 1 ? '' : 's'}`;
+            }
+
+            const trialRow     = document.getElementById('vm_trial_row');
+            const cancelledRow = document.getElementById('vm_cancelled_row');
+
+            if (s.trial_ends_at) {
+                trialRow.classList.remove('hidden');
+                document.getElementById('vm_trial_ends').textContent = fmtDate(s.trial_ends_at);
+            } else {
+                trialRow.classList.add('hidden');
+            }
+
+            if (s.cancelled_at) {
+                cancelledRow.classList.remove('hidden');
+                document.getElementById('vm_cancelled_at').textContent = fmtDate(s.cancelled_at);
+            } else {
+                cancelledRow.classList.add('hidden');
+            }
+
+            // Reset payment section
+            document.getElementById('vm_payments_loading').classList.remove('hidden');
+            document.getElementById('vm_payments_empty').classList.add('hidden');
+            document.getElementById('vm_payments_table').classList.add('hidden');
+
+            // Reset billing block
+            ['vm_list_price', 'vm_discount', 'vm_net_price'].forEach(id =>
+                document.getElementById(id).textContent = '—');
+
+            showOverlay();
+            document.getElementById('viewModal').classList.remove('hidden');
+
+            // Load billing preview
+            apiFetch(`/api/platform/subscriptions/${subId}/billing-preview`).then(b => {
+                if (!b) return;
+                document.getElementById('vm_list_price').textContent = fmtAmount(b.list_price);
+                document.getElementById('vm_discount').textContent =
+                    Number(b.discount_pct) > 0
+                        ? `−${fmtPct(b.discount_pct)}  (${fmtAmount(b.discount_amount)})`
+                        : 'None';
+                document.getElementById('vm_net_price').textContent = fmtAmount(b.net_price);
+            }).catch(() => {});
+
+            // Load payments
+            try {
+                const payments = await apiFetch(`/api/platform/subscriptions/${subId}/payments`);
+                document.getElementById('vm_payments_loading').classList.add('hidden');
+
+                if (!payments || !payments.length) {
+                    document.getElementById('vm_payments_empty').classList.remove('hidden');
+                } else {
+                    document.getElementById('vm_payments_table').classList.remove('hidden');
+                    document.getElementById('vm_payments_body').innerHTML = payments.map(p => `
+                        <tr class="border-b border-slate-50">
+                            <td class="px-4 py-2.5 text-sm text-slate-700">${fmtDate(p.paid_at)}</td>
+                            <td class="px-4 py-2.5 text-sm font-medium text-slate-900">${fmtAmount(p.amount)}</td>
+                            <td class="px-4 py-2.5 text-xs text-slate-500">${
+                                p.list_price != null
+                                    ? `${fmtAmount(p.list_price)}${Number(p.discount_pct) > 0 ? ` · −${fmtPct(p.discount_pct)}` : ''}`
+                                    : '—'}</td>
+                            <td class="px-4 py-2.5 text-sm text-slate-600">${esc(p.payment_method)}</td>
+                            <td class="px-4 py-2.5 text-xs text-slate-500">${fmtDateShort(p.period_start)} – ${fmtDateShort(p.period_end)}</td>
+                            <td class="px-4 py-2.5 text-xs text-slate-400 font-mono">${esc(p.reference_number ?? '—')}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) {
+                document.getElementById('vm_payments_loading').textContent = `Failed to load payments: ${e.message}`;
+            }
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.add('hidden');
+            hideOverlay();
+        }
+
+
+        // ── Create subscription drawer ────────────────────────────────────
+
+        function openCreateDrawer() {
+            resetCreateForm();
+            showOverlay();
+            document.getElementById('createDrawer').classList.replace('drawer-closed', 'drawer-open');
+        }
+
+        function closeDrawer() {
+            document.getElementById('createDrawer').classList.replace('drawer-open', 'drawer-closed');
+            hideOverlay();
+        }
+
+        function resetCreateForm() {
+            document.getElementById('f_tenant_id').value   = '';
+            document.getElementById('f_plan_id').value     = '';
+            document.getElementById('f_trial_days').value  = '14';
+            document.getElementById('f_discount_pct').value = '';
+            document.querySelectorAll('input[name="start_as"]').forEach(r => {
+                r.checked = r.value === 'TRIAL';
+            });
+            selectedCycle = 'MONTHLY';
+            selectCycle('MONTHLY');
+            toggleTrialDays();
+        }
+
+        function selectCycle(cycle) {
+            selectedCycle = cycle;
+            const monthly = document.getElementById('cycle_monthly');
+            const yearly  = document.getElementById('cycle_yearly');
+            if (cycle === 'MONTHLY') {
+                monthly.className = 'flex-1 py-2 text-sm font-medium transition-colors bg-blue-600 text-white';
+                yearly.className  = 'flex-1 py-2 text-sm font-medium transition-colors bg-white text-slate-600 hover:bg-slate-50';
+            } else {
+                yearly.className  = 'flex-1 py-2 text-sm font-medium transition-colors bg-blue-600 text-white';
+                monthly.className = 'flex-1 py-2 text-sm font-medium transition-colors bg-white text-slate-600 hover:bg-slate-50';
+            }
+        }
+
+        function toggleTrialDays() {
+            const isTrial = document.querySelector('input[name="start_as"]:checked')?.value === 'TRIAL';
+            document.getElementById('trialDaysRow').classList.toggle('hidden', !isTrial);
+        }
+
+        async function submitCreateSubscription() {
+            const tenantId   = document.getElementById('f_tenant_id').value;
+            const planId     = document.getElementById('f_plan_id').value;
+            const status     = document.querySelector('input[name="start_as"]:checked')?.value ?? 'TRIAL';
+            const trialDays  = parseInt(document.getElementById('f_trial_days').value, 10) || 14;
+            const discRaw    = document.getElementById('f_discount_pct').value.trim();
+            const discountPct = discRaw === '' ? null : parseFloat(discRaw);
+
+            if (!tenantId) { showToast('error', 'Please select a tenant.'); return; }
+            if (!planId)   { showToast('error', 'Please select a plan.'); return; }
+            if (discountPct !== null && (isNaN(discountPct) || discountPct < 0 || discountPct > 100)) {
+                showToast('error', 'Discount must be between 0 and 100%.'); return;
+            }
+
+            const body = {
+                tenant_id:     tenantId,
+                plan_id:       planId,
+                billing_cycle: selectedCycle,
+                status,
+                trial_days:    status === 'TRIAL' ? trialDays : 0,
+                discount_pct:  discountPct,
+            };
+
+            try {
+                const sub = await apiFetch('/api/platform/subscriptions/', {
+                    method: 'POST',
+                    body: JSON.stringify(body),
+                });
+
+                const enriched = {
+                    ...sub,
+                    tenantName: tenantMap[sub.tenant_id]?.name ?? '(unknown)',
+                    tenantCode: tenantMap[sub.tenant_id]?.tenant_code ?? '',
+                    planName:   planMap[sub.plan_id]?.name ?? '(unknown)',
+                };
+                allSubs.unshift(enriched);
+                applyFilters();
+                closeDrawer();
+                showToast('success', `Subscription created for ${enriched.tenantName}.`);
+            } catch (e) {
+                showToast('error', e.message);
+            }
+        }
+
+
+        // ── Record Payment modal ──────────────────────────────────────────
+
+        async function openPaymentModal(subId) {
+            paymentSubId = subId;
+            paymentPreview = null;
+            const s = allSubs.find(x => x.id === subId);
+            document.getElementById('pm_subtitle').textContent = s ? `${s.tenantName} · ${s.planName}` : '';
+            document.getElementById('pm_amount').value    = '';
+            document.getElementById('pm_method').value    = 'Bank Transfer';
+            document.getElementById('pm_paid_at').value   = new Date().toISOString().slice(0, 10);
+            document.getElementById('pm_reference').value = '';
+            document.getElementById('pm_notes').value     = '';
+            const hint = document.getElementById('pm_hint');
+            hint.textContent = 'Loading price…';
+            showOverlay();
+            document.getElementById('paymentModal').classList.remove('hidden');
+
+            try {
+                const b = await apiFetch(`/api/platform/subscriptions/${subId}/billing-preview`);
+                paymentPreview = b;
+                document.getElementById('pm_amount').value = Number(b.net_price).toFixed(2);
+                hint.textContent = Number(b.discount_pct) > 0
+                    ? `List ${fmtAmount(b.list_price)} · −${fmtPct(b.discount_pct)} · Net ${fmtAmount(b.net_price)} — editable`
+                    : `List price ${fmtAmount(b.list_price)} — edit if the tenant paid a different amount`;
+            } catch (e) {
+                hint.textContent = 'Could not load the plan price — enter the amount manually.';
+            }
+        }
+
+        function closePaymentModal() {
+            document.getElementById('paymentModal').classList.add('hidden');
+            hideOverlay();
+            paymentSubId = null;
+            paymentPreview = null;
+        }
+
+
+        // ── Set Discount modal ────────────────────────────────────────────
+
+        function openDiscountModal(subId) {
+            discountSubId = subId;
+            const s = allSubs.find(x => x.id === subId);
+            document.getElementById('dm_subtitle').textContent = s ? `${s.tenantName} · ${s.planName}` : '';
+            document.getElementById('dm_pct').value = (s && s.discount_pct != null) ? s.discount_pct : '';
+            showOverlay();
+            document.getElementById('discountModal').classList.remove('hidden');
+        }
+
+        function closeDiscountModal() {
+            document.getElementById('discountModal').classList.add('hidden');
+            hideOverlay();
+            discountSubId = null;
+        }
+
+        async function submitDiscount() {
+            if (!discountSubId) return;
+            const raw = document.getElementById('dm_pct').value.trim();
+            const pct = raw === '' ? null : parseFloat(raw);
+            if (pct !== null && (isNaN(pct) || pct < 0 || pct > 100)) {
+                showToast('error', 'Discount must be between 0 and 100%.'); return;
+            }
+            try {
+                const updated = await apiFetch(`/api/platform/subscriptions/${discountSubId}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ discount_pct: pct }),
+                });
+                const idx = allSubs.findIndex(s => s.id === discountSubId);
+                if (idx !== -1) {
+                    allSubs[idx] = {
+                        ...updated,
+                        tenantName: allSubs[idx].tenantName,
+                        tenantCode: allSubs[idx].tenantCode,
+                        planName:   allSubs[idx].planName,
+                    };
+                }
+                applyFilters();
+                closeDiscountModal();
+                showToast('success', pct === null ? 'Discount override cleared.' : `Discount set to ${pct}%.`);
+            } catch (e) {
+                showToast('error', e.message);
+            }
+        }
+
+        // ── Extend Trial modal (super admin only) ───────────────────────────
+
+        function openExtendTrialModal(subId) {
+            extendTrialSubId = subId;
+            const s = allSubs.find(x => x.id === subId);
+            document.getElementById('et_subtitle').textContent = s ? `${s.tenantName} · ${s.planName}` : '';
+            document.getElementById('et_current').textContent = s && s.trial_ends_at
+                ? `Trial currently ends ${fmtDate(s.trial_ends_at)}.`
+                : 'No current trial end date on record.';
+            document.getElementById('et_days').value = '';
+            document.getElementById('et_preview').classList.add('hidden');
+            showOverlay();
+            document.getElementById('extendTrialModal').classList.remove('hidden');
+        }
+
+        function closeExtendTrialModal() {
+            document.getElementById('extendTrialModal').classList.add('hidden');
+            hideOverlay();
+            extendTrialSubId = null;
+        }
+
+        document.addEventListener('input', function (e) {
+            if (e.target && e.target.id === 'et_days') {
+                const s = allSubs.find(x => x.id === extendTrialSubId);
+                const days = parseInt(e.target.value, 10);
+                const preview = document.getElementById('et_preview');
+                if (s && s.trial_ends_at && days > 0) {
+                    const newEnd = new Date(s.trial_ends_at);
+                    newEnd.setDate(newEnd.getDate() + days);
+                    preview.textContent = `New trial end: ${fmtDate(newEnd.toISOString())}`;
+                    preview.classList.remove('hidden');
+                } else {
+                    preview.classList.add('hidden');
+                }
+            }
+        });
+
+        async function submitExtendTrial() {
+            if (!extendTrialSubId) return;
+            const days = parseInt(document.getElementById('et_days').value, 10);
+            if (!days || days < 1 || days > 365) {
+                showToast('error', 'Enter a number of days between 1 and 365.'); return;
+            }
+            try {
+                const updated = await apiFetch(`/api/platform/subscriptions/${extendTrialSubId}/extend-trial`, {
+                    method: 'POST',
+                    body: JSON.stringify({ extend_days: days }),
+                });
+                const idx = allSubs.findIndex(s => s.id === extendTrialSubId);
+                if (idx !== -1) {
+                    allSubs[idx] = {
+                        ...updated,
+                        tenantName: allSubs[idx].tenantName,
+                        tenantCode: allSubs[idx].tenantCode,
+                        planName:   allSubs[idx].planName,
+                    };
+                }
+                applyFilters();
+                closeExtendTrialModal();
+                showToast('success', `Trial extended by ${days} day${days === 1 ? '' : 's'}.`);
+            } catch (e) {
+                showToast('error', e.message);
+            }
+        }
+
+        // ── Extend Grace Period modal ───────────────────────────────────────
+
+        function openExtendGraceModal(subId) {
+            extendGraceSubId = subId;
+            const s = allSubs.find(x => x.id === subId);
+            document.getElementById('eg_subtitle').textContent = s ? `${s.tenantName} · ${s.planName}` : '';
+            document.getElementById('eg_current').textContent = s
+                ? `Currently ${s.grace_period_days ?? 0} day${(s.grace_period_days ?? 0) === 1 ? '' : 's'} of grace.`
+                : '';
+            document.getElementById('eg_days').value = '';
+            showOverlay();
+            document.getElementById('extendGraceModal').classList.remove('hidden');
+        }
+
+        function closeExtendGraceModal() {
+            document.getElementById('extendGraceModal').classList.add('hidden');
+            hideOverlay();
+            extendGraceSubId = null;
+        }
+
+        async function submitExtendGrace() {
+            if (!extendGraceSubId) return;
+            const days = parseInt(document.getElementById('eg_days').value, 10);
+            if (!days || days < 1 || days > 365) {
+                showToast('error', 'Enter a number of days between 1 and 365.'); return;
+            }
+            try {
+                const updated = await apiFetch(`/api/platform/subscriptions/${extendGraceSubId}/extend-grace`, {
+                    method: 'POST',
+                    body: JSON.stringify({ extend_days: days }),
+                });
+                const idx = allSubs.findIndex(s => s.id === extendGraceSubId);
+                if (idx !== -1) {
+                    allSubs[idx] = {
+                        ...updated,
+                        tenantName: allSubs[idx].tenantName,
+                        tenantCode: allSubs[idx].tenantCode,
+                        planName:   allSubs[idx].planName,
+                    };
+                }
+                applyFilters();
+                closeExtendGraceModal();
+                showToast('success', `Grace period extended by ${days} day${days === 1 ? '' : 's'}.`);
+            } catch (e) {
+                showToast('error', e.message);
+            }
+        }
+
+        // ── Waive Due Period modal ──────────────────────────────────────────
+
+        function openWaiveModal(subId) {
+            waiveSubId = subId;
+            const s = allSubs.find(x => x.id === subId);
+            document.getElementById('wv_subtitle').textContent = s ? `${s.tenantName} · ${s.planName}` : '';
+            document.getElementById('wv_note').value = '';
+            showOverlay();
+            document.getElementById('waiveModal').classList.remove('hidden');
+        }
+
+        function closeWaiveModal() {
+            document.getElementById('waiveModal').classList.add('hidden');
+            hideOverlay();
+            waiveSubId = null;
+        }
+
+        async function submitWaive() {
+            if (!waiveSubId) return;
+            const note = document.getElementById('wv_note').value.trim() || null;
+            try {
+                await apiFetch(`/api/platform/subscriptions/${waiveSubId}/waive`, {
+                    method: 'POST',
+                    body: JSON.stringify({ note }),
+                });
+
+                // Refresh subscription to get updated expires_at / status
+                const updated = await apiFetch(`/api/platform/subscriptions/${waiveSubId}`);
+                const idx = allSubs.findIndex(s => s.id === waiveSubId);
+                if (idx !== -1) {
+                    allSubs[idx] = {
+                        ...updated,
+                        tenantName: allSubs[idx].tenantName,
+                        tenantCode: allSubs[idx].tenantCode,
+                        planName:   allSubs[idx].planName,
+                    };
+                }
+                applyFilters();
+                closeWaiveModal();
+                showToast('success', 'Due period waived. Subscription is active.');
+            } catch (e) {
+                showToast('error', e.message);
+            }
+        }
+
+        async function submitPayment() {
+            if (!paymentSubId) return;
+
+            const amount    = parseFloat(document.getElementById('pm_amount').value);
+            const method    = document.getElementById('pm_method').value;
+            const paidAt    = document.getElementById('pm_paid_at').value;
+            const reference = document.getElementById('pm_reference').value.trim() || null;
+            const notes     = document.getElementById('pm_notes').value.trim() || null;
+
+            if (!amount || amount <= 0) { showToast('error', 'Enter a valid amount.'); return; }
+            if (!paidAt) { showToast('error', 'Select a payment date.'); return; }
+
+            try {
+                await apiFetch(`/api/platform/subscriptions/${paymentSubId}/payments`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        amount,
+                        payment_method:   method,
+                        paid_at:          new Date(paidAt).toISOString(),
+                        reference_number: reference,
+                        notes,
+                        list_price:   paymentPreview ? paymentPreview.list_price   : null,
+                        discount_pct: paymentPreview ? paymentPreview.discount_pct : null,
+                    }),
+                });
+
+                // Refresh subscription to get updated expires_at / status
+                const updated = await apiFetch(`/api/platform/subscriptions/${paymentSubId}`);
+                const idx = allSubs.findIndex(s => s.id === paymentSubId);
+                if (idx !== -1) {
+                    allSubs[idx] = {
+                        ...updated,
+                        tenantName: allSubs[idx].tenantName,
+                        tenantCode: allSubs[idx].tenantCode,
+                        planName:   allSubs[idx].planName,
+                    };
+                }
+                applyFilters();
+                closePaymentModal();
+                showToast('success', 'Payment recorded. Subscription extended.');
+            } catch (e) {
+                showToast('error', e.message);
+            }
+        }
+
+
+        // ── Lifecycle actions ─────────────────────────────────────────────
+
+        function askSuspend(subId, tenantName) {
+            showConfirm(
+                'Suspend Subscription',
+                `Suspend the subscription for ${tenantName}? This will block their access immediately.`,
+                'bg-amber-500 hover:bg-amber-600',
+                () => doLifecycle(subId, 'suspend'),
+            );
+        }
+
+        function askReactivate(subId, tenantName) {
+            showConfirm(
+                'Reactivate Subscription',
+                `Reactivate the subscription for ${tenantName}? Their access will be restored.`,
+                'bg-green-600 hover:bg-green-700',
+                () => doLifecycle(subId, 'reactivate'),
+            );
+        }
+
+        function askCancel(subId, tenantName) {
+            showConfirm(
+                'Cancel Subscription',
+                `Permanently cancel the subscription for ${tenantName}? This cannot be undone. Create a new subscription to re-onboard them.`,
+                'bg-red-600 hover:bg-red-700',
+                () => doLifecycle(subId, 'cancel'),
+            );
+        }
+
+        function showConfirm(title, message, btnClass, action) {
+            document.getElementById('cm_title').textContent   = title;
+            document.getElementById('cm_message').textContent = message;
+            const btn = document.getElementById('cm_confirm_btn');
+            btn.className = `flex-1 h-10 text-white text-sm font-medium rounded-card transition-colors ${btnClass}`;
+            btn.onclick   = () => { closeConfirmModal(); action(); };
+            confirmAction = action;
+            showOverlay();
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.add('hidden');
+            hideOverlay();
+            confirmAction = null;
+        }
+
+        async function doLifecycle(subId, action) {
+            try {
+                const updated = await apiFetch(`/api/platform/subscriptions/${subId}/${action}`, { method: 'POST' });
+                const idx = allSubs.findIndex(s => s.id === subId);
+                if (idx !== -1) {
+                    allSubs[idx] = {
+                        ...updated,
+                        tenantName: allSubs[idx].tenantName,
+                        tenantCode: allSubs[idx].tenantCode,
+                        planName:   allSubs[idx].planName,
+                    };
+                }
+                applyFilters();
+                const labels = { suspend: 'Suspended', reactivate: 'Reactivated', cancel: 'Cancelled' };
+                showToast('success', `Subscription ${labels[action] ?? action}.`);
+            } catch (e) {
+                showToast('error', e.message);
+            }
+        }
+
+
+        // ── Overlay helpers ───────────────────────────────────────────────
+
+        function showOverlay() {
+            document.getElementById('overlay').classList.remove('hidden');
+        }
+
+        function hideOverlay() {
+            document.getElementById('overlay').classList.add('hidden');
+        }
+
+        function closeAll() {
+            closeDrawer();
+            closeViewModal();
+            closePaymentModal();
+            closeDiscountModal();
+            closeExtendTrialModal();
+            closeExtendGraceModal();
+            closeWaiveModal();
+            closeConfirmModal();
+            closeMenu();
+        }
+
+
+        // ── Toast ─────────────────────────────────────────────────────────
+
+        function showToast(type, message) {
+            const toast = document.getElementById('toast');
+            const icon  = document.getElementById('toastIcon');
+            const text  = document.getElementById('toastText');
+
+            const icons = { success: '✓', error: '✕', info: 'ℹ' };
+            const colors = {
+                success: 'border-green-200 bg-green-50',
+                error:   'border-red-200 bg-red-50',
+                info:    'border-blue-200 bg-blue-50',
+            };
+            const textColors = { success: 'text-green-800', error: 'text-red-800', info: 'text-blue-800' };
+
+            toast.className = `fixed bottom-5 right-5 z-[60] flex items-center gap-3 px-4 py-3
+                               border rounded-card shadow-lg max-w-xs ${colors[type] || colors.info}`;
+            icon.className  = `flex-shrink-0 text-sm font-bold ${textColors[type] || ''}`;
+            icon.textContent  = icons[type] || 'ℹ';
+            text.className    = `text-sm ${textColors[type] || ''}`;
+            text.textContent  = message;
+
+            toast.classList.remove('hidden');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toast.classList.add('hidden'), 4000);
+        }
+
+
+        // ── Boot ──────────────────────────────────────────────────────────
+
+        init();
+
+    </script>
+
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

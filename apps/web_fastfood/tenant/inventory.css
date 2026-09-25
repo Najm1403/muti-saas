@@ -1,0 +1,57 @@
+/* Inventory must remain usable without the external utility CSS CDN. */
+* { box-sizing: border-box; }
+body { margin: 0; background: #f8fafc; color: #0f172a; font: 14px/1.5 system-ui, sans-serif; }
+.hidden { display: none !important; }
+body > aside { position: fixed; inset: 0 auto 0 0; width: 256px; display: flex; flex-direction: column; background: white; border-right: 1px solid #e2e8f0; }
+aside > div { padding: 16px; }
+aside nav { overflow-y: auto; flex: 1; padding: 12px; }
+aside nav a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; color: #475569; text-decoration: none; border-radius: 8px; }
+aside nav a:hover, aside nav a[href="/tenant/inventory.html"] { color: #4338ca; background: #eef2ff; }
+aside svg { width: 18px; height: 18px; flex-shrink: 0; }
+aside p { margin: 3px 0; }
+main { margin-left: 256px; width: calc(100% - 256px); padding: 28px; min-width: 0; }
+h1 { margin: 0; font-size: 24px; font-weight: 650; }
+h3 { margin: 0 0 12px; font-size: 18px; }
+button, input, select { font: inherit; }
+button { border: 1px solid #cbd5e1; border-radius: 8px; background: white; color: #334155; padding: 9px 13px; cursor: pointer; }
+button:hover { background: #eef2ff; border-color: #a5b4fc; }
+button:disabled { cursor: default; }
+input[type="checkbox"] { width: 18px; height: 18px; margin: 0 7px 0 0; accent-color: #4f46e5; vertical-align: middle; }
+input:not([type="checkbox"]), select { border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px; width: 100%; background: white; color: #0f172a; }
+:focus-visible { outline: 2px solid #4f46e5; outline-offset: 3px; }
+#inventoryWorkspace { min-width: 0; border: 0; padding: 0; margin: 18px 0 0; }
+#inventoryWorkspace:disabled { opacity: .7; }
+#inventoryWorkspace > nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+#inventoryWorkspace > nav button[aria-pressed="true"] { background: #4338ca; color: white; border-color: #4338ca; }
+#inventoryWorkspace > label { display: block; margin: 14px 0 6px; font-weight: 600; }
+#inventoryStatus { margin: 8px 0; color: #64748b; }
+[role="alert"] { color: #b91c1c; margin: 10px 0; overflow-wrap: anywhere; }
+[role="alert"]:empty { display: none; }
+#trackingControls { border: 1px solid #e2e8f0; background: white; border-radius: 12px; padding: 20px; margin: 20px 0; }
+#trackingControls > label { display: block; padding: 6px 0; }
+#trackingControls > button { margin: 8px 8px 8px 0; }
+#trackingControls p { color: #64748b; font-size: 13px; }
+summary { cursor: pointer; padding: 10px 0; font-weight: 600; }
+#combinationOptions { display: grid; gap: 12px; margin: 12px 0; }
+#combinationOptions fieldset { border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; }
+#combinationOptions label { display: block; padding: 8px 0; }
+.inventory-table-wrap { overflow-x: auto; margin-top: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background: white; }
+table { border-collapse: collapse; width: 100%; text-align: left; }
+th { background: #f1f5f9; color: #475569; font-size: 12px; letter-spacing: .02em; }
+th, td { padding: 14px 16px; vertical-align: top; border-bottom: 1px solid #e2e8f0; }
+td:first-child { min-width: 190px; font-weight: 600; }
+td label { display: flex; align-items: flex-start; min-width: 185px; font-weight: 400; }
+td label input { flex-shrink: 0; margin-top: 2px !important; }
+td p { margin: 6px 0 0; font-size: 12px; font-weight: 400; color: #64748b; }
+td button { display: block; border: none; padding: 5px 0; color: #4338ca; background: transparent; text-align: left; min-width: 110px; }
+#skuEmpty { padding: 20px; color: #64748b; }
+dialog { border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; width: 560px; max-width: calc(100vw - 24px); max-height: 90dvh; overflow-y: auto; box-shadow: 0 20px 60px #0f172a33; }
+dialog::backdrop { background: rgb(15 23 42 / .45); }
+dialog label { display: block; margin: 14px 0; }
+dialog label input, dialog label select { margin-top: 6px; }
+dialog button { margin: 6px 6px 0 0; }
+#saveSkuStock { background: #4338ca; color: white; border-color: #4338ca; }
+#toastContainer { position: fixed; right: 20px; bottom: 20px; z-index: 100; max-width: calc(100vw - 40px); pointer-events: none; }
+#toastContainer > div { margin-top: 8px; padding: 12px 18px; border: 1px solid #bbf7d0; border-radius: 10px; background: #f0fdf4; color: #166534; box-shadow: 0 4px 16px #0f172a15; }
+@media (max-width: 768px) { main { padding: 16px; } #trackingControls { padding: 14px; } dialog { padding: 18px; } }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }

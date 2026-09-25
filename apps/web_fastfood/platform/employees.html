@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Employees - STORIXX</title>
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+    <style>
+        .rounded-card { border-radius: 10px; }
+        @media print {
+            aside, header, .rnav-bar, #actionBtns, #filterBar, .no-print { display: none !important; }
+            .flex-1 { overflow: visible !important; }
+            main { overflow: visible !important; }
+            body { background: #fff; height: auto; overflow: visible; }
+            #printHead { display: block !important; }
+            table { font-size: 11px; }
+        }
+        #printHead { display: none; }
+    </style>
+</head>
+<body class="flex h-screen bg-slate-50 text-slate-900">
+
+    <aside class="w-64 flex-shrink-0 h-screen bg-slate-900 flex flex-col overflow-y-auto">
+        <div class="h-16 flex items-center px-5 border-b border-slate-800 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <img src="/assets/logo-mark.png?v=3" alt="STORIXX" class="w-8 h-8 rounded-[6px] flex-shrink-0 object-contain" />
+                <div>
+                    <p class="text-white text-sm font-semibold leading-none">STORIXX</p>
+                    <p class="text-slate-500 text-[11px] leading-none mt-0.5">SaaS Platform</p>
+                </div>
+            </div>
+        </div>
+        <nav class="flex-1 px-3 py-4 space-y-0.5" id="sidebarNav"></nav>
+        <div class="px-3 py-4 border-t border-slate-800 flex-shrink-0">
+            <button onclick="logout()" class="w-full flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card text-slate-400 hover:bg-slate-800 hover:text-red-400 border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                <span class="text-sm">Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col h-screen overflow-hidden">
+        <header class="h-16 flex-shrink-0 bg-white border-b border-slate-200 flex items-center justify-between px-6">
+            <div>
+                <h1 class="text-base font-semibold text-slate-900">Employees</h1>
+                <p class="text-xs text-slate-400 mt-0.5">Staff of the platform company. Auto number: <span class="font-mono">PLT-0001</span>.</p>
+            </div>
+            <div class="flex gap-2" id="actionBtns">
+                <button onclick="exportCsv()" class="h-9 px-3 border border-slate-300 bg-white rounded-card text-sm text-slate-700 hover:bg-slate-100">CSV</button>
+                <button onclick="window.print()" class="h-9 px-3 border border-slate-300 bg-white rounded-card text-sm text-slate-700 hover:bg-slate-100">Print / PDF</button>
+                <button onclick="openAdd()" class="h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-card flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    Add Employee
+                </button>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto px-6 py-5">
+            <div id="printHead" class="mb-4">
+                <h2 class="text-lg font-bold">Platform Employee Register</h2>
+                <p class="text-xs text-slate-500" id="printMeta"></p>
+            </div>
+
+            <div id="errorBanner" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-card p-4 mb-5 text-sm"></div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+                <div class="bg-white border border-slate-200 rounded-card p-4"><p class="text-xs text-slate-400 uppercase tracking-wide">Active headcount</p><p class="text-xl font-semibold mt-1" id="kpiActive">—</p></div>
+                <div class="bg-white border border-slate-200 rounded-card p-4"><p class="text-xs text-slate-400 uppercase tracking-wide">Monthly commitment</p><p class="text-xl font-semibold mt-1" id="kpiCommit">—</p></div>
+                <div class="bg-white border border-slate-200 rounded-card p-4"><p class="text-xs text-slate-400 uppercase tracking-wide">Paid this month</p><p class="text-xl font-semibold text-green-600 mt-1" id="kpiPaid">—</p></div>
+                <div class="bg-white border border-slate-200 rounded-card p-4"><p class="text-xs text-slate-400 uppercase tracking-wide">Unpaid this month</p><p class="text-xl font-semibold text-red-600 mt-1" id="kpiUnpaid">—</p></div>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-card p-5 mb-5">
+                <p class="text-sm font-semibold text-slate-900 mb-3">Headcount &amp; salary by department</p>
+                <div id="deptRows" class="space-y-3"></div>
+            </div>
+
+            <div class="flex flex-wrap items-end gap-3 mb-4" id="filterBar">
+                <div><label class="block text-xs font-medium text-slate-500 mb-1">Search</label>
+                    <input id="fQ" type="search" placeholder="name / no. / role" class="h-9 px-3 border border-slate-200 rounded-card text-sm" /></div>
+                <div><label class="block text-xs font-medium text-slate-500 mb-1">Status</label>
+                    <select id="fStatus" class="h-9 px-3 border border-slate-200 rounded-card text-sm bg-white">
+                        <option value="">All</option><option value="active">Active</option><option value="on_leave">On leave</option><option value="terminated">Terminated</option>
+                    </select></div>
+                <div><label class="block text-xs font-medium text-slate-500 mb-1">Department</label>
+                    <select id="fDept" class="h-9 px-3 border border-slate-200 rounded-card text-sm bg-white min-w-36"><option value="">All</option></select></div>
+                <button onclick="loadAll().catch(e=>showToast(e.message,'error'))" class="h-9 px-4 bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium rounded-card">Apply</button>
+                <span id="countLabel" class="ml-auto text-sm text-slate-400"></span>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-card">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-slate-200 bg-slate-50">
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">No.</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Name</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Designation</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Department</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Salary</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">This month</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase no-print">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rows"></tbody>
+                    </table>
+                    <div id="empty" class="hidden p-10 text-center text-sm text-slate-400">No employees match.</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="empModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeEmp()"></div>
+        <div class="relative bg-white rounded-card shadow-xl w-full max-w-lg z-10 flex flex-col max-h-[88vh]">
+            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                <h3 class="text-base font-semibold" id="empTitle">Add Employee</h3>
+                <button onclick="closeEmp()" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            </div>
+            <div class="px-6 py-5 space-y-3 overflow-y-auto">
+                <div><label class="block text-xs font-medium text-slate-600 mb-1">Full name *</label>
+                    <input id="f_name" type="text" class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm" /></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Designation</label>
+                        <input id="f_desig" type="text" class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm" /></div>
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Department</label>
+                        <select id="f_dept" class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm bg-white"><option value="">Choose department</option></select>
+                        <button type="button" onclick="toggleNewDepartment(true)" class="mt-2 w-full rounded-card border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100">+ Add Department</button>
+                        <div id="newDepartment" class="hidden mt-2 space-y-2">
+                            <label for="departmentName" class="block text-xs text-slate-600">New department name</label>
+                            <input id="departmentName" type="text" maxlength="80" class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm" />
+                            <div class="flex gap-2">
+                                <button id="departmentSave" type="button" onclick="saveDepartment()" class="px-3 py-2 rounded-card bg-blue-600 text-white text-xs">Add</button>
+                                <button type="button" onclick="toggleNewDepartment(false)" class="px-3 py-2 text-xs text-slate-600">Cancel</button>
+                            </div>
+                            <p id="departmentError" role="alert" class="text-xs text-red-600"></p>
+                        </div></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Monthly salary *</label>
+                        <input id="f_salary" type="number" min="0" step="0.01" class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm" /></div>
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Employment type</label>
+                        <select id="f_etype" class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm bg-white">
+                            <option>Full-time</option><option>Part-time</option><option>Contract</option><option>Intern</option>
+                        </select></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Status</label>
+                        <select id="f_status" class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm bg-white">
+                            <option value="active">Active</option><option value="on_leave">On leave</option><option value="terminated">Terminated</option>
+                        </select></div>
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Join date</label>
+                        <input id="f_join" type="date" class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm" /></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">End date</label>
+                        <input id="f_end" type="date" class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm" /></div>
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Phone</label>
+                        <input id="f_phone" type="text" class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm" /></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Email</label>
+                        <input id="f_email" type="email" class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm" /></div>
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">National ID</label>
+                        <input id="f_nid" type="text" class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm" /></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Bank name</label>
+                        <input id="f_bank" type="text" class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm" /></div>
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Bank account</label>
+                        <input id="f_acct" type="text" class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm" /></div>
+                </div>
+                <div><label class="block text-xs font-medium text-slate-600 mb-1">Address</label>
+                    <textarea id="f_addr" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-card text-sm"></textarea></div>
+                <div><label class="block text-xs font-medium text-slate-600 mb-1">Notes</label>
+                    <textarea id="f_notes" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-card text-sm"></textarea></div>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
+                <button onclick="closeEmp()" class="h-10 px-4 border border-slate-200 rounded-card text-sm text-slate-700 hover:bg-slate-50">Cancel</button>
+                <button id="empSave" onclick="saveEmp()" class="h-10 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-card">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cfModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeCf()"></div>
+        <div class="relative bg-white rounded-card shadow-xl w-full max-w-sm z-10">
+            <div class="px-6 py-5"><h3 class="text-base font-semibold mb-1">Archive employee</h3><p id="cfText" class="text-sm text-slate-500"></p></div>
+            <div class="px-6 pb-5 flex justify-end gap-3">
+                <button onclick="closeCf()" class="h-9 px-4 border border-slate-200 rounded-card text-sm text-slate-700 hover:bg-slate-50">Cancel</button>
+                <button id="cfOk" class="h-9 px-4 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-card">Archive</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-[60] space-y-2"></div>
+
+    <script src="/platform/hr-common.js"></script>
+    <script>
+        renderPlatformSidebarNav('employees');
+        let employees = [], departments = [], summary = null, IS_SUPER = false, CAN_WRITE = true;
+
+        async function loadAll() {
+            const f = {
+                q: document.getElementById('fQ').value.trim() || null,
+                status: document.getElementById('fStatus').value || null,
+                department: document.getElementById('fDept').value || null,
+            };
+            const [list, sum, depts, me] = await Promise.all([
+                apiFetch(`/api/platform/employees?${qs(f)}`),
+                apiFetch('/api/platform/salaries/summary'),
+                apiFetch('/api/platform/employees/departments'),
+                apiFetch('/api/platform/auth/me').catch(() => ({})),
+            ]);
+            employees = list; summary = sum; IS_SUPER = !!me.is_super;
+            CAN_WRITE = (me.role || (me.is_super ? 'owner' : 'manager')) !== 'viewer';
+            document.getElementById('actionBtns').querySelector('button[onclick="openAdd()"]').classList.toggle('hidden', !CAN_WRITE);
+            fillDepts(depts || []);
+            renderKpis(); renderDepts(); renderTable();
+            document.getElementById('countLabel').textContent = `${employees.length} shown · ${sum.headcount_total} total`;
+            document.getElementById('printMeta').textContent = `Generated ${new Date().toLocaleString()}`;
+        }
+        function fillDepts(depts) {
+            departments = depts;
+            const cur = document.getElementById('fDept').value;
+            document.getElementById('fDept').innerHTML = '<option value="">All</option>' + depts.map(d => `<option>${esc(d)}</option>`).join('');
+            document.getElementById('fDept').value = cur;
+            const select = document.getElementById('f_dept'), selected = select.value;
+            select.replaceChildren(new Option('Choose department', ''), ...depts.map(d => new Option(d, d)));
+            if (selected && !depts.includes(selected)) select.add(new Option(selected, selected));
+            select.value = selected;
+        }
+        function toggleNewDepartment(show) {
+            document.getElementById('newDepartment').classList.toggle('hidden', !show);
+            document.getElementById('departmentName').value = '';
+            document.getElementById('departmentError').textContent = '';
+            if (show) document.getElementById('departmentName').focus();
+        }
+        async function saveDepartment() {
+            const name = document.getElementById('departmentName').value.trim();
+            const error = document.getElementById('departmentError');
+            error.textContent = '';
+            if (!name) { error.textContent = 'Enter a department name.'; return; }
+            const btn = document.getElementById('departmentSave');
+            btn.disabled = true;
+            document.getElementById('empSave').disabled = true;
+            try {
+                const saved = await apiFetch('/api/platform/employees/departments', { method: 'POST', body: JSON.stringify({ name }) });
+                fillDepts([...new Set([...departments, saved])].sort((a, b) => a.localeCompare(b)));
+                document.getElementById('f_dept').value = saved;
+                toggleNewDepartment(false);
+                showToast('Department added and selected.');
+            } catch (e) { error.textContent = e.message || 'Could not add department. Please try again.'; }
+            finally { btn.disabled = false; document.getElementById('empSave').disabled = false; }
+        }
+        function renderKpis() {
+            document.getElementById('kpiActive').textContent = summary.headcount_active;
+            document.getElementById('kpiCommit').textContent = money(summary.monthly_commitment);
+            document.getElementById('kpiPaid').textContent = money(summary.this_month_net_paid);
+            document.getElementById('kpiUnpaid').textContent = summary.this_month_unpaid_count;
+        }
+        function renderDepts() {
+            const rows = summary.by_department || [];
+            const max = Math.max(1, ...rows.map(r => Number(r.monthly_salary)));
+            document.getElementById('deptRows').innerHTML = rows.length ? rows.map(r => `
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="font-medium text-slate-700">${esc(r.department)} <span class="text-slate-400">· ${r.headcount}</span></span>
+                        <span class="text-slate-500">${money(r.monthly_salary)}</span>
+                    </div>
+                    <div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-blue-500" style="width:${Math.round(Number(r.monthly_salary) / max * 100)}%"></div></div>
+                </div>`).join('') : '<p class="text-sm text-slate-400">No employees yet.</p>';
+        }
+        function statusPill(s) {
+            const m = { active: 'bg-green-50 text-green-700', on_leave: 'bg-amber-50 text-amber-700', terminated: 'bg-slate-100 text-slate-500' };
+            return `<span class="px-2 py-0.5 rounded-full text-xs font-medium ${m[s] || 'bg-slate-100 text-slate-600'}">${esc(s.replace('_', ' '))}</span>`;
+        }
+        function renderTable() {
+            const tb = document.getElementById('rows'), empty = document.getElementById('empty');
+            if (!employees.length) { tb.innerHTML = ''; empty.classList.remove('hidden'); return; }
+            empty.classList.add('hidden');
+            tb.innerHTML = employees.map(e => `
+                <tr class="border-b border-slate-100 hover:bg-slate-50">
+                    <td class="px-4 py-3 font-mono text-xs text-slate-500 whitespace-nowrap">${esc(e.employee_no)}</td>
+                    <td class="px-4 py-3 font-medium text-slate-900">${esc(e.full_name)}</td>
+                    <td class="px-4 py-3 text-slate-600">${esc(e.designation || '—')}</td>
+                    <td class="px-4 py-3 text-slate-600">${esc(e.department || '—')}</td>
+                    <td class="px-4 py-3 text-right font-medium whitespace-nowrap">${money(e.monthly_salary)}</td>
+                    <td class="px-4 py-3">${statusPill(e.status)}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">${e.paid_this_month ? '<span class="text-green-600 text-xs font-medium">Paid</span>' : '<span class="text-red-500 text-xs font-medium">Unpaid</span>'}</td>
+                    <td class="px-4 py-3 text-right whitespace-nowrap no-print">${CAN_WRITE ? `
+                        <button onclick='editEmp(${JSON.stringify(e.id)})' class="text-xs font-medium text-blue-600 hover:text-blue-800">Edit</button>
+                        <span class="text-slate-200 mx-1">·</span>
+                        <button onclick='askArchive(${JSON.stringify(e.id)}, ${JSON.stringify(e.full_name)})' class="text-xs font-medium text-red-600 hover:text-red-800">Archive</button>` : '<span class="text-slate-300 text-xs">—</span>'}</td>
+                </tr>`).join('');
+        }
+
+        let editId = null;
+        function openAdd() {
+            toggleNewDepartment(false);
+            editId = null; document.getElementById('empTitle').textContent = 'Add Employee';
+            ['f_name', 'f_desig', 'f_dept', 'f_salary', 'f_join', 'f_end', 'f_phone', 'f_email', 'f_nid', 'f_bank', 'f_acct', 'f_addr', 'f_notes'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('f_etype').value = 'Full-time';
+            document.getElementById('f_status').value = 'active';
+            document.getElementById('empModal').classList.remove('hidden');
+        }
+        function editEmp(id) {
+            toggleNewDepartment(false);
+            const e = employees.find(x => x.id === id); if (!e) return;
+            editId = id; document.getElementById('empTitle').textContent = `Edit ${e.employee_no}`;
+            document.getElementById('f_name').value = e.full_name || '';
+            document.getElementById('f_desig').value = e.designation || '';
+            document.getElementById('f_dept').value = e.department || '';
+            document.getElementById('f_salary').value = e.monthly_salary ?? '';
+            document.getElementById('f_etype').value = e.employment_type || 'Full-time';
+            document.getElementById('f_status').value = e.status || 'active';
+            document.getElementById('f_join').value = e.join_date || '';
+            document.getElementById('f_end').value = e.end_date || '';
+            document.getElementById('f_phone').value = e.phone || '';
+            document.getElementById('f_email').value = e.email || '';
+            document.getElementById('f_nid').value = e.national_id || '';
+            document.getElementById('f_bank').value = e.bank_name || '';
+            document.getElementById('f_acct').value = e.bank_account || '';
+            document.getElementById('f_addr').value = e.address || '';
+            document.getElementById('f_notes').value = e.notes || '';
+            document.getElementById('empModal').classList.remove('hidden');
+        }
+        function closeEmp() { document.getElementById('empModal').classList.add('hidden'); }
+        async function saveEmp() {
+            const body = {
+                full_name: document.getElementById('f_name').value.trim(),
+                designation: document.getElementById('f_desig').value.trim() || null,
+                department: document.getElementById('f_dept').value.trim() || null,
+                monthly_salary: document.getElementById('f_salary').value || '0',
+                employment_type: document.getElementById('f_etype').value,
+                status: document.getElementById('f_status').value,
+                join_date: document.getElementById('f_join').value || null,
+                end_date: document.getElementById('f_end').value || null,
+                phone: document.getElementById('f_phone').value.trim() || null,
+                email: document.getElementById('f_email').value.trim() || null,
+                national_id: document.getElementById('f_nid').value.trim() || null,
+                bank_name: document.getElementById('f_bank').value.trim() || null,
+                bank_account: document.getElementById('f_acct').value.trim() || null,
+                address: document.getElementById('f_addr').value.trim() || null,
+                notes: document.getElementById('f_notes').value.trim() || null,
+            };
+            if (!body.full_name) { showToast('Enter a name.', 'error'); return; }
+            const btn = document.getElementById('empSave'); btn.disabled = true;
+            try {
+                if (editId) await apiFetch(`/api/platform/employees/${editId}`, { method: 'PATCH', body: JSON.stringify(body) });
+                else await apiFetch('/api/platform/employees', { method: 'POST', body: JSON.stringify(body) });
+                closeEmp(); showToast(editId ? 'Employee updated.' : 'Employee added.'); await loadAll();
+            } catch (e) { showToast(e.message, 'error'); } finally { btn.disabled = false; }
+        }
+
+        let archId = null;
+        function askArchive(id, name) {
+            archId = id;
+            document.getElementById('cfText').textContent = IS_SUPER
+                ? `Archive ${name}? Salary history is kept; they drop off the payroll register.`
+                : `Archiving requires a super admin. You can still set the status to "terminated".`;
+            document.getElementById('cfOk').disabled = !IS_SUPER;
+            document.getElementById('cfOk').onclick = doArchive;
+            document.getElementById('cfModal').classList.remove('hidden');
+        }
+        function closeCf() { document.getElementById('cfModal').classList.add('hidden'); }
+        async function doArchive() {
+            closeCf();
+            try { await apiFetch(`/api/platform/employees/${archId}`, { method: 'DELETE' }); showToast('Employee archived.'); await loadAll(); }
+            catch (e) { showToast(e.message, 'error'); }
+        }
+
+        function exportCsv() {
+            const head = ['Employee No', 'Name', 'Designation', 'Department', 'Monthly Salary', 'Status', 'Paid this month', 'Join date', 'Phone', 'Email'];
+            const lines = employees.map(e => [e.employee_no, e.full_name, e.designation || '', e.department || '', e.monthly_salary, e.status, e.paid_this_month ? 'Yes' : 'No', e.join_date || '', e.phone || '', e.email || '']);
+            downloadCsv('platform-employees', head, lines);
+        }
+
+        (async () => {
+            try { await loadAll(); }
+            catch (e) {
+                if (e && e.message === 'Unauthorized') return;
+                const b = document.getElementById('errorBanner');
+                b.textContent = 'Failed to load: ' + ((e && e.message) || e);
+                b.classList.remove('hidden');
+            }
+        })();
+    </script>
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/organic-5390cd92-f589-4e5b-8a59-849462ee6f8e/styles.css">
+<script src="_ds/organic-5390cd92-f589-4e5b-8a59-849462ee6f8e/_ds_bundle.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; }
+  @keyframes riseIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+</style>
+</helmet>
+
+<div style="min-height: 100vh; background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); display: flex; flex-direction: column;">
+
+  <header style="display: flex; align-items: center; gap: var(--space-4); padding: var(--space-4) var(--space-6) var(--space-3); flex-wrap: wrap;">
+    <div style="display: flex; align-items: center; gap: var(--space-3); margin-right: auto;">
+      <div style="width: 40px; height: 40px; border-radius: 999px; background: var(--color-accent); color: var(--color-bg); font-family: var(--font-heading); font-size: 19px; display: grid; place-items: center;">C</div>
+      <div style="display: flex; flex-direction: column;">
+        <span style="font-family: var(--font-heading); font-size: 20px; line-height: 1.1;">Counter</span>
+        <span style="font-size: 12px; opacity: 0.6;">{{ ticketLine }}</span>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+      <button type="button" onClick="{{ onNewOrder }}" title="New order" style="display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 20px 0 16px; border-radius: 999px; border: 2px solid var(--color-divider); background: transparent; color: var(--color-text); font-family: var(--font-body); font-size: 14px; cursor: pointer;" style-hover="border-color: var(--color-accent); background: var(--color-accent-100);">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+        <span>New order</span>
+      </button>
+
+      <button type="button" onClick="{{ onDrafts }}" title="Draft orders" style="position: relative; display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 20px 0 16px; border-radius: 999px; border: 2px solid var(--color-divider); background: transparent; color: var(--color-text); font-family: var(--font-body); font-size: 14px; cursor: pointer;" style-hover="border-color: var(--color-accent-2); background: var(--color-accent-2-100);">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9z"></path><path d="M15 3v6h6"></path></svg>
+        <span>Drafts</span>
+        <span style="{{ draftBadgeStyle }}">{{ draftCount }}</span>
+      </button>
+
+      <button type="button" onClick="{{ onCart }}" title="View cart" style="position: relative; display: inline-flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 22px 0 18px; border-radius: 999px; border: none; background: var(--color-accent); color: var(--color-bg); font-family: var(--font-heading); font-size: 15px; cursor: pointer; box-shadow: var(--shadow-sm);" style-hover="background: var(--color-accent-600);" style-active="background: var(--color-accent-700);">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg>
+        <span>View cart</span>
+        <span style="{{ cartBadgeStyle }}">{{ cartCount }}</span>
+      </button>
+
+      <div style="display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: var(--color-surface);">
+        <sc-for list="{{ deviceOpts }}" as="opt" hint-placeholder-count="3">
+          <button type="button" onClick="{{ opt.onClick }}" style="{{ opt.style }}">{{ opt.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+  </header>
+
+  <div style="{{ bodyStyle }}">
+
+    <section style="{{ leftPaneStyle }}">
+      <div style="display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-2);">
+        <span style="font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-accent-700);">Step 1 — Category</span>
+      </div>
+      <div style="{{ catRowStyle }}">
+        <sc-for list="{{ cats }}" as="cat" hint-placeholder-count="6">
+          <button type="button" onClick="{{ cat.onClick }}" style="{{ cat.style }}" style-hover="border-color: var(--color-accent);">
+            <span style="{{ cat.badgeStyle }}">{{ cat.initial }}</span>
+            <span style="font-size: 12px; line-height: 1.2; text-align: center; text-wrap: pretty;">{{ cat.name }}</span>
+          </button>
+        </sc-for>
+      </div>
+
+      <div style="height: 1px; background: var(--color-divider); margin: var(--space-4) 0;"></div>
+
+      <div style="display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-3); flex-wrap: wrap;">
+        <span style="font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-accent-700);">Step 2 — Product</span>
+        <h2 style="font-family: var(--font-heading); font-size: 24px; margin: 0;">{{ catTitle }}</h2>
+        <span style="font-size: 12px; opacity: 0.55;">{{ catHint }}</span>
+      </div>
+      <div style="{{ itemGridStyle }}">
+        <sc-for list="{{ items }}" as="it" hint-placeholder-count="5">
+          <button type="button" onClick="{{ it.onClick }}" style="{{ it.style }}" style-hover="border-color: var(--color-accent);">
+            <span style="{{ it.thumbStyle }}"></span>
+            <span style="font-size: 13px; line-height: 1.25; text-align: left;">{{ it.name }}</span>
+            <span style="display: flex; align-items: center; gap: 8px; width: 100%;">
+              <span style="font-size: 12px; font-weight: 700;">{{ it.price }}</span>
+              <span style="font-size: 10px; opacity: 0.5; margin-left: auto;">{{ it.groupNote }}</span>
+            </span>
+          </button>
+        </sc-for>
+      </div>
+    </section>
+
+    <aside style="{{ panelStyle }}">
+      <sc-if value="{{ noItem }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-6) var(--space-4); align-items: center; text-align: center;">
+          <span style="width: 72px; height: 72px; border-radius: 999px; background: var(--color-accent-2-200); display: grid; place-items: center; color: var(--color-accent-2-800);">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 8l10 5 10-5z"></path><path d="M2 16l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+          </span>
+          <span style="font-family: var(--font-heading); font-size: 19px;">Pick a product</span>
+          <span style="font-size: 13px; opacity: 0.6; max-width: 26ch;">Its variants load from this tenant's menu database — sizes, add-ons and price changes all come from stored data.</span>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ hasItem }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+          <div style="display: flex; align-items: flex-start; gap: var(--space-3);">
+            <div style="display: flex; flex-direction: column; gap: 2px; margin-right: auto;">
+              <span style="font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-accent-700);">Step 3 — Variants</span>
+              <span style="font-family: var(--font-heading); font-size: 22px; line-height: 1.15;">{{ itemName }}</span>
+              <span style="font-size: 12px; opacity: 0.6;">{{ crumb }} · base {{ itemBase }}</span>
+            </div>
+            <button type="button" onClick="{{ onClear }}" title="Clear" style="width: 40px; height: 40px; border-radius: 999px; border: 2px solid var(--color-divider); background: transparent; color: var(--color-text); cursor: pointer; flex: none; display: grid; place-items: center;" style-hover="background: var(--color-neutral-200);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            </button>
+          </div>
+
+          <sc-for list="{{ groups }}" as="g" hint-placeholder-count="3">
+            <div style="display: flex; flex-direction: column; gap: var(--space-2);">
+              <div style="display: flex; align-items: baseline; gap: 8px;">
+                <span style="font-size: 13px; font-weight: 700;">{{ g.label }}</span>
+                <span style="font-size: 11px; opacity: 0.5;">{{ g.note }}</span>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <sc-for list="{{ g.opts }}" as="o" hint-placeholder-count="3">
+                  <button type="button" onClick="{{ o.onClick }}" style="{{ o.style }}" style-hover="border-color: var(--color-accent);">
+                    <span>{{ o.label }}</span>
+                    <span style="{{ o.deltaStyle }}">{{ o.delta }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+
+          <div style="height: 1px; background: var(--color-divider);"></div>
+
+          <div style="display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;">
+            <span style="display: flex; flex-direction: column; gap: 1px;">
+              <span style="font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-accent-700);">Step 4</span>
+              <span style="font-size: 13px; font-weight: 700;">Quantity</span>
+            </span>
+            <div style="display: flex; align-items: center; gap: 4px; margin-left: auto; padding: 4px; border-radius: 999px; background: var(--color-surface);">
+              <button type="button" onClick="{{ onMinus }}" style="width: 48px; height: 48px; border-radius: 999px; border: none; background: var(--color-bg); color: var(--color-text); font-size: 22px; font-family: var(--font-heading); cursor: pointer;" style-hover="background: var(--color-accent-200);">–</button>
+              <span style="min-width: 52px; text-align: center; font-family: var(--font-heading); font-size: 22px;">{{ qty }}</span>
+              <button type="button" onClick="{{ onPlus }}" style="width: 48px; height: 48px; border-radius: 999px; border: none; background: var(--color-bg); color: var(--color-text); font-size: 22px; font-family: var(--font-heading); cursor: pointer;" style-hover="background: var(--color-accent-200);">+</button>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-radius: 28px; background: var(--color-accent-2-100);">
+            <div style="display: flex; align-items: baseline; gap: 8px;">
+              <span style="font-size: 12px; opacity: 0.7;">{{ unitLine }}</span>
+              <span style="font-family: var(--font-heading); font-size: 26px; margin-left: auto;">{{ total }}</span>
+            </div>
+            <span style="font-size: 11px; opacity: 0.55;">{{ selectionSummary }}</span>
+          </div>
+
+          <button type="button" onClick="{{ onAdd }}" style="display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; min-height: 60px; border-radius: 999px; border: none; background: var(--color-accent); color: var(--color-bg); font-family: var(--font-heading); font-size: 18px; cursor: pointer;" style-hover="background: var(--color-accent-600);" style-active="background: var(--color-accent-700);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg>
+            <span>Add to cart</span>
+          </button>
+        </div>
+      </sc-if>
+    </aside>
+  </div>
+
+  <sc-if value="{{ overlayOpen }}" hint-placeholder-val="{{ null }}">
+    <div style="position: fixed; inset: 0; background: rgba(32, 30, 29, 0.42); display: flex; justify-content: flex-end; z-index: 40;">
+      <div onClick="{{ onCloseOverlay }}" style="flex: 1 1 auto;"></div>
+      <div style="width: min(460px, 100%); background: var(--color-bg); box-shadow: var(--shadow-lg); padding: var(--space-6) var(--space-4) var(--space-6); overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-4); border-radius: 40px 0 0 40px; animation: slideIn 200ms ease-out;">
+        <div style="display: flex; align-items: center; gap: var(--space-3);">
+          <span style="font-family: var(--font-heading); font-size: 24px; margin-right: auto;">{{ overlayTitle }}</span>
+          <button type="button" onClick="{{ onCloseOverlay }}" style="width: 44px; height: 44px; border-radius: 999px; border: 2px solid var(--color-divider); background: transparent; color: var(--color-text); cursor: pointer; display: grid; place-items: center;" style-hover="background: var(--color-neutral-200);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+          </button>
+        </div>
+
+        <sc-if value="{{ showCart }}" hint-placeholder-val="{{ null }}">
+          <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+            <sc-if value="{{ cartEmpty }}" hint-placeholder-val="{{ null }}">
+              <div style="padding: var(--space-6) var(--space-4); text-align: center; font-size: 13px; opacity: 0.6; background: var(--color-surface); border-radius: 32px;">Nothing on this ticket yet. Pick a category, then a product.</div>
+            </sc-if>
+            <sc-for list="{{ cart }}" as="line" hint-placeholder-count="2">
+              <div style="display: flex; gap: var(--space-3); align-items: flex-start; padding: var(--space-3) var(--space-4); border-radius: 28px; background: var(--color-surface);">
+                <span style="width: 34px; height: 34px; flex: none; border-radius: 999px; background: var(--color-accent-200); color: var(--color-accent-800); font-family: var(--font-heading); font-size: 14px; display: grid; place-items: center;">{{ line.qty }}</span>
+                <span style="display: flex; flex-direction: column; gap: 3px; margin-right: auto;">
+                  <span style="font-family: var(--font-heading); font-size: 16px; line-height: 1.2;">{{ line.name }}</span>
+                  <span style="font-size: 11px; opacity: 0.6; max-width: 24ch;">{{ line.summary }}</span>
+                </span>
+                <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
+                  <span style="font-size: 15px; font-weight: 700;">{{ line.total }}</span>
+                  <button type="button" onClick="{{ line.onRemove }}" style="border: none; background: transparent; color: var(--color-accent-700); font-size: 11px; cursor: pointer; padding: 0;" style-hover="text-decoration: underline;">Remove</button>
+                </span>
+              </div>
+            </sc-for>
+
+            <div style="display: flex; flex-direction: column; gap: 8px; padding: var(--space-4); border-radius: 32px; background: var(--color-accent-2-100);">
+              <div style="display: flex; font-size: 13px;"><span style="margin-right: auto; opacity: 0.7;">Subtotal</span><span>{{ subtotal }}</span></div>
+              <div style="display: flex; font-size: 13px;"><span style="margin-right: auto; opacity: 0.7;">Tax (8%)</span><span>{{ tax }}</span></div>
+              <div style="display: flex; align-items: baseline; padding-top: 8px; border-top: 1px solid var(--color-divider);"><span style="margin-right: auto; font-size: 13px; font-weight: 700;">Total due</span><span style="font-family: var(--font-heading); font-size: 26px;">{{ grandTotal }}</span></div>
+            </div>
+
+            <button type="button" onClick="{{ onCheckout }}" style="width: 100%; min-height: 60px; border-radius: 999px; border: none; background: var(--color-accent); color: var(--color-bg); font-family: var(--font-heading); font-size: 18px; cursor: pointer;" style-hover="background: var(--color-accent-600);" style-active="background: var(--color-accent-700);">Take payment</button>
+            <button type="button" onClick="{{ onSaveDraft }}" style="width: 100%; min-height: 52px; border-radius: 999px; border: 2px solid var(--color-divider); background: transparent; color: var(--color-text); font-family: var(--font-body); font-size: 15px; cursor: pointer;" style-hover="border-color: var(--color-accent-2); background: var(--color-accent-2-100);">Park as draft</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showDrafts }}" hint-placeholder-val="{{ null }}">
+          <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+            <span style="font-size: 13px; opacity: 0.65;">Unfinished tickets, held on the account. Resume one to keep taking the order.</span>
+            <sc-if value="{{ draftsEmpty }}" hint-placeholder-val="{{ null }}">
+              <div style="padding: var(--space-6) var(--space-4); text-align: center; font-size: 13px; opacity: 0.6; background: var(--color-surface); border-radius: 32px;">No draft orders held.</div>
+            </sc-if>
+            <sc-for list="{{ drafts }}" as="d" hint-placeholder-count="3">
+              <div style="display: flex; gap: var(--space-3); align-items: center; padding: var(--space-3) var(--space-4); border-radius: 28px; background: var(--color-surface);">
+                <span style="display: flex; flex-direction: column; gap: 3px; margin-right: auto;">
+                  <span style="font-family: var(--font-heading); font-size: 16px; line-height: 1.2;">{{ d.ref }}</span>
+                  <span style="font-size: 11px; opacity: 0.6;">{{ d.meta }}</span>
+                </span>
+                <span style="font-size: 15px; font-weight: 700;">{{ d.total }}</span>
+                <button type="button" onClick="{{ d.onResume }}" style="min-height: 44px; padding: 0 18px; border-radius: 999px; border: none; background: var(--color-accent-2); color: var(--color-bg); font-family: var(--font-body); font-size: 13px; cursor: pointer;" style-hover="background: var(--color-accent-2-600);">Resume</button>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ null }}">
+    <div style="position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 14px 22px; border-radius: 999px; background: var(--color-neutral-900); color: var(--color-neutral-100); box-shadow: var(--shadow-lg); font-size: 14px; z-index: 60; animation: riseIn 220ms ease-out;">
+      <span style="width: 8px; height: 8px; border-radius: 999px; background: var(--color-accent-2-400);"></span>
+      <span>{{ toast }}</span>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;device&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;desktop&quot;,&quot;tablet&quot;,&quot;phone&quot;],&quot;default&quot;:&quot;desktop&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Layout&quot;},&quot;showDeltas&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behaviour&quot;}}">
+class Component extends DCLogic {
+  groupLib = {
+    size: { label: 'Size', opts: [['single', 'Single', 0], ['double', 'Double', 2.5], ['triple', 'Triple stack', 4]] },
+    cheese: { label: 'Cheese', opts: [['american', 'American', 0], ['cheddar', 'Aged cheddar', 0.5], ['swiss', 'Swiss', 0.75], ['vegan', 'Vegan slice', 0.95]] },
+    heat: { label: 'Heat level', opts: [['mild', 'Mild', 0], ['med', 'Medium', 0], ['hot', 'Hot', 0], ['xhot', 'Extra hot', 0.3]] },
+    toppings: { label: 'Extra toppings', multi: true, opts: [['mush', 'Mushroom', 0.8], ['olive', 'Olives', 0.7], ['jala', 'Jalapeño', 0.6], ['xcheese', 'Extra cheese', 1.2]] },
+    pieces: { label: 'Pieces', opts: [['p6', '6 pc', 0], ['p9', '9 pc', 2.8], ['p12', '12 pc', 5.2]] },
+    dip: { label: 'Dip', opts: [['none', 'No dip', 0], ['aioli', 'Garlic aioli', 0.6], ['cheese', 'Cheese sauce', 0.9], ['sriracha', 'Sriracha mayo', 0.7]] },
+    pizzaSize: { label: 'Size', opts: [['s9', '9 inch', 0], ['s12', '12 inch', 3], ['s15', '15 inch', 6]] },
+    crust: { label: 'Crust', opts: [['thin', 'Thin', 0], ['classic', 'Classic', 0], ['deep', 'Deep dish', 1.5], ['stuffed', 'Stuffed edge', 2.75]] },
+    scoops: { label: 'Scoops', opts: [['s1', '1 scoop', 0], ['s2', '2 scoops', 1.8], ['s3', '3 scoops', 3.4]] },
+    vessel: { label: 'Serve in', opts: [['cup', 'Cup', 0], ['cone', 'Cone', 0], ['waffle', 'Waffle cone', 0.9], ['glass', 'Sundae glass', 1.2]] },
+    sauce: { label: 'Sauce', opts: [['choc', 'Chocolate', 0], ['caramel', 'Caramel', 0], ['straw', 'Strawberry', 0], ['butter', 'Salted butterscotch', 0.5]] },
+    sprinkles: { label: 'Finishing', multi: true, opts: [['rainbow', 'Rainbow sprinkles', 0.4], ['nuts', 'Crushed nuts', 0.8], ['brownie', 'Brownie chunks', 1.1], ['berry', 'Fresh berries', 1.3]] },
+    drinkSize: { label: 'Size', opts: [['reg', 'Regular', 0], ['lg', 'Large', 0.8], ['jumbo', 'Jumbo', 1.4]] },
+    ice: { label: 'Ice', opts: [['normal', 'Normal ice', 0], ['light', 'Light ice', 0], ['no', 'No ice', 0]] },
+    portion: { label: 'Portion', opts: [['reg', 'Regular', 0], ['lg', 'Large', 1.5], ['share', 'Sharing', 3]] }
+  };
+
+  catalog = [
+    { id: 'burgers', name: 'Burgers', items: [
+      { id: 'cheese', name: 'Classic Cheeseburger', base: 6.5, groups: ['size', 'cheese', 'toppings'] },
+      { id: 'bacon', name: 'Bacon Stack', base: 8.25, groups: ['size', 'cheese', 'toppings'] },
+      { id: 'wrap', name: 'Crispy Chicken Wrap', base: 7.1, groups: ['size', 'heat', 'toppings'] },
+      { id: 'veg', name: 'Veggie Patty', base: 6.2, groups: ['size', 'cheese', 'toppings'] },
+      { id: 'smash', name: 'Double Smash', base: 9.4, groups: ['size', 'cheese', 'toppings'] }
+    ] },
+    { id: 'chicken', name: 'Fried Chicken', items: [
+      { id: 'wings', name: 'Wings', base: 7.9, groups: ['pieces', 'heat', 'dip'] },
+      { id: 'tenders', name: 'Tenders', base: 8.4, groups: ['pieces', 'heat', 'dip'] },
+      { id: 'bucket', name: 'Family Bucket', base: 18, groups: ['pieces', 'heat', 'dip'] },
+      { id: 'waffle', name: 'Chicken & Waffle', base: 10.2, groups: ['heat', 'dip'] }
+    ] },
+    { id: 'pizza', name: 'Pizza', items: [
+      { id: 'marg', name: 'Margherita', base: 9, groups: ['pizzaSize', 'crust', 'toppings'] },
+      { id: 'pep', name: 'Pepperoni', base: 10.5, groups: ['pizzaSize', 'crust', 'toppings'] },
+      { id: 'veggie', name: 'Veggie Supreme', base: 11.2, groups: ['pizzaSize', 'crust', 'toppings'] },
+      { id: 'bbq', name: 'BBQ Chicken', base: 12, groups: ['pizzaSize', 'crust', 'toppings'] }
+    ] },
+    { id: 'icecream', name: 'Ice Cream', items: [
+      { id: 'sundae', name: 'Sundae', base: 5.4, groups: ['scoops', 'sauce', 'sprinkles'] },
+      { id: 'cone', name: 'Cone', base: 3.2, groups: ['scoops', 'vessel', 'sprinkles'] },
+      { id: 'shake', name: 'Milkshake', base: 5.9, groups: ['scoops', 'sauce', 'sprinkles'] },
+      { id: 'split', name: 'Banana Split', base: 7.6, groups: ['scoops', 'sauce', 'sprinkles'] }
+    ] },
+    { id: 'drinks', name: 'Drinks', items: [
+      { id: 'cola', name: 'Fountain Cola', base: 2.4, groups: ['drinkSize', 'ice'] },
+      { id: 'tea', name: 'Iced Tea', base: 2.8, groups: ['drinkSize', 'ice'] },
+      { id: 'coffee', name: 'Iced Coffee', base: 3.6, groups: ['drinkSize', 'ice'] },
+      { id: 'lemon', name: 'Lemonade', base: 3.1, groups: ['drinkSize', 'ice'] }
+    ] },
+    { id: 'sides', name: 'Sides', items: [
+      { id: 'fries', name: 'Fries', base: 3.2, groups: ['portion', 'dip'] },
+      { id: 'rings', name: 'Onion Rings', base: 3.8, groups: ['portion', 'dip'] },
+      { id: 'slaw', name: 'Coleslaw', base: 2.6, groups: ['portion'] },
+      { id: 'garlic', name: 'Garlic Bread', base: 3.4, groups: ['portion', 'dip'] }
+    ] }
+  ];
+
+  state = {
+    cat: 'burgers', item: null, sel: {}, qty: 1, device: null, toast: null,
+    overlay: null, ticket: 1042, cart: [],
+    drafts: [
+      { id: 'd1', ref: 'Ticket #1039', meta: 'Table 4 · 3 lines · held 6 min ago', total: 24.8 },
+      { id: 'd2', ref: 'Ticket #1040', meta: 'Takeaway · 5 lines · held 11 min ago', total: 41.35 },
+      { id: 'd3', ref: 'Ticket #1041', meta: 'Drive-thru · 2 lines · held 18 min ago', total: 12.6 }
+    ]
+  };
+
+  device() { return this.state.device || this.props.device || 'desktop'; }
+  money(n) { return '$' + n.toFixed(2); }
+  cat() { return this.catalog.find(c => c.id === this.state.cat) || this.catalog[0]; }
+  item() { return this.cat().items.find(i => i.id === this.state.item) || null; }
+
+  flash(msg) {
+    this.setState({ toast: msg });
+    clearTimeout(this._t);
+    this._t = setTimeout(() => this.setState({ toast: null }), 2600);
+  }
+
+  defaultSel(item) {
+    const sel = {};
+    item.groups.forEach(gid => {
+      const g = this.groupLib[gid];
+      sel[gid] = g.multi ? [] : g.opts[0][0];
+    });
+    return sel;
+  }
+
+  toggle(gid, oid, multi) {
+    this.setState(s => {
+      const sel = Object.assign({}, s.sel);
+      if (multi) {
+        const cur = sel[gid] || [];
+        sel[gid] = cur.indexOf(oid) >= 0 ? cur.filter(x => x !== oid) : cur.concat([oid]);
+      } else sel[gid] = oid;
+      return { sel: sel };
+    });
+  }
+
+  isOn(gid, oid, multi) {
+    const v = this.state.sel[gid];
+    return multi ? (v || []).indexOf(oid) >= 0 : v === oid;
+  }
+
+  unit() {
+    const item = this.item();
+    if (!item) return 0;
+    let sum = item.base;
+    item.groups.forEach(gid => {
+      const g = this.groupLib[gid];
+      const v = this.state.sel[gid];
+      g.opts.forEach(o => {
+        if (g.multi ? (v || []).indexOf(o[0]) >= 0 : v === o[0]) sum += o[2];
+      });
+    });
+    return sum;
+  }
+
+  summaryOf(item, sel) {
+    return item.groups.map(gid => {
+      const g = this.groupLib[gid];
+      const v = sel[gid];
+      const names = g.opts.filter(o => g.multi ? (v || []).indexOf(o[0]) >= 0 : v === o[0]).map(o => o[1]);
+      return names.length ? names.join(' + ') : null;
+    }).filter(Boolean).join(' · ');
+  }
+
+  tileBase(on) {
+    return {
+      display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'flex-start',
+      minHeight: '116px', padding: '14px', cursor: 'pointer',
+      borderRadius: '28px', fontFamily: 'var(--font-body)', color: 'var(--color-text)',
+      border: on ? '2px solid var(--color-accent)' : '2px solid transparent',
+      background: on ? 'var(--color-accent-100)' : 'var(--color-surface)',
+      boxShadow: on ? 'var(--shadow-md)' : 'var(--shadow-sm)',
+      transition: 'background 120ms ease, border-color 120ms ease'
+    };
+  }
+
+  chip(on) {
+    return {
+      display: 'inline-flex', alignItems: 'center', gap: '8px',
+      minHeight: '46px', padding: '0 18px', cursor: 'pointer',
+      borderRadius: '999px', fontSize: '14px', fontFamily: 'var(--font-body)',
+      color: on ? 'var(--color-bg)' : 'var(--color-text)',
+      background: on ? 'var(--color-accent)' : 'var(--color-surface)',
+      border: on ? '2px solid var(--color-accent)' : '2px solid transparent',
+      transition: 'background 120ms ease'
+    };
+  }
+
+  badge(bg, fg, show) {
+    return {
+      minWidth: '24px', height: '24px', padding: '0 7px', borderRadius: '999px',
+      display: show ? 'grid' : 'none', placeItems: 'center',
+      fontFamily: 'var(--font-heading)', fontSize: '12px', background: bg, color: fg
+    };
+  }
+
+  renderVals() {
+    const dev = this.device();
+    const phone = dev === 'phone';
+    const tablet = dev === 'tablet';
+    const showDeltas = this.props.showDeltas !== false;
+    const item = this.item();
+    const cat = this.cat();
+    const unit = this.unit();
+    const qty = this.state.qty;
+    const cart = this.state.cart;
+    const cartQty = cart.reduce((n, l) => n + l.qty, 0);
+    const subtotal = cart.reduce((n, l) => n + l.unit * l.qty, 0);
+    const tax = subtotal * 0.08;
+
+    const deviceOpts = ['desktop', 'tablet', 'phone'].map(d => ({
+      id: d,
+      label: d === 'desktop' ? 'Desktop' : d === 'tablet' ? 'Tablet' : 'Phone',
+      onClick: () => this.setState({ device: d }),
+      style: {
+        border: 'none', cursor: 'pointer', borderRadius: '999px', padding: '10px 16px',
+        fontSize: '13px', fontFamily: 'var(--font-body)',
+        background: dev === d ? 'var(--color-accent)' : 'transparent',
+        color: dev === d ? 'var(--color-bg)' : 'var(--color-text)'
+      }
+    }));
+
+    const cats = this.catalog.map(c => {
+      const on = c.id === cat.id;
+      const style = Object.assign(this.tileBase(on), {
+        flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', gap: '8px',
+        minHeight: '0', padding: '12px 10px', borderRadius: '28px',
+        flex: '1 1 0', minWidth: 0, maxWidth: '140px'
+      });
+      return {
+        id: c.id, name: c.name, initial: c.name.charAt(0), meta: c.items.length + ' items',
+        onClick: () => this.setState({ cat: c.id, item: null, sel: {} }),
+        style: style,
+        badgeStyle: {
+          width: '100%', maxWidth: phone ? '62px' : '76px', aspectRatio: '1', height: 'auto',
+          borderRadius: '999px', display: 'grid', placeItems: 'center',
+          fontFamily: 'var(--font-heading)', fontSize: phone ? '24px' : '28px',
+          background: on ? 'var(--color-accent)' : 'var(--color-accent-2-200)',
+          color: on ? 'var(--color-bg)' : 'var(--color-accent-2-800)'
+        }
+      };
+    });
+
+    const items = cat.items.map(it => {
+      const on = item && it.id === item.id;
+      return {
+        id: it.id, name: it.name, price: this.money(it.base),
+        groupNote: it.groups.length + ' variant sets',
+        onClick: () => this.setState({ item: it.id, sel: this.defaultSel(it), qty: 1 }),
+        style: this.tileBase(on),
+        thumbStyle: {
+          width: '100%', height: phone ? '104px' : '128px', borderRadius: '22px',
+          background: 'repeating-linear-gradient(135deg, var(--color-neutral-200) 0 6px, var(--color-neutral-300) 6px 12px)',
+          opacity: 0.75
+        }
+      };
+    });
+
+    const groups = item ? item.groups.map(gid => {
+      const g = this.groupLib[gid];
+      return {
+        id: gid, label: g.label, note: g.multi ? 'choose any' : 'choose one',
+        opts: g.opts.map(o => {
+          const on = this.isOn(gid, o[0], g.multi);
+          const has = o[2] > 0 && showDeltas;
+          return {
+            id: o[0], label: o[1],
+            delta: has ? '+' + this.money(o[2]).slice(1) : '',
+            deltaStyle: {
+              fontSize: '12px', fontWeight: 600, display: has ? 'inline' : 'none',
+              color: on ? 'var(--color-bg)' : 'var(--color-accent-700)'
+            },
+            onClick: () => this.toggle(gid, o[0], g.multi),
+            style: this.chip(on)
+          };
+        })
+      };
+    }) : [];
+
+    return {
+      deviceOpts: deviceOpts,
+      ticketLine: 'Ticket #' + this.state.ticket + ' · Maya at front desk',
+      cats: cats,
+      items: items,
+      groups: groups,
+      catTitle: cat.name,
+      catHint: cat.items.length + ' products live from the menu table',
+      hasItem: !!item,
+      noItem: !item,
+      crumb: cat.name,
+      itemName: item ? item.name : '',
+      itemBase: item ? this.money(item.base) : '',
+      qty: String(qty),
+      unitLine: this.money(unit) + ' each × ' + qty,
+      total: this.money(unit * qty),
+      selectionSummary: item ? this.summaryOf(item, this.state.sel) : '',
+
+      cartCount: String(cartQty),
+      cartBadgeStyle: this.badge('var(--color-bg)', 'var(--color-accent-800)', cartQty > 0),
+      draftCount: String(this.state.drafts.length),
+      draftBadgeStyle: this.badge('var(--color-accent-2-300)', 'var(--color-accent-2-900)', this.state.drafts.length > 0),
+
+      overlayOpen: this.state.overlay,
+      overlayTitle: this.state.overlay === 'cart' ? 'Ticket #' + this.state.ticket : 'Draft orders',
+      showCart: this.state.overlay === 'cart' ? true : null,
+      showDrafts: this.state.overlay === 'drafts' ? true : null,
+      cartEmpty: cart.length === 0 ? true : null,
+      draftsEmpty: this.state.drafts.length === 0 ? true : null,
+      cart: cart.map(l => ({
+        id: l.id, name: l.name, qty: '×' + l.qty, summary: l.summary,
+        total: this.money(l.unit * l.qty),
+        onRemove: () => this.setState(s => ({ cart: s.cart.filter(x => x.id !== l.id) }))
+      })),
+      drafts: this.state.drafts.map(d => ({
+        id: d.id, ref: d.ref, meta: d.meta, total: this.money(d.total),
+        onResume: () => {
+          this.setState(s => ({ overlay: null, drafts: s.drafts.filter(x => x.id !== d.id) }));
+          this.flash(d.ref + ' resumed');
+        }
+      })),
+      subtotal: this.money(subtotal),
+      tax: this.money(tax),
+      grandTotal: this.money(subtotal + tax),
+
+      toast: this.state.toast,
+      onMinus: () => this.setState(s => ({ qty: Math.max(1, s.qty - 1) })),
+      onPlus: () => this.setState(s => ({ qty: Math.min(99, s.qty + 1) })),
+      onClear: () => this.setState({ item: null, sel: {}, qty: 1 }),
+      onCart: () => this.setState({ overlay: 'cart' }),
+      onDrafts: () => this.setState({ overlay: 'drafts' }),
+      onCloseOverlay: () => this.setState({ overlay: null }),
+      onNewOrder: () => {
+        this.setState(s => ({ ticket: s.ticket + 1, cart: [], item: null, sel: {}, qty: 1, overlay: null }));
+        this.flash('New ticket opened');
+      },
+      onSaveDraft: () => {
+        if (!cart.length) { this.flash('Nothing to park yet'); return; }
+        const ref = 'Ticket #' + this.state.ticket;
+        this.setState(s => ({
+          drafts: [{ id: 'd' + Date.now(), ref: ref, meta: 'Front desk · ' + s.cart.length + ' lines · held just now', total: subtotal + tax }].concat(s.drafts),
+          cart: [], item: null, sel: {}, qty: 1, ticket: s.ticket + 1, overlay: null
+        }));
+        this.flash(ref + ' parked as draft');
+      },
+      onCheckout: () => {
+        if (!cart.length) { this.flash('Add something first'); return; }
+        const amt = this.money(subtotal + tax);
+        this.setState(s => ({ cart: [], item: null, sel: {}, qty: 1, ticket: s.ticket + 1, overlay: null }));
+        this.flash('Sale completed — ' + amt);
+      },
+      onAdd: () => {
+        if (!item) return;
+        const line = {
+          id: 'l' + Date.now(), name: item.name, qty: qty, unit: unit,
+          summary: this.summaryOf(item, this.state.sel)
+        };
+        this.setState(s => ({ cart: s.cart.concat([line]), item: null, sel: {}, qty: 1 }));
+        this.flash(qty + ' × ' + item.name + ' added to cart');
+      },
+
+      bodyStyle: {
+        display: 'flex', flexDirection: phone ? 'column' : 'row',
+        gap: 'var(--space-4)', padding: '0 var(--space-6) var(--space-8)',
+        alignItems: 'flex-start', width: '100%',
+        maxWidth: phone ? '440px' : tablet ? '1100px' : '1560px',
+        margin: '0 auto', boxSizing: 'border-box'
+      },
+      leftPaneStyle: {
+        flex: '1 1 auto', minWidth: 0, width: phone ? '100%' : 'auto',
+        padding: 'var(--space-4)', borderRadius: '32px',
+        background: 'var(--color-surface)', boxSizing: 'border-box'
+      },
+      catRowStyle: {
+        display: 'flex', flexWrap: 'nowrap', gap: '8px', alignItems: 'stretch',
+        overflowX: 'auto', paddingBottom: '4px'
+      },
+      itemGridStyle: {
+        display: 'grid', gap: '12px',
+        gridTemplateColumns: phone ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fill, minmax(168px, 1fr))'
+      },
+      panelStyle: {
+        width: phone ? '100%' : 'auto',
+        flex: phone ? 'none' : tablet ? '0 1 340px' : '0 1 400px',
+        minWidth: phone ? 0 : '300px',
+        padding: 'var(--space-4)', borderRadius: '32px',
+        background: 'var(--color-neutral-100)', boxShadow: 'var(--shadow-md)',
+        position: phone ? 'static' : 'sticky', top: 'var(--space-4)',
+        boxSizing: 'border-box'
+      }
+    };
+  }
+}
+
+</script>
+</body>
+</html>

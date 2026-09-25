@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Tenant Admin</title>
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+</head>
+<body class="bg-slate-50 min-h-screen flex">
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         SIDEBAR
+    ════════════════════════════════════════════════════════════════════════ -->
+    <aside class="w-64 flex-shrink-0 h-screen bg-white border-r border-slate-200 flex flex-col overflow-y-auto fixed left-0 top-0 z-20">
+
+        <!-- Brand / Tenant -->
+        <div class="h-16 flex items-center px-5 border-b border-slate-200 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span class="text-white text-sm font-bold select-none">T</span>
+                </div>
+                <div>
+                    <p class="text-slate-900 text-sm font-semibold leading-none" id="sidebarTenantName">Loading…</p>
+                    <p class="text-indigo-600 text-[11px] leading-none mt-0.5 font-medium" id="sidebarTenantCode">—</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nav -->
+        <nav class="flex-1 px-3 py-4 space-y-0.5">
+
+            <!-- Overview (ACTIVE) -->
+            <a href="/tenant/dashboard.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium bg-indigo-50 text-indigo-700">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 13.5V19a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-5.5M9 21V12M3 9l9-6 9 6"/>
+                </svg>
+                Overview
+            </a>
+
+            <!-- Sales -->
+            <a href="/tenant/sales.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                Sales
+            </a>
+
+            <!-- Reports -->
+            <a href="/tenant/reports.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                Reports
+            </a>
+
+        <a href="/tenant/shifts.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Cash Shortages
+        </a>
+
+            <!-- Menu -->
+            <a href="/tenant/menu.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                Menu
+            </a>
+
+
+        <a href="/tenant/variant-options.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+            Variant Options
+        </a>
+
+        <a href="/tenant/addon-groups.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+            Add-on Groups
+        </a>
+
+            <!-- Promotions -->
+            <a href="/tenant/promotions.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg>
+                Promotions
+            </a>
+
+            <!-- Deals -->
+            <a href="/tenant/deals.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+                Deals
+            </a>
+
+            <!-- Branches -->
+            <a href="/tenant/branches.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/>
+                </svg>
+                Branches
+            </a>
+
+            <!-- Devices -->
+            <a href="/tenant/preparation-stations.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z"/>
+                </svg>
+                Kitchen Stations
+            </a>
+
+            <a href="/tenant/devices.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 8.25h3"/>
+                </svg>
+                Devices
+            </a>
+
+            <!-- Users -->
+            <a href="/tenant/users.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/>
+                </svg>
+                Users
+            </a>
+
+            <!-- Roles -->
+            <a href="/tenant/roles.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+                </svg>
+                Roles
+            </a>
+
+            <!-- Activity -->
+            <a href="/tenant/activity.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0"/>
+                </svg>
+                Activity
+            </a>
+
+            <!-- Inventory -->
+            <a href="/tenant/expenses.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-6 4h6m-6 4h4M5 3h14a2 2 0 012 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 012-2z"/></svg>
+                Expenses
+            </a>
+            <a href="/tenant/employees.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+                Employees
+            </a>
+            <a href="/tenant/salaries.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Salaries
+            </a>
+            <a href="/tenant/inventory.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                Inventory
+            </a>
+
+            <!-- Subscription -->
+            <a href="/tenant/subscription.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/>
+                </svg>
+                Subscription
+            </a>
+
+            <!-- Settings -->
+            <a href="/tenant/settings.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                Settings
+            </a>
+
+        </nav>
+
+        <!-- User Footer -->
+        <div class="border-t border-slate-200 p-4 flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                    <span class="text-indigo-700 text-sm font-semibold" id="userInitial">?</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-slate-900 truncate" id="sidebarUserName">—</p>
+                    <p class="text-xs text-slate-500 truncate" id="sidebarUserRoles">—</p>
+                </div>
+                <button onclick="logout()" title="Logout" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         MAIN CONTENT
+    ════════════════════════════════════════════════════════════════════════ -->
+    <main class="flex-1 ml-64 min-h-screen p-8">
+
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="text-2xl font-semibold text-slate-900">Overview</h1>
+            <p class="text-sm text-slate-500 mt-1">Your business at a glance</p>
+        </div>
+
+        <!-- Error Banner -->
+        <div id="errorBanner" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-6 text-sm"></div>
+        <a id="lowStockBanner" href="/tenant/inventory.html" class="hidden bg-amber-50 border border-amber-200 text-amber-900 rounded-lg p-4 mb-6 text-sm items-center justify-between gap-3 hover:bg-amber-100">
+            <span id="lowStockMessage"></span><span class="font-semibold whitespace-nowrap">View inventory →</span>
+        </a>
+
+        <!-- ── Stats Cards ─────────────────────────────────────────────────── -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 mb-8" id="statsGrid">
+
+            <!-- Skeleton placeholders while loading -->
+            <div class="skeleton-card bg-white rounded-xl border border-slate-200 shadow-sm p-6 animate-pulse">
+                <div class="h-3 bg-slate-200 rounded w-24 mb-3"></div>
+                <div class="h-7 bg-slate-200 rounded w-16 mb-2"></div>
+                <div class="h-3 bg-slate-200 rounded w-20"></div>
+            </div>
+            <div class="skeleton-card bg-white rounded-xl border border-slate-200 shadow-sm p-6 animate-pulse">
+                <div class="h-3 bg-slate-200 rounded w-24 mb-3"></div>
+                <div class="h-7 bg-slate-200 rounded w-16 mb-2"></div>
+                <div class="h-3 bg-slate-200 rounded w-20"></div>
+            </div>
+            <div class="skeleton-card bg-white rounded-xl border border-slate-200 shadow-sm p-6 animate-pulse">
+                <div class="h-3 bg-slate-200 rounded w-24 mb-3"></div>
+                <div class="h-7 bg-slate-200 rounded w-16 mb-2"></div>
+                <div class="h-3 bg-slate-200 rounded w-20"></div>
+            </div>
+            <div class="skeleton-card bg-white rounded-xl border border-slate-200 shadow-sm p-6 animate-pulse">
+                <div class="h-3 bg-slate-200 rounded w-24 mb-3"></div>
+                <div class="h-7 bg-slate-200 rounded w-16 mb-2"></div>
+                <div class="h-3 bg-slate-200 rounded w-20"></div>
+            </div>
+            <div class="skeleton-card bg-white rounded-xl border border-slate-200 shadow-sm p-6 animate-pulse">
+                <div class="h-3 bg-slate-200 rounded w-24 mb-3"></div>
+                <div class="h-7 bg-slate-200 rounded w-16 mb-2"></div>
+                <div class="h-3 bg-slate-200 rounded w-20"></div>
+            </div>
+            <div class="skeleton-card bg-white rounded-xl border border-slate-200 shadow-sm p-6 animate-pulse">
+                <div class="h-3 bg-slate-200 rounded w-24 mb-3"></div>
+                <div class="h-7 bg-slate-200 rounded w-16 mb-2"></div>
+                <div class="h-3 bg-slate-200 rounded w-20"></div>
+            </div>
+
+        </div>
+
+        <!-- ── Info Panels ─────────────────────────────────────────────────── -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- Tenant Info -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                <h2 class="text-base font-semibold text-slate-900 mb-4">Tenant Info</h2>
+                <div id="tenantInfoBody" class="space-y-3 animate-pulse">
+                    <div class="h-4 bg-slate-200 rounded w-3/4"></div>
+                    <div class="h-4 bg-slate-200 rounded w-1/2"></div>
+                    <div class="h-4 bg-slate-200 rounded w-2/3"></div>
+                    <div class="h-4 bg-slate-200 rounded w-1/2"></div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                <h2 class="text-base font-semibold text-slate-900 mb-4">Quick Actions</h2>
+                <div class="space-y-2">
+
+                    <a href="/tenant/branches.html"
+                       class="flex items-center justify-between px-4 py-3 rounded-lg border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition-colors group">
+                        <span class="text-sm font-medium text-slate-700 group-hover:text-indigo-700">Manage Branches</span>
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+
+                    <a href="/tenant/devices.html"
+                       class="flex items-center justify-between px-4 py-3 rounded-lg border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition-colors group">
+                        <span class="text-sm font-medium text-slate-700 group-hover:text-indigo-700">Manage Devices</span>
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+
+                    <a href="/tenant/users.html"
+                       class="flex items-center justify-between px-4 py-3 rounded-lg border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition-colors group">
+                        <span class="text-sm font-medium text-slate-700 group-hover:text-indigo-700">Manage Users</span>
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+
+                    <a href="/tenant/roles.html"
+                       class="flex items-center justify-between px-4 py-3 rounded-lg border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition-colors group">
+                        <span class="text-sm font-medium text-slate-700 group-hover:text-indigo-700">Manage Roles</span>
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        // ── API Helpers ───────────────────────────────────────────────────────
+        const BASE = '/api/v1';
+        function getToken() { return localStorage.getItem('tenant_token'); }
+
+        async function apiFetch(path, opts = {}) {
+            const res = await fetch(BASE + path, {
+                ...opts,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + getToken(),
+                    ...(opts.headers || {})
+                }
+            });
+            if (res.status === 401) {
+                localStorage.removeItem('tenant_token');
+                location.href = '/tenant/login.html';
+                throw new Error('Unauthorized');
+            }
+            if (!res.ok) {
+                const e = await res.json().catch(() => ({}));
+                throw new Error(e.detail || 'Request failed');
+            }
+            return res.json();
+        }
+
+        function logout() {
+            localStorage.removeItem('tenant_token');
+            localStorage.removeItem('tenant_me');
+            location.href = '/tenant/login.html';
+        }
+
+        // ── Sidebar Init ──────────────────────────────────────────────────────
+        async function initSidebar() {
+            const token = localStorage.getItem('tenant_token');
+            if (!token) { location.href = '/tenant/login.html'; return false; }
+            try {
+                const me = await apiFetch('/auth/me'); window.SHOP_CCY = (me && me.currency) || 'Rs.';
+                localStorage.setItem('tenant_me', JSON.stringify(me));
+                document.getElementById('sidebarTenantName').textContent = me.tenant?.name || 'My Business';
+                document.getElementById('sidebarTenantCode').textContent = me.tenant?.code || '';
+                document.getElementById('sidebarUserName').textContent = me.full_name || me.username;
+                document.getElementById('userInitial').textContent = (me.full_name || me.username || '?')[0].toUpperCase();
+                document.getElementById('sidebarUserRoles').textContent = me.roles?.length ? me.roles.join(', ') : 'No roles';
+                return me;
+            } catch(e) {
+                if (e.message !== 'Unauthorized') console.error(e);
+                return false;
+            }
+        }
+
+        // ── Formatting helpers ────────────────────────────────────────────────
+        function formatCurrency(value) {
+            if (value == null) return '—';
+            return (window.SHOP_CCY || 'Rs.') + ' ' + (Number(value) || 0)
+                .toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatDate(iso) {
+            if (!iso) return '—';
+            return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        // Subscription status → badge classes
+        function subBadge(status) {
+            const s = (status || '').toUpperCase();
+            if (s === 'ACTIVE')    return 'bg-green-100 text-green-700';
+            if (s === 'TRIAL')     return 'bg-yellow-100 text-yellow-700';
+            return 'bg-red-100 text-red-700'; // EXPIRED, CANCELLED, etc.
+        }
+
+        // Tenant status → badge
+        function tenantStatusBadge(status) {
+            const s = (status || '').toUpperCase();
+            if (s === 'ACTIVE') return { cls: 'bg-green-100 text-green-700', label: 'Active' };
+            return { cls: 'bg-red-100 text-red-700', label: status || 'Unknown' };
+        }
+
+        // ── Render stats cards ────────────────────────────────────────────────
+        function renderStats(stats) {
+            const grid = document.getElementById('statsGrid');
+
+            // Build cards data
+            const cards = [
+                {
+                    label: 'Branches',
+                    value: stats.branch_count ?? 0,
+                    sub: `${stats.active_branch_count ?? 0} active`
+                },
+                {
+                    label: 'Devices',
+                    value: stats.device_count ?? 0,
+                    sub: `${stats.active_device_count ?? 0} active`
+                },
+                {
+                    label: 'Users',
+                    value: stats.user_count ?? 0,
+                    sub: null
+                },
+                {
+                    label: "Today's Revenue",
+                    value: formatCurrency(stats.today_revenue),
+                    sub: `${stats.today_sales_count ?? 0} orders`
+                },
+                {
+                    label: 'Month Revenue',
+                    value: formatCurrency(stats.month_revenue),
+                    sub: `${stats.month_sales_count ?? 0} orders`
+                },
+                {
+                    label: 'Subscription',
+                    value: stats.subscription_plan || '—',
+                    badge: stats.subscription_status,
+                    badgeCls: subBadge(stats.subscription_status),
+                    sub: null
+                }
+            ];
+
+            grid.innerHTML = cards.map(card => `
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                    <p class="text-sm text-slate-500 mb-1">${card.label}</p>
+                    <p class="text-2xl font-semibold text-slate-900 mb-1">${card.value}</p>
+                    ${card.badge
+                        ? `<span class="inline-block text-xs font-medium px-2 py-0.5 rounded-full ${card.badgeCls}">${card.badge}</span>`
+                        : card.sub
+                            ? `<p class="text-sm text-slate-500">${card.sub}</p>`
+                            : ''
+                    }
+                </div>
+            `).join('');
+        }
+
+        function renderLowStock(stats) {
+            const banner = document.getElementById('lowStockBanner');
+            const count = Number(stats.low_stock_count || 0);
+            if (count <= 0) { banner.classList.add('hidden'); banner.classList.remove('flex'); return; }
+            document.getElementById('lowStockMessage').textContent = `${count} tracked branch item${count === 1 ? '' : 's'} at or below the low-stock threshold (${stats.low_stock_threshold ?? 5}).`;
+            banner.classList.remove('hidden'); banner.classList.add('flex');
+        }
+
+        // ── Render tenant info panel ──────────────────────────────────────────
+        function renderTenantInfo(stats) {
+            const body = document.getElementById('tenantInfoBody');
+            const sb = tenantStatusBadge(stats.tenant_is_active ? 'ACTIVE' : 'INACTIVE');
+
+            const rows = [
+                ['Tenant Name',          stats.tenant_name || '—',  false],
+                ['Tenant Code',          stats.tenant_code || '—',  true],
+                ['Status',               null,                       false, sb],
+                ['Subscription Expires', formatDate(stats.subscription_expires_at), false],
+                stats.trial_ends_at
+                    ? ['Trial Ends', formatDate(stats.trial_ends_at), false]
+                    : null
+            ].filter(Boolean);
+
+            body.classList.remove('animate-pulse');
+            body.innerHTML = rows.map(([label, value, mono, badge]) => `
+                <div class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+                    <span class="text-sm text-slate-500">${label}</span>
+                    ${badge
+                        ? `<span class="text-xs font-medium px-2 py-0.5 rounded-full ${badge.cls}">${badge.label}</span>`
+                        : mono
+                            ? `<span class="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-700">${value}</span>`
+                            : `<span class="text-sm font-medium text-slate-900">${value}</span>`
+                    }
+                </div>
+            `).join('');
+        }
+
+        // ── Show error banner ─────────────────────────────────────────────────
+        function showError(msg) {
+            const el = document.getElementById('errorBanner');
+            el.textContent = msg;
+            el.classList.remove('hidden');
+        }
+
+        // ── Page init ─────────────────────────────────────────────────────────
+        (async () => {
+            const me = await initSidebar();
+            if (!me) return;
+
+            try {
+                const stats = await apiFetch('/dashboard');
+                renderStats(stats);
+                renderLowStock(stats);
+                renderTenantInfo(stats);
+            } catch (err) {
+                showError('Failed to load dashboard: ' + err.message);
+                // Clear skeletons on error
+                document.getElementById('statsGrid').innerHTML = '';
+                document.getElementById('tenantInfoBody').innerHTML =
+                    '<p class="text-sm text-slate-500">Could not load tenant info.</p>';
+            }
+        })();
+    </script>
+
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

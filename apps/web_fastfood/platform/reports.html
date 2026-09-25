@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <!--
+        Reports — STORIXX
+        ======================================
+        Platform-wide analytics for super admins.
+
+        Data sources:
+          GET /api/platform/reports/summary
+          GET /api/platform/reports/tenants?days=N
+          GET /api/platform/reports/subscriptions
+          GET /api/platform/reports/plans
+          GET /api/platform/reports/branches
+          GET /api/platform/reports/devices
+          GET /api/platform/reports/users
+          GET /api/platform/reports/activity?days=N
+          GET /api/platform/reports/revenue?days=N
+          GET /api/platform/tenants?limit=500   (for tenant filter)
+
+        Style: follows web_fastfood STYLE_GUIDE.md
+    -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reports - STORIXX</title>
+
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+
+    <style>
+        .rounded-card { border-radius: 10px; }
+        body { overflow: hidden; }
+
+        /* ── Print styles ────────────────────────────────────────── */
+        @media print {
+            body { overflow: visible !important; background: white !important; }
+            aside, header, #toolbar, #reportNav, .no-print { display: none !important; }
+            #mainCol { height: auto !important; overflow: visible !important; }
+            main { overflow: visible !important; padding: 0 !important; }
+            .report-section { display: block !important; }
+            .report-section.hidden { display: none !important; }
+            #printHeader { display: block !important; }
+            table { border-collapse: collapse; width: 100%; font-size: 11px; }
+            th, td { border: 1px solid #cbd5e1; padding: 5px 8px; }
+            thead { background: #f1f5f9 !important; -webkit-print-color-adjust: exact; }
+            .stat-chip { display: inline-block; border: 1px solid #cbd5e1; padding: 2px 8px;
+                         border-radius: 6px; font-size: 11px; margin: 2px; }
+            .print-section-title { font-size: 14px; font-weight: 700; margin-bottom: 8px;
+                                   border-bottom: 2px solid #1e40af; padding-bottom: 4px; }
+        }
+
+        #printHeader { display: none; }
+    </style>
+</head>
+
+<body class="flex h-screen bg-slate-50 text-slate-900">
+
+    <!-- ==================================================================
+         SIDEBAR
+         ================================================================== -->
+    <aside class="w-64 flex-shrink-0 h-screen bg-slate-900 flex flex-col overflow-y-auto">
+
+        <!-- Logo -->
+        <div class="h-16 flex items-center px-5 border-b border-slate-800 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <img src="/assets/logo-mark.png?v=3" alt="STORIXX" class="w-8 h-8 rounded-[6px] flex-shrink-0 object-contain" />
+                <div>
+                    <p class="text-white text-sm font-semibold leading-none">STORIXX</p>
+                    <p class="text-slate-500 text-[11px] leading-none mt-0.5">SaaS Platform</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nav -->
+        <nav class="flex-1 px-3 py-4 space-y-0.5">
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-1 pb-2">Overview</p>
+
+            <a href="/platform/dashboard.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1
+                             0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                <span class="text-sm">Dashboard</span>
+            </a>
+
+            <!-- Reports — ACTIVE -->
+            <a href="/platform/reports.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      bg-slate-800 text-white font-medium
+                      border-l-[3px] border-blue-500">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414
+                             5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span class="text-sm">Reports</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Management</p>
+
+            <a href="/platform/tenants.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1
+                             4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                <span class="text-sm">Tenants</span>
+            </a>
+            <a href="/platform/business-templates.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M20 7h-4V5a3 3 0 00-3-3h-2a3 3 0 00-3 3v2H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM10 5a1 1 0 011-1h2a1 1 0 011 1v2h-4V5z"/>
+                </svg>
+                <span class="text-sm">Business Templates</span>
+            </a>
+            <a href="/platform/config-reference.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s4.332.477 5.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                <span class="text-sm">Config Reference</span>
+            </a>
+
+            <a href="/platform/platform_users.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857
+                             M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002
+                             5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm">Platform Users</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Billing</p>
+
+            <a href="/platform/plans.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0
+                             002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+                <span class="text-sm">Plans</span>
+            </a>
+
+            <a href="/platform/subscriptions.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                </svg>
+                <span class="text-sm">Subscriptions</span>
+            </a>
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Human Resources</p>
+            <a href="/platform/employees.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm">Employees</span>
+            </a>
+            <a href="/platform/salaries.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="text-sm">Salaries</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Monitoring</p>
+
+            <a href="/platform/sync-health.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="text-sm">Sync Health</span>
+            </a>
+
+            <a href="/platform/activity.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2
+                             2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6
+                             0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                <span class="text-sm">Activity Logs</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">System</p>
+
+            <a href="/platform/settings.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94
+                             3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724
+                             1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572
+                             1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31
+                             -.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724
+                             1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm">Settings</span>
+            </a>
+
+        </nav>
+
+        <!-- Bottom: logout -->
+        <div class="px-3 py-4 border-t border-slate-800 flex-shrink-0">
+            <button onclick="logout()"
+                    class="w-full flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                           text-slate-400 hover:bg-slate-800 hover:text-red-400
+                           border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+                <span class="text-sm">Logout</span>
+            </button>
+        </div>
+    </aside>
+
+
+    <!-- ==================================================================
+         MAIN COLUMN
+         ================================================================== -->
+    <div id="mainCol" class="flex-1 flex flex-col h-screen overflow-hidden">
+
+        <!-- Page header -->
+        <header class="h-16 flex-shrink-0 bg-white border-b border-slate-200
+                        flex items-center justify-between px-6">
+            <div>
+                <h1 class="text-base font-semibold text-slate-900">Reports</h1>
+                <p class="text-xs text-slate-400 mt-0.5">Platform performance and business analytics</p>
+            </div>
+
+            <!-- Header controls -->
+            <div id="toolbar" class="flex items-center gap-2 no-print">
+                <!-- Date Range -->
+                <select id="dateRange" onchange="onDateRangeChange()"
+                        class="h-9 pl-3 pr-8 border border-slate-200 rounded-card text-sm text-slate-700
+                               bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="7">Last 7 Days</option>
+                    <option value="30" selected>Last 30 Days</option>
+                    <option value="90">Last 90 Days</option>
+                    <option value="365">This Year</option>
+                </select>
+
+                <!-- Tenant filter -->
+                <select id="tenantFilter"
+                        class="h-9 pl-3 pr-8 border border-slate-200 rounded-card text-sm text-slate-700
+                               bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">All Tenants</option>
+                </select>
+
+                <!-- Export / Print button -->
+                <button onclick="printReport()"
+                        class="h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium
+                               rounded-card transition-colors flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2
+                                 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2
+                                 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                    </svg>
+                    Export PDF
+                </button>
+            </div>
+        </header>
+
+        <!-- Scrollable content area -->
+        <main class="flex-1 overflow-y-auto px-6 py-5">
+
+            <!-- Print-only header -->
+            <div id="printHeader" class="mb-6">
+                <p class="text-lg font-bold text-slate-900">STORIXX</p>
+                <p id="printMeta" class="text-sm text-slate-500 mt-1"></p>
+                <hr class="mt-3 border-slate-300" />
+            </div>
+
+            <!-- ── Stat cards ────────────────────────────────────── -->
+            <div class="grid grid-cols-4 gap-4 mb-5">
+                <div class="bg-white border border-slate-200 rounded-card px-5 py-4">
+                    <p class="text-xs text-slate-400 uppercase tracking-wide font-medium">Total Tenants</p>
+                    <p id="sTenants" class="text-2xl font-bold text-slate-900 mt-1">—</p>
+                    <p id="sTenantsActive" class="text-xs text-slate-400 mt-0.5"></p>
+                </div>
+                <div class="bg-white border border-slate-200 rounded-card px-5 py-4">
+                    <p class="text-xs text-slate-400 uppercase tracking-wide font-medium">Total Users</p>
+                    <p id="sUsers" class="text-2xl font-bold text-slate-900 mt-1">—</p>
+                    <p class="text-xs text-slate-400 mt-0.5">across all tenants</p>
+                </div>
+                <div class="bg-white border border-slate-200 rounded-card px-5 py-4">
+                    <p class="text-xs text-slate-400 uppercase tracking-wide font-medium">Active Devices</p>
+                    <p id="sDevices" class="text-2xl font-bold text-slate-900 mt-1">—</p>
+                    <p class="text-xs text-slate-400 mt-0.5">enabled &amp; active</p>
+                </div>
+                <div class="bg-white border border-slate-200 rounded-card px-5 py-4">
+                    <p class="text-xs text-slate-400 uppercase tracking-wide font-medium">Revenue (MRR)</p>
+                    <p id="sMrr" class="text-2xl font-bold text-green-600 mt-1">—</p>
+                    <p class="text-xs text-slate-400 mt-0.5">estimated monthly</p>
+                </div>
+            </div>
+
+            <!-- ── Two-column overview row ───────────────────────── -->
+            <div class="grid grid-cols-2 gap-4 mb-5">
+
+                <!-- Tenant Growth Chart -->
+                <div class="bg-white border border-slate-200 rounded-card p-5">
+                    <h3 class="text-sm font-semibold text-slate-700 mb-3">Tenant Growth (Last 6 Months)</h3>
+                    <div id="growthChartWrap" class="w-full" style="height:180px;">
+                        <svg id="growthChart" width="100%" height="160"
+                             viewBox="0 0 400 160" preserveAspectRatio="xMidYMid meet"
+                             class="overflow-visible">
+                            <text x="200" y="80" text-anchor="middle"
+                                  class="text-xs" fill="#94a3b8">Loading chart…</text>
+                        </svg>
+                        <!-- X-axis labels -->
+                        <div id="chartLabels" class="flex justify-between px-1 mt-1">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subscription Breakdown -->
+                <div class="bg-white border border-slate-200 rounded-card p-5">
+                    <h3 class="text-sm font-semibold text-slate-700 mb-3">Subscription Status Breakdown</h3>
+                    <div id="subBreakdown" class="space-y-2">
+                        <p class="text-sm text-slate-400">Loading…</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Report category buttons ───────────────────────── -->
+            <div id="reportNav" class="flex flex-wrap gap-2 mb-5 no-print">
+                <!-- buttons injected by JS -->
+            </div>
+
+            <!-- ── Report sections ───────────────────────────────── -->
+            <div id="reportArea">
+                <!-- Each report section is injected by JS -->
+            </div>
+
+        </main>
+    </div><!-- /main column -->
+
+
+<script>
+"use strict";
+
+// ════════════════════════════════════════════════════════════════
+// Constants & state
+// ════════════════════════════════════════════════════════════════
+const BASE = "/api/platform";
+const REPORT_TYPES = [
+    { key: "tenant",       label: "Tenant" },
+    { key: "subscription", label: "Subscription" },
+    { key: "plan",         label: "Plan Performance" },
+    { key: "branch",       label: "Branch" },
+    { key: "device",       label: "Device" },
+    { key: "user",         label: "User" },
+    { key: "revenue",      label: "Revenue" },
+    { key: "activity",     label: "Activity" },
+];
+
+let _activeReport = "tenant";
+let _days = 30;
+let _summaryData = null;
+let _tenantData = null;
+
+// ════════════════════════════════════════════════════════════════
+// Auth helpers
+// ════════════════════════════════════════════════════════════════
+function getToken() {
+    return localStorage.getItem("platform_token") || sessionStorage.getItem("platform_token") || "";
+}
+function logout() {
+    localStorage.removeItem("platform_token");
+    sessionStorage.removeItem("platform_token");
+    window.location.href = "/platform/login.html";
+}
+
+// ════════════════════════════════════════════════════════════════
+// API fetch wrapper
+// ════════════════════════════════════════════════════════════════
+async function apiFetch(path) {
+    const token = getToken();
+    const resp = await fetch(BASE + path, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    if (resp.status === 401) { logout(); return null; }
+    if (!resp.ok) {
+        const txt = await resp.text().catch(() => resp.statusText);
+        throw new Error(txt || resp.statusText);
+    }
+    return resp.json();
+}
+
+// ════════════════════════════════════════════════════════════════
+// Formatters
+// ════════════════════════════════════════════════════════════════
+function fmtPKR(val) {
+    if (val === undefined || val === null) return "—";
+    const n = parseFloat(val);
+    if (isNaN(n)) return "—";
+    return "PKR " + n.toLocaleString("en-PK", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+function fmtPct(val) {
+    if (val === undefined || val === null) return "—";
+    return parseFloat(val).toFixed(1) + "%";
+}
+function fmtNum(val) {
+    if (val === undefined || val === null) return "—";
+    return parseInt(val, 10).toLocaleString();
+}
+function today() {
+    return new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
+function dateRangeLabel() {
+    const v = parseInt(document.getElementById("dateRange").value, 10);
+    const map = { 7: "Last 7 Days", 30: "Last 30 Days", 90: "Last 90 Days", 365: "This Year" };
+    return map[v] || `Last ${v} Days`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// Init
+// ════════════════════════════════════════════════════════════════
+async function init() {
+    buildReportNav();
+    try {
+        const [summary, tenants, subData, tenantReport] = await Promise.all([
+            apiFetch("/reports/summary"),
+            apiFetch("/tenants?limit=500"),
+            apiFetch("/reports/subscriptions"),
+            apiFetch("/reports/tenants?days=30"),
+        ]);
+        if (summary) renderSummaryCards(summary);
+        if (tenants) populateTenantFilter(tenants);
+        if (subData) renderSubBreakdown(subData);
+        if (tenantReport) {
+            _tenantData = tenantReport;
+            renderGrowthChart(tenantReport.growth || []);
+        }
+    } catch (e) {
+        console.error("Init error:", e);
+    }
+    // Load default report
+    await selectReport(_activeReport);
+}
+
+// ════════════════════════════════════════════════════════════════
+// Summary cards
+// ════════════════════════════════════════════════════════════════
+function renderSummaryCards(data) {
+    _summaryData = data;
+    document.getElementById("sTenants").textContent = fmtNum(data.total_tenants);
+    document.getElementById("sUsers").textContent   = fmtNum(data.total_users);
+    document.getElementById("sDevices").textContent = fmtNum(data.total_devices);
+    document.getElementById("sMrr").textContent     = fmtPKR(data.estimated_mrr);
+}
+
+// ════════════════════════════════════════════════════════════════
+// Tenant filter population
+// ════════════════════════════════════════════════════════════════
+function populateTenantFilter(tenants) {
+    const sel = document.getElementById("tenantFilter");
+    (tenants.items || tenants || []).forEach(t => {
+        const o = document.createElement("option");
+        o.value = t.id;
+        o.textContent = t.name;
+        sel.appendChild(o);
+    });
+}
+
+// ════════════════════════════════════════════════════════════════
+// Subscription breakdown (overview panel)
+// ════════════════════════════════════════════════════════════════
+function renderSubBreakdown(data) {
+    const cfg = [
+        { label: "Active",    value: data.active,    color: "bg-green-100 text-green-700"  },
+        { label: "Trial",     value: data.trial,     color: "bg-blue-100 text-blue-700"    },
+        { label: "Suspended", value: data.suspended, color: "bg-amber-100 text-amber-700"  },
+        { label: "Expired",   value: data.expired,   color: "bg-orange-100 text-orange-700"},
+        { label: "Cancelled", value: data.cancelled, color: "bg-red-100 text-red-700"      },
+    ];
+    const total = cfg.reduce((s, c) => s + (c.value || 0), 0) || 1;
+    const wrap = document.getElementById("subBreakdown");
+    wrap.innerHTML = cfg.map(c => {
+        const pct = Math.round((c.value || 0) / total * 100);
+        return `
+        <div>
+            <div class="flex justify-between text-xs mb-0.5">
+                <span class="font-medium text-slate-600">${c.label}</span>
+                <span class="font-semibold text-slate-900">${fmtNum(c.value)}</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-2">
+                <div class="${c.color.replace('text-','bg-').split(' ')[0].replace('100','500')}
+                            h-2 rounded-full transition-all"
+                     style="width:${pct}%"></div>
+            </div>
+        </div>`;
+    }).join("") + `
+    <div class="pt-2 border-t border-slate-100 flex justify-between text-xs text-slate-500 mt-1">
+        <span>Est. MRR</span><span class="font-semibold text-slate-800">${fmtPKR(data.estimated_mrr)}</span>
+    </div>
+    <div class="flex justify-between text-xs text-slate-500">
+        <span>Est. ARR</span><span class="font-semibold text-slate-800">${fmtPKR(data.estimated_arr)}</span>
+    </div>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// SVG Growth Chart
+// ════════════════════════════════════════════════════════════════
+function renderGrowthChart(points) {
+    const svgEl = document.getElementById("growthChart");
+    const labelsEl = document.getElementById("chartLabels");
+    if (!points || points.length === 0) {
+        svgEl.innerHTML = `<text x="200" y="80" text-anchor="middle" fill="#94a3b8" font-size="12">No data</text>`;
+        labelsEl.innerHTML = "";
+        return;
+    }
+
+    const W = 400, H = 140, PAD_L = 36, PAD_R = 16, PAD_T = 12, PAD_B = 20;
+    const chartW = W - PAD_L - PAD_R;
+    const chartH = H - PAD_T - PAD_B;
+
+    const cumulValues = points.map(p => p.cumulative);
+    const minV = Math.min(...cumulValues);
+    const maxV = Math.max(...cumulValues);
+    const range = maxV - minV || 1;
+
+    const n = points.length;
+    const xs = points.map((_, i) => PAD_L + (i / (n - 1 || 1)) * chartW);
+    const ys = cumulValues.map(v => PAD_T + chartH - ((v - minV) / range) * chartH);
+
+    // Polyline points string
+    const linePoints = xs.map((x, i) => `${x},${ys[i]}`).join(" ");
+
+    // Area polygon (close at bottom)
+    const areaPoints = [
+        `${xs[0]},${PAD_T + chartH}`,
+        ...xs.map((x, i) => `${x},${ys[i]}`),
+        `${xs[n - 1]},${PAD_T + chartH}`,
+    ].join(" ");
+
+    // Y-axis tick labels
+    const yTicks = [minV, Math.round(minV + range / 2), maxV].map((v, i) => {
+        const y = PAD_T + chartH - (i * chartH / 2);
+        return `<text x="${PAD_L - 4}" y="${y + 4}" text-anchor="end" fill="#94a3b8" font-size="10">${v}</text>`;
+    });
+
+    // Dots on data points
+    const dots = xs.map((x, i) => `
+        <circle cx="${x}" cy="${ys[i]}" r="3.5" fill="#2563eb" stroke="white" stroke-width="1.5">
+            <title>${points[i].label}: ${cumulValues[i]} tenants (${points[i].new_tenants} new)</title>
+        </circle>`).join("");
+
+    svgEl.innerHTML = `
+        <defs>
+            <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#2563eb" stop-opacity="0.18"/>
+                <stop offset="100%" stop-color="#2563eb" stop-opacity="0.02"/>
+            </linearGradient>
+        </defs>
+        ${yTicks.join("")}
+        <polygon points="${areaPoints}" fill="url(#areaGrad)"/>
+        <polyline points="${linePoints}" fill="none" stroke="#2563eb" stroke-width="2.5"
+                  stroke-linejoin="round" stroke-linecap="round"/>
+        ${dots}`;
+
+    // X-axis labels below svg
+    labelsEl.innerHTML = points.map(p =>
+        `<span class="text-[10px] text-slate-400">${p.label}</span>`
+    ).join("");
+}
+
+// ════════════════════════════════════════════════════════════════
+// Report nav buttons
+// ════════════════════════════════════════════════════════════════
+function buildReportNav() {
+    const nav = document.getElementById("reportNav");
+    nav.innerHTML = REPORT_TYPES.map(r => `
+        <button id="navBtn_${r.key}"
+                onclick="selectReport('${escapeJSAttribute(r.key)}')"
+                class="h-9 px-4 text-sm rounded-card border border-slate-200 text-slate-700
+                       hover:bg-slate-50 transition-colors">
+            ${r.label}
+        </button>`).join("");
+}
+
+function updateNavButtons(activeKey) {
+    REPORT_TYPES.forEach(r => {
+        const btn = document.getElementById(`navBtn_${r.key}`);
+        if (!btn) return;
+        if (r.key === activeKey) {
+            btn.className = "h-9 px-4 text-sm rounded-card bg-blue-600 text-white transition-colors";
+        } else {
+            btn.className = "h-9 px-4 text-sm rounded-card border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors";
+        }
+    });
+}
+
+// ════════════════════════════════════════════════════════════════
+// Select & load report
+// ════════════════════════════════════════════════════════════════
+async function selectReport(key) {
+    _activeReport = key;
+    updateNavButtons(key);
+    const area = document.getElementById("reportArea");
+    area.innerHTML = `<div class="bg-white border border-slate-200 rounded-card p-8 text-center text-sm text-slate-400">Loading…</div>`;
+    try {
+        switch (key) {
+            case "tenant":       await loadTenantReport(); break;
+            case "subscription": await loadSubscriptionReport(); break;
+            case "plan":         await loadPlanReport(); break;
+            case "branch":       await loadBranchReport(); break;
+            case "device":       await loadDeviceReport(); break;
+            case "user":         await loadUserReport(); break;
+            case "revenue":      await loadRevenueReport(); break;
+            case "activity":     await loadActivityReport(); break;
+        }
+    } catch (e) {
+        area.innerHTML = `<div class="bg-white border border-red-200 rounded-card p-6 text-sm text-red-600">
+            Error loading report: ${e.message}</div>`;
+    }
+}
+
+function onDateRangeChange() {
+    _days = parseInt(document.getElementById("dateRange").value, 10);
+    selectReport(_activeReport);
+}
+
+// ════════════════════════════════════════════════════════════════
+// Shared section builder
+// ════════════════════════════════════════════════════════════════
+function sectionCard(title, chips, tableHtml) {
+    return `
+    <div class="report-section bg-white border border-slate-200 rounded-card">
+        <!-- Section header -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+            <div>
+                <h3 class="text-sm font-semibold text-slate-800">${title}</h3>
+                <div class="flex flex-wrap gap-2 mt-2 no-print">
+                    ${chips}
+                </div>
+            </div>
+            <div class="flex items-center gap-2 no-print">
+                <button onclick="printSection(this)"
+                        title="Print"
+                        class="w-8 h-8 flex items-center justify-center rounded-card border border-slate-200
+                               text-slate-500 hover:bg-slate-50 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2
+                                 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2
+                                 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                    </svg>
+                </button>
+                <button onclick="downloadPDF(this)"
+                        title="Download PDF"
+                        class="h-8 px-3 flex items-center gap-1.5 rounded-card border border-slate-200
+                               text-slate-600 text-xs hover:bg-slate-50 transition-colors">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0
+                                 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- Print-only chips row -->
+        <div class="hidden print:flex flex-wrap gap-2 px-6 pt-3">
+            ${chips}
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-x-auto">
+            ${tableHtml}
+        </div>
+    </div>`;
+}
+
+function chip(label, value, color) {
+    const colors = {
+        blue:   "bg-blue-50 text-blue-700",
+        green:  "bg-green-50 text-green-700",
+        amber:  "bg-amber-50 text-amber-700",
+        red:    "bg-red-50 text-red-700",
+        slate:  "bg-slate-100 text-slate-600",
+    };
+    const cls = colors[color] || colors.slate;
+    return `<span class="stat-chip inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${cls}">
+                ${label}: <strong>${value}</strong>
+            </span>`;
+}
+
+function thead(cols) {
+    return `<thead><tr class="border-b border-slate-200 bg-slate-50">
+        ${cols.map(c => `<th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">${c}</th>`).join("")}
+    </tr></thead>`;
+}
+
+function emptyRow(colCount, msg = "No data available") {
+    return `<tr><td colspan="${colCount}" class="px-6 py-10 text-center text-sm text-slate-400">${msg}</td></tr>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// 1. TENANT REPORT
+// ════════════════════════════════════════════════════════════════
+async function loadTenantReport() {
+    const data = await apiFetch(`/reports/tenants?days=${_days}`);
+    renderTenantReport(data);
+    // Also refresh growth chart
+    if (data && data.growth) renderGrowthChart(data.growth);
+}
+
+function renderTenantReport(data) {
+    const chips = [
+        chip("Total", fmtNum(data.total), "slate"),
+        chip("Active", fmtNum(data.active), "green"),
+        chip("Suspended", fmtNum(data.suspended), "amber"),
+        chip("New (period)", fmtNum(data.new_this_period), "blue"),
+    ].join("");
+
+    const growthRows = (data.growth || []).map(g => `
+        <tr class="border-b border-slate-100 hover:bg-slate-50">
+            <td class="px-6 py-3 text-sm font-medium text-slate-800">${g.label}</td>
+            <td class="px-6 py-3 text-sm text-slate-600">${fmtNum(g.new_tenants)}</td>
+            <td class="px-6 py-3 text-sm text-slate-600">${fmtNum(g.cumulative)}</td>
+        </tr>`).join("") || emptyRow(3);
+
+    const table = `<table class="w-full text-sm">
+        ${thead(["Month", "New Tenants", "Cumulative Total"])}
+        <tbody>${growthRows}</tbody>
+    </table>`;
+
+    // Sub-status summary rows
+    const statusRows = [
+        { label: "With Active Subscription", value: data.with_active_sub, color: "#16a34a" },
+        { label: "On Trial",                 value: data.with_trial,      color: "#2563eb" },
+        { label: "Cancelled",                value: data.cancelled,       color: "#dc2626" },
+    ];
+
+    const extraTable = `
+    <div class="border-t border-slate-100 px-6 py-4">
+        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Subscription Status Summary</p>
+        <div class="grid grid-cols-3 gap-3">
+            ${statusRows.map(s => `
+            <div class="bg-slate-50 border border-slate-200 rounded-card px-4 py-3 text-center">
+                <p class="text-xl font-bold" style="color:${s.color}">${fmtNum(s.value)}</p>
+                <p class="text-xs text-slate-500 mt-0.5">${s.label}</p>
+            </div>`).join("")}
+        </div>
+    </div>`;
+
+    document.getElementById("reportArea").innerHTML =
+        sectionCard(`Tenant Report — ${dateRangeLabel()}`, chips, table) + extraTable
+            .replace("</div>\n    </div>", "");
+
+    // Wrap correctly
+    document.getElementById("reportArea").innerHTML =
+        `<div class="space-y-4">` +
+        sectionCard(`Tenant Report — ${dateRangeLabel()}`, chips, table) +
+        `<div class="bg-white border border-slate-200 rounded-card">` + extraTable + `</div>` +
+        `</div>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// 2. SUBSCRIPTION REPORT
+// ════════════════════════════════════════════════════════════════
+async function loadSubscriptionReport() {
+    const data = await apiFetch("/reports/subscriptions");
+    renderSubscriptionReport(data);
+}
+
+function renderSubscriptionReport(data) {
+    const chips = [
+        chip("Active",    fmtNum(data.active),    "green"),
+        chip("Trial",     fmtNum(data.trial),     "blue"),
+        chip("Suspended", fmtNum(data.suspended), "amber"),
+        chip("Expired",   fmtNum(data.expired),   "slate"),
+        chip("Cancelled", fmtNum(data.cancelled), "red"),
+        chip("MRR",       fmtPKR(data.estimated_mrr), "green"),
+    ].join("");
+
+    const rows = (data.plan_breakdown || []).map(p => `
+        <tr class="border-b border-slate-100 hover:bg-slate-50">
+            <td class="px-6 py-3 text-sm font-medium text-slate-800">${esc(p.plan_name)}</td>
+            <td class="px-6 py-3 text-sm text-slate-600">${fmtNum(p.tenant_count)}</td>
+            <td class="px-6 py-3 text-sm text-slate-600">${fmtPct(p.pct_of_active)}</td>
+            <td class="px-6 py-3 text-sm text-slate-700 font-medium">${fmtPKR(p.monthly_value)}</td>
+        </tr>`).join("") || emptyRow(4);
+
+    const table = `<table class="w-full text-sm">
+        ${thead(["Plan", "Tenant Count", "% of Active", "Monthly Value"])}
+        <tbody>${rows}</tbody>
+        <tfoot>
+            <tr class="border-t-2 border-slate-200 bg-slate-50">
+                <td class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase">Totals</td>
+                <td class="px-6 py-3 text-sm font-bold text-slate-900">—</td>
+                <td class="px-6 py-3"></td>
+                <td class="px-6 py-3 text-sm font-bold text-green-600">${fmtPKR(data.estimated_mrr)} / mo</td>
+            </tr>
+        </tfoot>
+    </table>`;
+
+    document.getElementById("reportArea").innerHTML =
+        `<div class="space-y-4">` +
+        sectionCard("Subscription Report", chips, table) +
+        `<div class="bg-white border border-slate-200 rounded-card px-6 py-4">
+            <div class="flex gap-6">
+                <div>
+                    <p class="text-xs text-slate-400 uppercase tracking-wide">Estimated MRR</p>
+                    <p class="text-xl font-bold text-green-600 mt-0.5">${fmtPKR(data.estimated_mrr)}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 uppercase tracking-wide">Estimated ARR</p>
+                    <p class="text-xl font-bold text-blue-600 mt-0.5">${fmtPKR(data.estimated_arr)}</p>
+                </div>
+            </div>
+        </div>` +
+        `</div>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// 3. PLAN PERFORMANCE
+// ════════════════════════════════════════════════════════════════
+async function loadPlanReport() {
+    const data = await apiFetch("/reports/plans");
+    renderPlanReport(data);
+}
+
+function renderPlanReport(data) {
+    const totalMrr = (data || []).reduce((s, p) => s + parseFloat(p.mrr || 0), 0);
+    const chips = [
+        chip("Plans", fmtNum((data || []).length), "slate"),
+        chip("Total MRR", fmtPKR(totalMrr), "green"),
+    ].join("");
+
+    const rows = (data || []).map(p => `
+        <tr class="border-b border-slate-100 hover:bg-slate-50">
+            <td class="px-6 py-3 text-sm font-medium text-slate-800">${esc(p.plan_name)}</td>
+            <td class="px-6 py-3 text-sm text-slate-600">${fmtNum(p.tenant_count)}</td>
+            <td class="px-6 py-3 text-sm text-slate-600">
+                <div class="flex items-center gap-2">
+                    <div class="flex-1 bg-slate-100 rounded-full h-1.5 max-w-[80px]">
+                        <div class="bg-blue-500 h-1.5 rounded-full"
+                             style="width:${Math.min(parseFloat(p.pct_of_tenants),100)}%"></div>
+                    </div>
+                    <span>${fmtPct(p.pct_of_tenants)}</span>
+                </div>
+            </td>
+            <td class="px-6 py-3 text-sm font-medium text-slate-700">${fmtPKR(p.mrr)}</td>
+        </tr>`).join("") || emptyRow(4);
+
+    const table = `<table class="w-full text-sm">
+        ${thead(["Plan Name", "Tenants", "% of Total Tenants", "MRR Contribution"])}
+        <tbody>${rows}</tbody>
+    </table>`;
+
+    document.getElementById("reportArea").innerHTML =
+        `<div>` + sectionCard("Plan Performance Report", chips, table) + `</div>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// 4. BRANCH REPORT
+// ════════════════════════════════════════════════════════════════
+async function loadBranchReport() {
+    const data = await apiFetch("/reports/branches");
+    renderBranchReport(data);
+}
+
+function renderBranchReport(data) {
+    const chips = [
+        chip("Total Branches", fmtNum(data.total_branches), "blue"),
+        chip("Tenants", fmtNum((data.tenant_breakdown || []).length), "slate"),
+    ].join("");
+
+    const rows = (data.tenant_breakdown || []).map(t => {
+        const limit = t.plan_limit === -1 ? "Unlimited" : fmtNum(t.plan_limit);
+        const pct = t.plan_limit > 0
+            ? Math.min(Math.round(t.branch_count / t.plan_limit * 100), 100)
+            : null;
+        const usageBadge = pct !== null
+            ? `<span class="ml-2 text-xs ${pct >= 90 ? "text-red-600 font-semibold" : pct >= 70 ? "text-amber-600" : "text-slate-400"}">(${pct}% used)</span>`
+            : "";
+        return `
+        <tr class="border-b border-slate-100 hover:bg-slate-50">
+            <td class="px-6 py-3 text-sm font-medium text-slate-800">${esc(t.tenant_name)}</td>
+            <td class="px-6 py-3 text-sm text-slate-600">${fmtNum(t.branch_count)}</td>
+            <td class="px-6 py-3 text-sm text-slate-500">${limit}${usageBadge}</td>
+        </tr>`;
+    }).join("") || emptyRow(3);
+
+    const table = `<table class="w-full text-sm">
+        ${thead(["Tenant", "Branch Count", "Plan Limit"])}
+        <tbody>${rows}</tbody>
+    </table>`;
+
+    document.getElementById("reportArea").innerHTML =
+        `<div>` + sectionCard("Branch Report", chips, table) + `</div>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// 5. DEVICE REPORT
+// ════════════════════════════════════════════════════════════════
+async function loadDeviceReport() {
+    const data = await apiFetch("/reports/devices");
+    renderDeviceReport(data);
+}
+
+function renderDeviceReport(data) {
+    const chips = [
+        chip("Total",           fmtNum(data.total),           "slate"),
+        chip("Online",          fmtNum(data.online),          "green"),
+        chip("Offline",         fmtNum(data.offline),         "amber"),
+        chip("Activated",       fmtNum(data.activated),       "blue"),
+        chip("Never Activated", fmtNum(data.never_activated), "slate"),
+        chip("Disabled",        fmtNum(data.disabled),        "red"),
+    ].join("");
+
+    const rows = (data.tenant_breakdown || []).map(t => {
+        const offlineCount = t.offline;
+        const onlineColor = t.online > 0 ? "text-green-600" : "text-slate-400";
+        const offlineColor = offlineCount > 0 ? "text-amber-600" : "text-slate-400";
+        return `
+        <tr class="border-b border-slate-100 hover:bg-slate-50">
+            <td class="px-6 py-3 text-sm font-medium text-slate-800">${esc(t.tenant_name)}</td>
+            <td class="px-6 py-3 text-sm text-slate-600">${fmtNum(t.total)}</td>
+            <td class="px-6 py-3 text-sm font-medium ${onlineColor}">${fmtNum(t.online)}</td>
+            <td class="px-6 py-3 text-sm font-medium ${offlineColor}">${fmtNum(offlineCount)}</td>
+        </tr>`;
+    }).join("") || emptyRow(4);
+
+    const table = `<table class="w-full text-sm">
+        ${thead(["Tenant", "Total Devices", "Online (2h)", "Offline"])}
+        <tbody>${rows}</tbody>
+    </table>`;
+
+    document.getElementById("reportArea").innerHTML =
+        `<div>` + sectionCard("Device Health Report", chips, table) + `</div>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// 6. USER REPORT
+// ════════════════════════════════════════════════════════════════
+async function loadUserReport() {
+    const data = await apiFetch("/reports/users");
+    renderUserReport(data);
+}
+
+function renderUserReport(data) {
+    const chips = [
+        chip("Total",    fmtNum(data.total),    "slate"),
+        chip("Active",   fmtNum(data.active),   "green"),
+        chip("Disabled", fmtNum(data.disabled), "red"),
+        chip("Owners",   fmtNum(data.owners),   "blue"),
+        chip("Managers", fmtNum(data.managers), "blue"),
+        chip("Staff",    fmtNum(data.staff),    "slate"),
+    ].join("");
+
+    const rows = (data.tenant_breakdown || []).map(t => `
+        <tr class="border-b border-slate-100 hover:bg-slate-50">
+            <td class="px-6 py-3 text-sm font-medium text-slate-800">${esc(t.tenant_name)}</td>
+            <td class="px-6 py-3 text-sm text-slate-600">${fmtNum(t.user_count)}</td>
+        </tr>`).join("") || emptyRow(2);
+
+    const table = `<table class="w-full text-sm">
+        ${thead(["Tenant", "User Count"])}
+        <tbody>${rows}</tbody>
+    </table>`;
+
+    const rolesSummary = `
+    <div class="bg-white border border-slate-200 rounded-card px-6 py-4">
+        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Role Distribution</p>
+        <div class="grid grid-cols-3 gap-3">
+            <div class="bg-blue-50 border border-blue-100 rounded-card px-4 py-3 text-center">
+                <p class="text-xl font-bold text-blue-700">${fmtNum(data.owners)}</p>
+                <p class="text-xs text-slate-500 mt-0.5">Owners</p>
+            </div>
+            <div class="bg-green-50 border border-green-100 rounded-card px-4 py-3 text-center">
+                <p class="text-xl font-bold text-green-700">${fmtNum(data.managers)}</p>
+                <p class="text-xs text-slate-500 mt-0.5">Managers</p>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-card px-4 py-3 text-center">
+                <p class="text-xl font-bold text-slate-700">${fmtNum(data.staff)}</p>
+                <p class="text-xs text-slate-500 mt-0.5">Staff</p>
+            </div>
+        </div>
+    </div>`;
+
+    document.getElementById("reportArea").innerHTML =
+        `<div class="space-y-4">` +
+        sectionCard("User Report", chips, table) +
+        rolesSummary +
+        `</div>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// 7. REVENUE REPORT
+// ════════════════════════════════════════════════════════════════
+async function loadRevenueReport() {
+    const data = await apiFetch(`/reports/revenue?days=${_days}`);
+    renderRevenueReport(data);
+}
+
+function renderRevenueReport(data) {
+    const growthLabel = data.growth_pct !== null && data.growth_pct !== undefined
+        ? (data.growth_pct >= 0 ? `+${data.growth_pct}%` : `${data.growth_pct}%`)
+        : "N/A";
+    const growthColor = data.growth_pct >= 0 ? "green" : "red";
+
+    const chips = [
+        chip("This Month", fmtPKR(data.this_month), "green"),
+        chip("Last Month",  fmtPKR(data.last_month), "slate"),
+        chip("Growth",      growthLabel,              growthColor),
+    ].join("");
+
+    // Plan breakdown table
+    const planRows = (data.by_plan || []).map(p => `
+        <tr class="border-b border-slate-100 hover:bg-slate-50">
+            <td class="px-6 py-3 text-sm font-medium text-slate-800">${esc(p.plan_name)}</td>
+            <td class="px-6 py-3 text-sm font-semibold text-slate-700">${fmtPKR(p.amount)}</td>
+        </tr>`).join("") || emptyRow(2);
+
+    const planTable = `<table class="w-full text-sm">
+        ${thead(["Plan", "Total Collected"])}
+        <tbody>${planRows}</tbody>
+    </table>`;
+
+    // Monthly trend table
+    const trendRows = (data.monthly_trend || []).map(m => `
+        <tr class="border-b border-slate-100 hover:bg-slate-50">
+            <td class="px-6 py-3 text-sm font-medium text-slate-800">${esc(m.month)}</td>
+            <td class="px-6 py-3 text-sm font-semibold text-green-600">${fmtPKR(m.amount)}</td>
+        </tr>`).join("") || emptyRow(2);
+
+    const trendTable = `<table class="w-full text-sm">
+        ${thead(["Month", "Revenue Collected"])}
+        <tbody>${trendRows}</tbody>
+    </table>`;
+
+    document.getElementById("reportArea").innerHTML =
+        `<div class="space-y-4">` +
+        `<div class="grid grid-cols-3 gap-4">
+            <div class="bg-white border border-slate-200 rounded-card px-5 py-4">
+                <p class="text-xs text-slate-400 uppercase tracking-wide font-medium">This Month</p>
+                <p class="text-2xl font-bold text-green-600 mt-1">${fmtPKR(data.this_month)}</p>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-card px-5 py-4">
+                <p class="text-xs text-slate-400 uppercase tracking-wide font-medium">Last Month</p>
+                <p class="text-2xl font-bold text-slate-700 mt-1">${fmtPKR(data.last_month)}</p>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-card px-5 py-4">
+                <p class="text-xs text-slate-400 uppercase tracking-wide font-medium">Month-over-Month</p>
+                <p class="text-2xl font-bold mt-1 ${data.growth_pct >= 0 ? "text-green-600" : "text-red-600"}">${growthLabel}</p>
+            </div>
+        </div>` +
+        sectionCard("Revenue by Plan (All Time)", chips, planTable) +
+        sectionCard("Monthly Revenue Trend (Last 6 Months)", "", trendTable) +
+        `</div>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// 8. ACTIVITY REPORT
+// ════════════════════════════════════════════════════════════════
+async function loadActivityReport() {
+    const data = await apiFetch(`/reports/activity?days=${_days}`);
+    renderActivityReport(data);
+}
+
+function renderActivityReport(data) {
+    const chips = [chip("Period", dateRangeLabel(), "blue")].join("");
+
+    const events = [
+        { label: "Tenant Creations",    value: data.tenant_creations,     icon: "🏢", color: "blue"  },
+        { label: "Device Registrations",value: data.device_registrations, icon: "📱", color: "slate" },
+        { label: "Branch Creations",    value: data.branch_creations,     icon: "🏪", color: "slate" },
+        { label: "User Creations",      value: data.user_creations,       icon: "👤", color: "green" },
+        { label: "Successful Logins",   value: data.logins,               icon: "✅", color: "green" },
+        { label: "Failed Logins",       value: data.failed_logins,        icon: "❌", color: "red"   },
+    ];
+
+    const rows = events.map(e => {
+        const valueColor = e.color === "red" ? "text-red-600" : e.color === "green" ? "text-green-600" : "text-slate-800";
+        return `
+        <tr class="border-b border-slate-100 hover:bg-slate-50">
+            <td class="px-6 py-3 text-sm font-medium text-slate-700">${e.label}</td>
+            <td class="px-6 py-3 text-sm font-bold ${valueColor}">${fmtNum(e.value)}</td>
+        </tr>`;
+    }).join("");
+
+    const table = `<table class="w-full text-sm">
+        ${thead(["Event", "Count"])}
+        <tbody>${rows}</tbody>
+    </table>`;
+
+    document.getElementById("reportArea").innerHTML =
+        `<div>` + sectionCard(`Activity Summary — ${dateRangeLabel()}`, chips, table) + `</div>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// Print helpers
+// ════════════════════════════════════════════════════════════════
+function printReport() {
+    // Update print meta
+    const meta = document.getElementById("printMeta");
+    if (meta) {
+        const reportName = REPORT_TYPES.find(r => r.key === _activeReport)?.label || "Report";
+        meta.textContent = `${reportName} | ${dateRangeLabel()} | Generated: ${today()}`;
+    }
+    window.print();
+}
+
+function printSection(btn) {
+    // Temporarily hide all other report-sections, print, then restore
+    const section = btn.closest(".report-section");
+    if (!section) { window.print(); return; }
+
+    const allSections = document.querySelectorAll(".report-section");
+    const hidden = [];
+    allSections.forEach(s => {
+        if (s !== section) {
+            s.classList.add("hidden");
+            hidden.push(s);
+        }
+    });
+
+    const meta = document.getElementById("printMeta");
+    if (meta) {
+        const title = section.querySelector("h3")?.textContent || "Report";
+        meta.textContent = `${title} | ${dateRangeLabel()} | Generated: ${today()}`;
+    }
+
+    window.print();
+
+    // Restore after print dialog closes
+    hidden.forEach(s => s.classList.remove("hidden"));
+}
+
+function downloadPDF(btn) {
+    // Browser print → Save as PDF
+    printSection(btn);
+}
+
+// ════════════════════════════════════════════════════════════════
+// Utility
+// ════════════════════════════════════════════════════════════════
+function esc(str) {
+    if (!str) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+// ════════════════════════════════════════════════════════════════
+// Boot
+// ════════════════════════════════════════════════════════════════
+document.addEventListener("DOMContentLoaded", () => {
+    if (!getToken()) {
+        window.location.href = "/platform/login.html";
+        return;
+    }
+    _days = parseInt(document.getElementById("dateRange").value, 10);
+    init().catch(console.error);
+});
+</script>
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

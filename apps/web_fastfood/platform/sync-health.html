@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <!--
+        Device & Sync Health — STORIXX
+        ====================================================
+        Real-time overview of all registered POS devices across all tenants.
+
+        Data source:
+          GET /api/platform/tenants/devices/all  → list[DeviceHealthResponse]
+
+        DeviceHealthResponse fields:
+          id, device_code, name, device_type, is_active, is_activated,
+          last_sync_at, activated_at, created_at,
+          branch_id, branch_name, branch_code,
+          tenant_id, tenant_name, tenant_code, contact (branch phone)
+
+        Sync classification (client-side):
+          healthy  — is_activated AND last_sync_at within 2 h
+          offline  — is_activated AND last_sync_at older than 2 h (or null)
+          error    — NOT is_activated (never completed activation)
+
+        Style: follows web_fastfood STYLE_GUIDE.md
+    -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sync Health - STORIXX</title>
+
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+
+    <style>
+        .rounded-card { border-radius: 10px; }
+        body { overflow: hidden; }
+    </style>
+</head>
+
+<body class="flex h-screen bg-slate-50 text-slate-900">
+
+
+    <!-- ==================================================================
+         SIDEBAR
+         ================================================================== -->
+    <aside class="w-64 flex-shrink-0 h-screen bg-slate-900 flex flex-col overflow-y-auto">
+
+        <!-- Logo -->
+        <div class="h-16 flex items-center px-5 border-b border-slate-800 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <img src="/assets/logo-mark.png?v=3" alt="STORIXX" class="w-8 h-8 rounded-[6px] flex-shrink-0 object-contain" />
+                <div>
+                    <p class="text-white text-sm font-semibold leading-none">STORIXX</p>
+                    <p class="text-slate-500 text-[11px] leading-none mt-0.5">SaaS Platform</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nav -->
+        <nav class="flex-1 px-3 py-4 space-y-0.5">
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-1 pb-2">Overview</p>
+
+            <a href="/platform/dashboard.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1
+                             0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                <span class="text-sm">Dashboard</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Management</p>
+
+            <a href="/platform/tenants.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1
+                             4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                <span class="text-sm">Tenants</span>
+            </a>
+            <a href="/platform/business-templates.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M20 7h-4V5a3 3 0 00-3-3h-2a3 3 0 00-3 3v2H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM10 5a1 1 0 011-1h2a1 1 0 011 1v2h-4V5z"/>
+                </svg>
+                <span class="text-sm">Business Templates</span>
+            </a>
+            <a href="/platform/config-reference.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s4.332.477 5.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                <span class="text-sm">Config Reference</span>
+            </a>
+
+            <a href="/platform/platform_users.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857
+                             M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002
+                             5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm">Platform Users</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Billing</p>
+
+            <a href="/platform/plans.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0
+                             002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+                <span class="text-sm">Plans</span>
+            </a>
+
+            <a href="/platform/subscriptions.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                </svg>
+                <span class="text-sm">Subscriptions</span>
+            </a>
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Human Resources</p>
+            <a href="/platform/employees.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm">Employees</span>
+            </a>
+            <a href="/platform/salaries.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="text-sm">Salaries</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Monitoring</p>
+
+            <!-- Sync Health — ACTIVE -->
+            <a href="/platform/sync-health.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      bg-slate-800 text-white font-medium
+                      border-l-[3px] border-blue-500">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0
+                             01-2-2V9m0 0h18"/>
+                </svg>
+                <span class="text-sm">Sync Health</span>
+            </a>
+
+            <a href="/platform/activity.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2
+                             2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6
+                             0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                <span class="text-sm">Activity Logs</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">System</p>
+
+            <a href="/platform/settings.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94
+                             3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724
+                             1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572
+                             1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31
+                             -.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724
+                             1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm">Settings</span>
+            </a>
+
+        </nav>
+
+        <!-- Bottom: logout -->
+        <div class="px-3 py-4 border-t border-slate-800 flex-shrink-0">
+            <button onclick="logout()"
+                    class="w-full flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                           text-slate-400 hover:bg-slate-800 hover:text-red-400
+                           border-l-[3px] border-transparent transition-colors cursor-pointer">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+                <span class="text-sm">Logout</span>
+            </button>
+        </div>
+    </aside>
+
+
+    <!-- ==================================================================
+         MAIN COLUMN
+         ================================================================== -->
+    <div class="flex-1 flex flex-col h-screen overflow-hidden">
+
+        <!-- Page header -->
+        <header class="h-16 flex-shrink-0 bg-white border-b border-slate-200
+                        flex items-center justify-between px-6">
+            <div>
+                <h1 class="text-base font-semibold text-slate-900">Device &amp; Sync Health</h1>
+                <p class="text-xs text-slate-400 mt-0.5">Live status of all POS devices across every tenant.</p>
+            </div>
+            <button onclick="loadData()"
+                    class="h-9 px-4 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700
+                           text-sm font-medium rounded-card transition-colors flex items-center gap-2 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003
+                             8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Refresh
+            </button>
+        </header>
+
+        <!-- Scrollable content -->
+        <main class="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+
+            <!-- ── ALERTS SECTION ──────────────────────────────────────── -->
+            <div id="alertsSection" class="hidden">
+                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3">
+                    Attention Required
+                </h2>
+                <div id="alertsList" class="space-y-2"></div>
+            </div>
+
+            <!-- ── STAT CARDS ──────────────────────────────────────────── -->
+            <div class="grid grid-cols-2 gap-4">
+
+                <!-- Registered Devices -->
+                <div class="bg-white border border-slate-200 rounded-card p-5">
+                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mb-3">
+                        Registered Devices
+                    </p>
+                    <p id="statTotal" class="text-4xl font-bold text-slate-900">—</p>
+                    <p class="text-xs text-slate-400 mt-2">
+                        <span id="statActivated" class="font-medium text-slate-600">—</span> activated
+                        &nbsp;·&nbsp;
+                        <span id="statPending" class="font-medium text-amber-600">—</span> pending activation
+                    </p>
+                </div>
+
+                <!-- Sync Status breakdown -->
+                <div class="bg-white border border-slate-200 rounded-card p-5">
+                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mb-3">
+                        Sync Status
+                    </p>
+                    <div class="space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-green-500 flex-shrink-0"></span>
+                                <span class="text-sm text-slate-600">Healthy</span>
+                                <span class="text-[11px] text-slate-400">&lt; 2 h</span>
+                            </div>
+                            <span id="statHealthy" class="text-sm font-semibold text-green-700">—</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-slate-400 flex-shrink-0"></span>
+                                <span class="text-sm text-slate-600">Offline</span>
+                                <span class="text-[11px] text-slate-400">&gt; 2 h</span>
+                            </div>
+                            <span id="statOffline" class="text-sm font-semibold text-slate-600">—</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-red-500 flex-shrink-0"></span>
+                                <span class="text-sm text-slate-600">Never Activated</span>
+                            </div>
+                            <span id="statError" class="text-sm font-semibold text-red-600">—</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── FILTER BAR ──────────────────────────────────────────── -->
+            <div class="flex items-center gap-3 flex-wrap">
+                <div class="relative flex-1 min-w-[180px] max-w-xs">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+                         fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+                    </svg>
+                    <input id="searchInput" type="search" placeholder="Search device or tenant…"
+                           oninput="applyFilters()"
+                           class="w-full h-10 pl-9 pr-3 border border-slate-200 rounded-card text-sm
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                </div>
+
+                <select id="statusFilter" onchange="applyFilters()"
+                        class="h-10 pl-3 pr-8 border border-slate-200 rounded-card text-sm text-slate-700
+                               bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                    <option value="">All statuses</option>
+                    <option value="healthy">Healthy</option>
+                    <option value="offline">Offline</option>
+                    <option value="error">Never Activated</option>
+                </select>
+
+                <span id="tableCount" class="ml-auto text-xs text-slate-400"></span>
+            </div>
+
+            <!-- ── PROBLEMS TABLE ─────────────────────────────────────── -->
+            <div>
+                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3">
+                    Devices with Problems
+                    <span id="problemBadge" class="hidden ml-2 px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full text-[11px] font-medium"></span>
+                </h2>
+
+                <div class="bg-white border border-slate-200 rounded-card">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-100 bg-slate-50">
+                                    <th class="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Device</th>
+                                    <th class="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Tenant</th>
+                                    <th class="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Branch</th>
+                                    <th class="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Last Sync</th>
+                                    <th class="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Contact</th>
+                                    <th class="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Problem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="problemsBody">
+                                <tr>
+                                    <td colspan="6" class="px-5 py-10 text-center text-sm text-slate-400">Loading…</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── ALL DEVICES TABLE ──────────────────────────────────── -->
+            <div>
+                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3">All Devices</h2>
+
+                <div class="bg-white border border-slate-200 rounded-card">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-100 bg-slate-50">
+                                    <th class="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Device</th>
+                                    <th class="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Tenant</th>
+                                    <th class="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Branch</th>
+                                    <th class="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Status</th>
+                                    <th class="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Last Sync</th>
+                                    <th class="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Contact</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allDevicesBody">
+                                <tr>
+                                    <td colspan="6" class="px-5 py-10 text-center text-sm text-slate-400">Loading…</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+
+    <!-- ==================================================================
+         SCRIPT
+         ================================================================== -->
+    <script>
+        'use strict';
+
+        let allDevices  = [];
+        let toastTimer  = null;
+
+        // ── Auth ──────────────────────────────────────────────────────────
+
+        function logout() {
+            localStorage.removeItem('platform_token');
+            window.location.href = '/platform/login.html';
+        }
+
+        async function apiFetch(path, options = {}) {
+            const token = localStorage.getItem('platform_token');
+            if (!token) { logout(); return; }
+            const res = await fetch(path, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    ...(options.headers || {}),
+                },
+            });
+            if (res.status === 401) { logout(); return; }
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.detail || `HTTP ${res.status}`);
+            }
+            return res.status === 204 ? null : res.json();
+        }
+
+
+        // ── Sync classification ───────────────────────────────────────────
+
+        const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
+
+        function syncClass(d) {
+            if (!d.is_activated) return 'error';
+            if (!d.last_sync_at) return 'offline';
+            return (Date.now() - new Date(d.last_sync_at).getTime()) < TWO_HOURS_MS
+                ? 'healthy'
+                : 'offline';
+        }
+
+        function problemLabel(d) {
+            if (!d.is_activated) return 'Never activated';
+            if (!d.last_sync_at) return 'No sync recorded';
+            const h = (Date.now() - new Date(d.last_sync_at).getTime()) / 3600000;
+            if (h > 24) return `Offline ${Math.round(h)}h`;
+            return `Offline ${Math.round(h)}h`;
+        }
+
+        function timeAgo(iso) {
+            if (!iso) return '—';
+            const diff = Date.now() - new Date(iso).getTime();
+            const m = Math.floor(diff / 60000);
+            if (m < 2)  return 'Just now';
+            if (m < 60) return `${m} min ago`;
+            const h = Math.floor(m / 60);
+            if (h < 24) return `${h} hour${h !== 1 ? 's' : ''} ago`;
+            const d = Math.floor(h / 24);
+            return `${d} day${d !== 1 ? 's' : ''} ago`;
+        }
+
+        function esc(s) {
+            return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+
+        const STATUS_CFG = {
+            healthy: {
+                dot:   'bg-green-500',
+                badge: 'bg-green-100 text-green-700',
+                label: 'Healthy',
+            },
+            offline: {
+                dot:   'bg-slate-400',
+                badge: 'bg-slate-100 text-slate-600',
+                label: 'Offline',
+            },
+            error: {
+                dot:   'bg-red-500',
+                badge: 'bg-red-100 text-red-700',
+                label: 'Not Activated',
+            },
+        };
+
+        function statusBadge(cls) {
+            const cfg = STATUS_CFG[cls] || STATUS_CFG.offline;
+            return `<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium ${cfg.badge}">
+                        <span class="w-1.5 h-1.5 rounded-full ${cfg.dot}"></span>${cfg.label}
+                    </span>`;
+        }
+
+
+        // ── Load & compute ────────────────────────────────────────────────
+
+        async function loadData() {
+            try {
+                allDevices = await apiFetch('/api/platform/tenants/devices/all') || [];
+                renderStats();
+                renderAlerts();
+                applyFilters();
+            } catch (e) {
+                const msg = `<tr><td colspan="6" class="px-5 py-10 text-center text-sm text-red-500">Failed to load: ${esc(e.message)}</td></tr>`;
+                document.getElementById('problemsBody').innerHTML   = msg;
+                document.getElementById('allDevicesBody').innerHTML = msg;
+            }
+        }
+
+
+        // ── Stats ─────────────────────────────────────────────────────────
+
+        function renderStats() {
+            const total    = allDevices.length;
+            const activated = allDevices.filter(d => d.is_activated).length;
+            const pending  = total - activated;
+            const healthy  = allDevices.filter(d => syncClass(d) === 'healthy').length;
+            const offline  = allDevices.filter(d => syncClass(d) === 'offline').length;
+            const error    = allDevices.filter(d => syncClass(d) === 'error').length;
+
+            document.getElementById('statTotal').textContent     = total;
+            document.getElementById('statActivated').textContent = activated;
+            document.getElementById('statPending').textContent   = pending;
+            document.getElementById('statHealthy').textContent   = healthy;
+            document.getElementById('statOffline').textContent   = offline;
+            document.getElementById('statError').textContent     = error;
+        }
+
+
+        // ── Alerts ────────────────────────────────────────────────────────
+
+        function renderAlerts() {
+            const alerts = [];
+
+            const neverActivated = allDevices.filter(d => !d.is_activated).length;
+            if (neverActivated > 0) {
+                alerts.push({
+                    icon: '⚠',
+                    color: 'border-amber-200 bg-amber-50 text-amber-800',
+                    msg: `${neverActivated} device${neverActivated !== 1 ? 's' : ''} registered but never activated — POS app has not verified yet.`,
+                    filter: 'error',
+                });
+            }
+
+            const longOffline = allDevices.filter(d => {
+                if (!d.is_activated || !d.last_sync_at) return false;
+                return (Date.now() - new Date(d.last_sync_at).getTime()) > 24 * 3600000;
+            }).length;
+            if (longOffline > 0) {
+                alerts.push({
+                    icon: '●',
+                    color: 'border-red-200 bg-red-50 text-red-800',
+                    msg: `${longOffline} device${longOffline !== 1 ? 's' : ''} offline for more than 24 hours — possible hardware or network issue.`,
+                    filter: 'offline',
+                });
+            }
+
+            const section = document.getElementById('alertsSection');
+            const list    = document.getElementById('alertsList');
+
+            if (!alerts.length) {
+                section.classList.add('hidden');
+                return;
+            }
+
+            section.classList.remove('hidden');
+            list.innerHTML = alerts.map(a => `
+                <div class="flex items-start gap-3 px-4 py-3 border rounded-card text-sm ${a.color} cursor-pointer hover:opacity-90 transition-opacity"
+                     onclick="document.getElementById('statusFilter').value='${escapeJSAttribute(a.filter)}'; applyFilters();">
+                    <span class="font-bold flex-shrink-0 mt-0.5">${a.icon}</span>
+                    <span>${esc(a.msg)}</span>
+                    <span class="ml-auto text-xs font-medium flex-shrink-0 underline-offset-2 hover:underline">View Issues →</span>
+                </div>`).join('');
+        }
+
+
+        // ── Filters + render ──────────────────────────────────────────────
+
+        function applyFilters() {
+            const q      = document.getElementById('searchInput').value.trim().toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+
+            const filtered = allDevices.filter(d => {
+                const sc = syncClass(d);
+                if (status && sc !== status) return false;
+                if (q && ![d.device_code, d.name, d.tenant_name, d.tenant_code, d.branch_name]
+                    .join(' ').toLowerCase().includes(q)) return false;
+                return true;
+            });
+
+            document.getElementById('tableCount').textContent =
+                filtered.length === allDevices.length
+                    ? `${allDevices.length} devices`
+                    : `${filtered.length} of ${allDevices.length}`;
+
+            renderProblems(filtered);
+            renderAllDevices(filtered);
+        }
+
+        function renderProblems(devices) {
+            const problems = devices.filter(d => syncClass(d) !== 'healthy');
+            const badge    = document.getElementById('problemBadge');
+
+            if (problems.length) {
+                badge.textContent = problems.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+
+            const tbody = document.getElementById('problemsBody');
+            if (!problems.length) {
+                tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-8 text-center text-sm text-slate-400">
+                    <span class="text-green-600 font-medium">✓ All devices are healthy.</span>
+                </td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = problems.map(d => {
+                const sc = syncClass(d);
+                const problemCls = sc === 'error'
+                    ? 'text-red-600 font-medium'
+                    : 'text-amber-600 font-medium';
+                return `
+                <tr class="border-b border-slate-50 hover:bg-slate-50/60 transition-colors">
+                    <td class="px-5 py-3">
+                        <p class="text-sm font-medium text-slate-900 font-mono">${esc(d.device_code)}</p>
+                        <p class="text-xs text-slate-400">${esc(d.name)}</p>
+                    </td>
+                    <td class="px-5 py-3">
+                        <p class="text-sm text-slate-800">${esc(d.tenant_name)}</p>
+                        <p class="text-xs text-slate-400 font-mono">${esc(d.tenant_code)}</p>
+                    </td>
+                    <td class="px-5 py-3 text-sm text-slate-600">${esc(d.branch_name)}</td>
+                    <td class="px-5 py-3 text-sm text-slate-500">${timeAgo(d.last_sync_at)}</td>
+                    <td class="px-5 py-3 text-sm text-slate-700">
+                        ${d.contact
+                            ? `<a href="tel:${esc(d.contact)}" class="text-blue-600 hover:underline font-mono">${esc(d.contact)}</a>`
+                            : '<span class="text-slate-400">—</span>'}
+                    </td>
+                    <td class="px-5 py-3 text-sm ${problemCls}">${problemLabel(d)}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function lifecyclePill(d) {
+            if (!d.status || d.status === 'ACTIVE') return '';
+            const map = {
+                PENDING:   'bg-amber-100 text-amber-700',
+                SUSPENDED: 'bg-red-100 text-red-700',
+                REVOKED:   'bg-slate-800 text-white',
+            };
+            let label = d.status.charAt(0) + d.status.slice(1).toLowerCase();
+            if (d.status === 'SUSPENDED' && d.suspended_scope === 'PLATFORM') label = 'Suspended · platform';
+            return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium mt-1 ${map[d.status] || 'bg-slate-100 text-slate-600'}">${label}</span>`;
+        }
+
+        function renderAllDevices(devices) {
+            const tbody = document.getElementById('allDevicesBody');
+            if (!devices.length) {
+                tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-8 text-center text-sm text-slate-400">No devices match the filter.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = devices.map(d => {
+                const sc = syncClass(d);
+                return `
+                <tr class="border-b border-slate-50 hover:bg-slate-50/60 transition-colors">
+                    <td class="px-5 py-3">
+                        <p class="text-sm font-medium text-slate-900 font-mono">${esc(d.device_code)}</p>
+                        <p class="text-xs text-slate-400">${esc(d.name)}</p>
+                        ${lifecyclePill(d)}
+                    </td>
+                    <td class="px-5 py-3">
+                        <p class="text-sm text-slate-800">${esc(d.tenant_name)}</p>
+                        <p class="text-xs text-slate-400 font-mono">${esc(d.tenant_code)}</p>
+                    </td>
+                    <td class="px-5 py-3 text-sm text-slate-600">${esc(d.branch_name)}</td>
+                    <td class="px-5 py-3">${statusBadge(sc)}</td>
+                    <td class="px-5 py-3 text-sm text-slate-500">${timeAgo(d.last_sync_at)}</td>
+                    <td class="px-5 py-3 text-sm text-slate-700">
+                        ${d.contact
+                            ? `<a href="tel:${esc(d.contact)}" class="text-blue-600 hover:underline font-mono">${esc(d.contact)}</a>`
+                            : '<span class="text-slate-400">—</span>'}
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+
+        // ── Boot ──────────────────────────────────────────────────────────
+
+        loadData();
+
+    </script>
+
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

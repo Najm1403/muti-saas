@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Config Reference - STORIXX</title>
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+    <style>
+        .rounded-card { border-radius: 10px; }
+        pre { font-family: ui-monospace, monospace; font-size: 12.5px; line-height: 1.5; }
+        code { font-family: ui-monospace, monospace; }
+    </style>
+</head>
+<body class="flex h-screen bg-slate-50 text-slate-900">
+
+    <aside class="w-64 flex-shrink-0 h-screen bg-slate-900 flex flex-col overflow-y-auto">
+        <div class="h-16 flex items-center px-5 border-b border-slate-800 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <img src="/assets/logo-mark.png?v=3" alt="STORIXX" class="w-8 h-8 rounded-[6px] flex-shrink-0 object-contain" />
+                <div>
+                    <p class="text-white text-sm font-semibold leading-none">STORIXX</p>
+                    <p class="text-slate-500 text-[11px] leading-none mt-0.5">SaaS Platform</p>
+                </div>
+            </div>
+        </div>
+        <nav class="flex-1 px-3 py-4 space-y-0.5" id="sidebarNav"></nav>
+        <div class="px-3 py-4 border-t border-slate-800 flex-shrink-0">
+            <button onclick="logout()" class="w-full flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card text-slate-400 hover:bg-slate-800 hover:text-red-400 border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                <span class="text-sm">Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col h-screen overflow-hidden">
+        <header class="h-16 flex-shrink-0 bg-white border-b border-slate-200 flex items-center justify-between px-6">
+            <div>
+                <h1 class="text-base font-semibold text-slate-900">Config Reference</h1>
+                <p class="text-xs text-slate-400 mt-0.5">Every field a Business Template's <code>config</code> JSON understands, and how to edit it — for the <a href="/platform/business-templates.html" class="text-blue-600 hover:underline">Business Templates</a> screen.</p>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto px-6 py-6">
+            <div class="max-w-4xl mx-auto space-y-8">
+
+                <!-- ══════════════ HOW TO EDIT ══════════════ -->
+                <section class="bg-white border border-slate-200 rounded-card p-6">
+                    <h2 class="text-base font-semibold text-slate-900 mb-3">How this works</h2>
+                    <div class="prose prose-sm max-w-none text-slate-700 space-y-2 text-sm leading-relaxed">
+                        <p>Every tenant is onboarded onto exactly one <strong>Business Template</strong> (Fast Food, Electronics, Laptop Business, ...). The template's <code>config</code> is one JSON object that drives everything about how that tenant's dashboard and POS behave — which fields show on a product form, whether Variant Option Groups exist at all, what the POS layout looks like, and now, which whole dashboard sections (modules) a tenant can see.</p>
+                        <p><strong>To edit a template:</strong> go to <a href="/platform/business-templates.html" class="text-blue-600 hover:underline">Business Templates</a>, click an existing card (or "New Template"). Three of the most commonly-changed fields — <code>variants.enabled</code>, <code>addons.enabled</code>, and <code>modules.hidden</code> — have real checkboxes in the editor that stay in sync with the JSON textarea below them. Everything else is edited directly as JSON in that textarea. Click <strong>Save</strong>; the server re-validates the shape (e.g. rejects an unknown or mandatory module key in <code>modules.hidden</code>) before it's applied — a syntax-valid JSON blob isn't automatically an accepted config.</p>
+                        <p><strong>Nothing is required.</strong> Every key below is optional — an absent key falls back to a safe default (usually "on"/"unrestricted"), exactly like <code>modules.hidden</code> defaults to "nothing hidden" when absent. You only need to write the keys you want to change from that default.</p>
+                        <p>Changes apply to <strong>every tenant on that template</strong> immediately — there is no per-tenant override for any of these settings (a tenant's individual identity — name, branches, users, devices — lives on the Tenant record itself, not here).</p>
+                    </div>
+                </section>
+
+                <!-- ══════════════ pricing ══════════════ -->
+                <section class="bg-white border border-slate-200 rounded-card p-6">
+                    <h2 class="text-base font-semibold text-slate-900 mb-1"><code>pricing</code></h2>
+                    <p class="text-xs text-slate-400 mb-3">Controls Cost Price visibility. Cost Price is always optional.</p>
+                    <table class="w-full text-sm mb-3">
+                        <thead><tr class="text-left text-xs text-slate-400 uppercase border-b border-slate-100">
+                            <th class="py-1.5 pr-3">Field</th><th class="py-1.5 pr-3">Type</th><th class="py-1.5 pr-3">Default</th><th class="py-1.5">Effect</th>
+                        </tr></thead>
+                        <tbody class="align-top">
+                            <tr class="border-b border-slate-50"><td class="py-1.5 pr-3 font-mono">show_cost_price</td><td class="py-1.5 pr-3">bool</td><td class="py-1.5 pr-3">false</td><td class="py-1.5">Shows the Cost Price field on the product-creation drawer.</td></tr>
+                            <tr class="border-b border-slate-50"><td class="py-1.5 pr-3 font-mono">require_cost_price</td><td class="py-1.5 pr-3">bool</td><td class="py-1.5 pr-3">false</td><td class="py-1.5">Legacy compatibility key. It is ignored; Cost Price remains optional.</td></tr>
+                            <tr><td class="py-1.5 pr-3 font-mono">show_compare_price</td><td class="py-1.5 pr-3">bool</td><td class="py-1.5 pr-3">false</td><td class="py-1.5">Shows a "was" strike-through price alongside the sale price.</td></tr>
+                        </tbody>
+                    </table>
+                    <pre class="bg-slate-50 border border-slate-100 rounded-card p-3 overflow-x-auto">"pricing": { "show_cost_price": true, "require_cost_price": false, "show_compare_price": false }</pre>
+                </section>
+
+                <!-- ══════════════ variants ══════════════ -->
+                <section class="bg-white border border-slate-200 rounded-card p-6">
+                    <h2 class="text-base font-semibold text-slate-900 mb-1"><code>variants</code></h2>
+                    <p class="text-xs text-slate-400 mb-3">Whether this business type uses Variant Option Groups (SKU-defining options like RAM/Storage/Size) at all, and what gets seeded at onboarding.</p>
+                    <table class="w-full text-sm mb-3">
+                        <thead><tr class="text-left text-xs text-slate-400 uppercase border-b border-slate-100">
+                            <th class="py-1.5 pr-3">Field</th><th class="py-1.5 pr-3">Type</th><th class="py-1.5 pr-3">Default</th><th class="py-1.5">Effect</th>
+                        </tr></thead>
+                        <tbody class="align-top">
+                            <tr class="border-b border-slate-50"><td class="py-1.5 pr-3 font-mono">enabled</td><td class="py-1.5 pr-3">bool</td><td class="py-1.5 pr-3">true</td><td class="py-1.5"><code>false</code> hides Component Groups/Variants everywhere in the tenant dashboard and blocks attaching one server-side (<code>enforce_variants_enabled</code>) — the business sells one Product priced with delta Add-ons only (e.g. Fast Food).</td></tr>
+                            <tr class="border-b border-slate-50"><td class="py-1.5 pr-3 font-mono">seed_groups</td><td class="py-1.5 pr-3">array</td><td class="py-1.5 pr-3">[]</td><td class="py-1.5">Variant Option Groups created automatically at onboarding — <code>[{"name": "RAM", "values": ["4GB","8GB"]}, ...]</code>.</td></tr>
+                            <tr><td class="py-1.5 pr-3 font-mono">max_option_groups</td><td class="py-1.5 pr-3">int | null</td><td class="py-1.5 pr-3">null</td><td class="py-1.5">Optional cap on how many groups a product can attach. <code>null</code> = unlimited.</td></tr>
+                        </tbody>
+                    </table>
+                    <pre class="bg-slate-50 border border-slate-100 rounded-card p-3 overflow-x-auto">"variants": {
+  "enabled": true,
+  "max_option_groups": null,
+  "seed_groups": [
+    { "name": "RAM", "values": ["4GB", "8GB", "16GB", "32GB"] },
+    { "name": "Storage", "values": ["128GB", "256GB", "512GB", "1TB"] }
+  ]
+}</pre>
+                </section>
+
+                <!-- ══════════════ addons ══════════════ -->
+                <section class="bg-white border border-slate-200 rounded-card p-6">
+                    <h2 class="text-base font-semibold text-slate-900 mb-1"><code>addons</code></h2>
+                    <p class="text-xs text-slate-400 mb-3">Delta-priced Add-ons (Extra Cheese +$1, No Onion, ...) — structurally separate from Variant Option Groups, never generates a combination SKU.</p>
+                    <table class="w-full text-sm mb-3">
+                        <thead><tr class="text-left text-xs text-slate-400 uppercase border-b border-slate-100">
+                            <th class="py-1.5 pr-3">Field</th><th class="py-1.5 pr-3">Type</th><th class="py-1.5 pr-3">Default</th><th class="py-1.5">Effect</th>
+                        </tr></thead>
+                        <tbody class="align-top">
+                            <tr class="border-b border-slate-50"><td class="py-1.5 pr-3 font-mono">enabled</td><td class="py-1.5 pr-3">bool</td><td class="py-1.5 pr-3">true</td><td class="py-1.5"><code>false</code> hides the Add-ons section everywhere in the tenant dashboard and blocks attaching an Add-on Group server-side (<code>enforce_addons_enabled</code>) — the business prices everything via Variant Options instead (e.g. Laptops).</td></tr>
+                            <tr><td class="py-1.5 pr-3 font-mono">seed_groups</td><td class="py-1.5 pr-3">array</td><td class="py-1.5 pr-3">[]</td><td class="py-1.5">Add-on Groups created at onboarding — each item has <code>name</code>, <code>selection_type</code> ("single"/"multiple"), <code>min_select</code>, <code>max_select</code>, and <code>items</code> (each with <code>name</code>, <code>price_delta</code>, optional <code>default_selected</code>).</td></tr>
+                        </tbody>
+                    </table>
+                    <pre class="bg-slate-50 border border-slate-100 rounded-card p-3 overflow-x-auto">"addons": {
+  "enabled": true,
+  "seed_groups": [
+    { "name": "Toppings", "selection_type": "multiple", "min_select": 0, "max_select": 5,
+      "items": [
+        { "name": "Extra Cheese", "price_delta": 100 },
+        { "name": "Mushroom", "price_delta": 80 }
+      ] }
+  ]
+}</pre>
+                </section>
+
+                <!-- ══════════════ product_fields ══════════════ -->
+                <section class="bg-white border border-slate-200 rounded-card p-6">
+                    <h2 class="text-base font-semibold text-slate-900 mb-1"><code>product_fields</code></h2>
+                    <p class="text-xs text-slate-400 mb-3">Which optional fields show on the product form — never required, just shown or hidden.</p>
+                    <table class="w-full text-sm mb-3">
+                        <thead><tr class="text-left text-xs text-slate-400 uppercase border-b border-slate-100">
+                            <th class="py-1.5 pr-3">Field</th><th class="py-1.5 pr-3">Type</th><th class="py-1.5 pr-3">Default</th><th class="py-1.5">Effect</th>
+                        </tr></thead>
+                        <tbody class="align-top">
+                            <tr class="border-b border-slate-50"><td class="py-1.5 pr-3 font-mono">sku</td><td class="py-1.5 pr-3">bool</td><td class="py-1.5 pr-3">true</td><td class="py-1.5">Shows the SKU field.</td></tr>
+                            <tr class="border-b border-slate-50"><td class="py-1.5 pr-3 font-mono">specs</td><td class="py-1.5 pr-3">bool</td><td class="py-1.5 pr-3">true</td><td class="py-1.5">Shows the key/value Specifications section.</td></tr>
+                            <tr class="border-b border-slate-50"><td class="py-1.5 pr-3 font-mono">warranty</td><td class="py-1.5 pr-3">bool</td><td class="py-1.5 pr-3">true</td><td class="py-1.5">Shows the free-text Warranty field.</td></tr>
+                            <tr><td class="py-1.5 pr-3 font-mono">description</td><td class="py-1.5 pr-3">bool</td><td class="py-1.5 pr-3">true</td><td class="py-1.5">Shows the product Description field.</td></tr>
+                        </tbody>
+                    </table>
+                    <pre class="bg-slate-50 border border-slate-100 rounded-card p-3 overflow-x-auto">"product_fields": { "sku": true, "specs": true, "warranty": true, "description": true }</pre>
+                </section>
+
+                <!-- ══════════════ pos ══════════════ -->
+                <section class="bg-white border border-slate-200 rounded-card p-6">
+                    <h2 class="text-base font-semibold text-slate-900 mb-1"><code>pos</code></h2>
+                    <p class="text-xs text-slate-400 mb-3">Which POS screen layout the Flutter app uses for this business type.</p>
+                    <table class="w-full text-sm mb-3">
+                        <thead><tr class="text-left text-xs text-slate-400 uppercase border-b border-slate-100">
+                            <th class="py-1.5 pr-3">Field</th><th class="py-1.5 pr-3">Type</th><th class="py-1.5 pr-3">Default</th><th class="py-1.5">Effect</th>
+                        </tr></thead>
+                        <tbody class="align-top">
+                            <tr><td class="py-1.5 pr-3 font-mono">layout</td><td class="py-1.5 pr-3">string</td><td class="py-1.5 pr-3">"grid_with_variant_picker"</td><td class="py-1.5"><code>"grid_with_variant_picker"</code> (a side-panel variant/component picker — for businesses with real SKU options, e.g. laptops) or <code>"grid_quick_tap"</code> (instant-add/bottom-sheet — for fast, few-choice menus, e.g. fast food).</td></tr>
+                        </tbody>
+                    </table>
+                    <pre class="bg-slate-50 border border-slate-100 rounded-card p-3 overflow-x-auto">"pos": { "layout": "grid_with_variant_picker" }</pre>
+                </section>
+
+                <!-- ══════════════ inventory ══════════════ -->
+                <section class="bg-white border border-slate-200 rounded-card p-6">
+                    <h2 class="text-base font-semibold text-slate-900 mb-1"><code>inventory</code></h2>
+                    <p class="text-xs text-slate-400 mb-3">How strictly stock tracking is enforced for this business type.</p>
+                    <table class="w-full text-sm mb-3">
+                        <thead><tr class="text-left text-xs text-slate-400 uppercase border-b border-slate-100">
+                            <th class="py-1.5 pr-3">Field</th><th class="py-1.5 pr-3">Type</th><th class="py-1.5 pr-3">Default</th><th class="py-1.5">Effect</th>
+                        </tr></thead>
+                        <tbody class="align-top">
+                            <tr class="border-b border-slate-50"><td class="py-1.5 pr-3 font-mono">tracking_editable</td><td class="py-1.5 pr-3">bool</td><td class="py-1.5 pr-3">true</td><td class="py-1.5">UI metadata indicating that a tenant may edit the tracking choice.</td></tr>
+                            <tr class="border-b border-slate-50"><td class="py-1.5 pr-3 font-mono">tracking_default_on</td><td class="py-1.5 pr-3">bool</td><td class="py-1.5 pr-3">false</td><td class="py-1.5">New products and their variants start tracked when the form does not provide a choice; the tenant can still turn tracking off.</td></tr>
+                            <tr><td class="py-1.5 pr-3 font-mono">tracking_forced_on</td><td class="py-1.5 pr-3">bool</td><td class="py-1.5 pr-3">false</td><td class="py-1.5">Every variant must track inventory — enforced server-side (<code>enforce_tracking_policy</code>), not just a UI default.</td></tr>
+                            <tr><td class="py-1.5 pr-3 font-mono">low_stock_threshold</td><td class="py-1.5 pr-3">integer</td><td class="py-1.5 pr-3">5</td><td class="py-1.5">Initial tenant threshold. The tenant can later change it in Settings; alerts only evaluate tracked variants per branch.</td></tr>
+                        </tbody>
+                    </table>
+                    <pre class="bg-slate-50 border border-slate-100 rounded-card p-3 overflow-x-auto">"inventory": { "tracking_editable": true, "tracking_default_on": true, "tracking_forced_on": false, "low_stock_threshold": 5 }</pre>
+                </section>
+
+                <!-- ══════════════ categories ══════════════ -->
+                <section class="bg-white border border-slate-200 rounded-card p-6">
+                    <h2 class="text-base font-semibold text-slate-900 mb-1"><code>categories</code></h2>
+                    <p class="text-xs text-slate-400 mb-3">Categories created automatically at onboarding, so a new tenant isn't staring at an empty Menu.</p>
+                    <pre class="bg-slate-50 border border-slate-100 rounded-card p-3 overflow-x-auto">"categories": { "default_categories": ["Laptops"] }</pre>
+                </section>
+
+                <!-- ══════════════ modules ══════════════ -->
+                <section class="bg-white border border-emerald-200 rounded-card p-6 ring-1 ring-emerald-100">
+                    <h2 class="text-base font-semibold text-slate-900 mb-1"><code>modules</code></h2>
+                    <p class="text-xs text-slate-500 mb-3">Which whole dashboard sections this business type's tenants can see at all — Kitchen Stations, Promotions, Reports, and so on. This replaces the old, separate "Module Templates" system: there is no per-tenant override any more, only per-Business-Template.</p>
+                    <table class="w-full text-sm mb-3">
+                        <thead><tr class="text-left text-xs text-slate-400 uppercase border-b border-slate-100">
+                            <th class="py-1.5 pr-3">Field</th><th class="py-1.5 pr-3">Type</th><th class="py-1.5 pr-3">Default</th><th class="py-1.5">Effect</th>
+                        </tr></thead>
+                        <tbody class="align-top">
+                            <tr><td class="py-1.5 pr-3 font-mono">hidden</td><td class="py-1.5 pr-3">array&lt;string&gt;</td><td class="py-1.5 pr-3">[]</td><td class="py-1.5">Module keys to hide. Absent/empty = every module visible (opt-out, not opt-in). Hiding a module removes it from the tenant dashboard sidebar <em>and</em> blocks its API routes server-side with <code>403 MODULE_DISABLED</code> — a direct API call can't bypass it. The three mandatory modules (<code>dashboard</code>, <code>subscription</code>, <code>settings</code>) can never be hidden — listing one is rejected when you save.</td></tr>
+                        </tbody>
+                    </table>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 mt-4">Every module key</p>
+                    <div id="modKeysTable" class="text-sm text-slate-600">Loading…</div>
+                    <pre class="bg-slate-50 border border-slate-100 rounded-card p-3 overflow-x-auto mt-4">"modules": { "hidden": ["kitchen", "promotions"] }</pre>
+                    <p class="text-xs text-slate-400 mt-2">In the Business Templates editor this is also a checkbox grid — uncheck a module there and it's synced into this field on Save. Editing the JSON directly works exactly the same.</p>
+
+                    <div class="mt-4 bg-amber-50 border border-amber-200 rounded-card p-4">
+                        <p class="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-2">Changing this — two guards are enforced, not just advice</p>
+                        <ul class="text-xs text-amber-900 space-y-1.5 list-disc pl-4">
+                            <li><strong>Permission required.</strong> Needs <code>can_manage_business_templates</code> (Owners have it implicitly; a Manager needs it granted from Platform Users) — without it the save is rejected before anything runs.</li>
+                            <li><strong>Password re-confirmation required, every time.</strong> Saving a change to <code>hidden</code> (or deleting the template) opens a "Confirm your password" prompt — a 5-minute token scoped to this exact action and template, even if you already have the permission above.</li>
+                            <li><strong>Still applies to every tenant on this template immediately</strong> once confirmed — check "View tenants using this template" on the grid first so you know the blast radius; neither guard checks that for you.</li>
+                            <li><strong>No warning to the tenant.</strong> The sidebar link disappears and the routes start 403ing on their very next request — no grace period.</li>
+                            <li><strong>Hiding <code>sales</code>, <code>promotions</code>, or <code>deals</code> reaches the POS, not just the dashboard</strong> — hiding <code>sales</code> blocks a cashier session from opening at all (a shop cannot ring up sales); hiding <code>promotions</code>/<code>deals</code> silently drops them from live order pricing.</li>
+                            <li><strong>Fully reversible.</strong> Nothing is deleted — re-check the box and confirm again to restore instantly (needs its own fresh password step-up too).</li>
+                            <li><strong>Verify after saving</strong> by checking an affected tenant's dashboard, rather than trusting the checkbox alone.</li>
+                        </ul>
+                        <p class="text-xs text-amber-700 mt-2">Full write-up: <code>BUSINESS_TEMPLATE_GUIDE.md</code>, "Changing modules.hidden on a template that's already in use."</p>
+                    </div>
+                </section>
+
+                <!-- ══════════════ full example ══════════════ -->
+                <section class="bg-white border border-slate-200 rounded-card p-6">
+                    <h2 class="text-base font-semibold text-slate-900 mb-1">Full example</h2>
+                    <p class="text-xs text-slate-400 mb-3">A complete, real config — the "Laptop Business" template, with Kitchen and Promotions hidden (a laptop shop has no kitchen and this one doesn't run promotions).</p>
+                    <pre class="bg-slate-50 border border-slate-100 rounded-card p-3 overflow-x-auto">{
+  "pos": { "layout": "grid_with_variant_picker" },
+  "addons": { "enabled": true, "seed_groups": [] },
+  "pricing": { "show_cost_price": true, "require_cost_price": false, "show_compare_price": false },
+  "variants": {
+    "enabled": true,
+    "max_option_groups": null,
+    "seed_groups": [
+      { "name": "RAM", "values": ["4GB", "8GB", "16GB", "32GB"] },
+      { "name": "Storage", "values": ["128GB", "256GB", "512GB", "1TB"] }
+    ]
+  },
+  "inventory": { "tracking_editable": true, "tracking_default_on": true, "tracking_forced_on": false, "low_stock_threshold": 5 },
+  "categories": { "default_categories": ["Laptops"] },
+  "product_fields": { "sku": true, "specs": true, "warranty": true, "description": true },
+  "modules": { "hidden": ["kitchen", "promotions"] }
+}</pre>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="/platform/hr-common.js"></script>
+    <script>
+        renderPlatformSidebarNav('config-reference');
+
+        (async () => {
+            try {
+                const catalog = await apiFetch('/api/platform/business-templates/modules/catalog');
+                const byGroup = {};
+                catalog.forEach(m => { (byGroup[m.group] = byGroup[m.group] || []).push(m); });
+                document.getElementById('modKeysTable').innerHTML = Object.entries(byGroup).map(([grp, items]) => `
+                    <div class="mb-3">
+                        <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wide mb-1">${esc(grp)}</p>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1">
+                            ${items.map(m => `<span class="flex items-center gap-1.5"><code class="text-xs bg-slate-100 px-1.5 py-0.5 rounded">${esc(m.key)}</code>${m.mandatory ? '<span class="text-[10px] text-amber-600">mandatory</span>' : ''}</span>`).join('')}
+                        </div>
+                    </div>`).join('');
+            } catch (e) {
+                document.getElementById('modKeysTable').textContent = 'Could not load the module catalog: ' + (e.message || e);
+            }
+        })();
+    </script>
+</body>
+</html>

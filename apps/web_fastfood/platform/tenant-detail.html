@@ -1,0 +1,2790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <!--
+        Tenant Detail — STORIXX
+        =============================================
+        Drills into a single tenant. Accessed from the tenants list or
+        the success modal after onboarding.
+
+        URL param: ?id={tenant_uuid}
+
+        Data sources:
+          GET /api/platform/tenants/{id}/detail    → TenantDetailResponse (Overview tab)
+          GET /api/platform/tenants/{id}/branches  → list[BranchPlatformResponse] (Branches tab)
+          POST /api/platform/tenants/{id}/branches → create branch (Add Branch drawer)
+          POST /api/platform/tenants/{id}/suspend  → suspend tenant
+          POST /api/platform/tenants/{id}/activate → activate tenant
+          POST /api/platform/tenants/{id}/account-recovery → trigger password reset
+
+          GET /api/platform/tenants/{id}/users    → list tenant users (Users tab)
+          POST /api/platform/tenants/{id}/users   → create tenant user (Add User drawer)
+
+        Style: follows web_fastfood/STYLE_GUIDE.md
+    -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tenant Detail - STORIXX</title>
+
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+
+    <style>
+        .rounded-card { border-radius: 10px; }
+        body { overflow: hidden; }
+
+        /* Slide-in drawer */
+        .drawer-open   { transform: translateX(0); }
+        .drawer-closed { transform: translateX(100%); }
+
+        /* Tab button active / inactive */
+        .tab-active {
+            color: #2563EB;
+            border-bottom: 2px solid #2563EB;
+            font-weight: 600;
+        }
+        .tab-inactive {
+            color: #64748B;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-inactive:hover { color: #334155; }
+    </style>
+</head>
+
+<body class="flex h-screen bg-slate-50 text-slate-900">
+
+
+    <!-- ==================================================================
+         SIDEBAR — same structure as dashboard/tenants.
+         Tenants link marked active (this page is reached from the tenants list).
+         ================================================================== -->
+    <aside class="w-64 flex-shrink-0 h-screen bg-slate-900 flex flex-col overflow-y-auto">
+
+        <!-- Logo -->
+        <div class="h-16 flex items-center px-5 border-b border-slate-800 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <img src="/assets/logo-mark.png?v=3" alt="STORIXX" class="w-8 h-8 rounded-[6px] flex-shrink-0 object-contain" />
+                <div>
+                    <p class="text-white text-sm font-semibold leading-none">STORIXX</p>
+                    <p class="text-slate-500 text-[11px] leading-none mt-0.5">SaaS Platform</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nav -->
+        <nav class="flex-1 px-3 py-4 space-y-0.5">
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-1 pb-2">
+                Overview
+            </p>
+
+            <a href="/platform/dashboard.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2
+                             2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1
+                             0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                <span class="text-sm">Dashboard</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">
+                Management
+            </p>
+
+            <!-- Tenants — active (this page belongs to the Tenants section) -->
+            <a href="/platform/tenants.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      bg-slate-800 text-white font-medium
+                      border-l-[3px] border-blue-500">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2
+                             0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5
+                             10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                <span class="text-sm">Tenants</span>
+            </a>
+            <a href="/platform/business-templates.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M20 7h-4V5a3 3 0 00-3-3h-2a3 3 0 00-3 3v2H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM10 5a1 1 0 011-1h2a1 1 0 011 1v2h-4V5z"/>
+                </svg>
+                <span class="text-sm">Business Templates</span>
+            </a>
+            <a href="/platform/config-reference.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s4.332.477 5.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                <span class="text-sm">Config Reference</span>
+            </a>
+
+            <a href="/platform/platform_users.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2
+                             c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0
+                             015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857
+                             m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm">Platform Users</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">
+                Billing
+            </p>
+
+            <a href="/platform/plans.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0
+                             002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2
+                             0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3
+                             4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+                <span class="text-sm">Plans</span>
+            </a>
+
+            <a href="/platform/subscriptions.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3
+                             0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                </svg>
+                <span class="text-sm">Subscriptions</span>
+            </a>
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Human Resources</p>
+            <a href="/platform/employees.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm">Employees</span>
+            </a>
+            <a href="/platform/salaries.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="text-sm">Salaries</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">
+                System
+            </p>
+
+            <a href="/platform/reports.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0
+                             002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2
+                             2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2
+                             2 0 01-2-2z"/>
+                </svg>
+                <span class="text-sm">Reports</span>
+            </a>
+        </nav>
+
+        <!-- Bottom: Settings + Logout -->
+        <div class="px-3 py-3 border-t border-slate-800 space-y-0.5 flex-shrink-0">
+            <a href="/platform/settings.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-400 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0
+                             002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0
+                             001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0
+                             00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0
+                             00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0
+                             00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0
+                             00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0
+                             001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07
+                             2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm">Settings</span>
+            </a>
+            <button id="sidebarLogout"
+                    class="w-full flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                           text-slate-400 hover:bg-slate-800 hover:text-red-400
+                           border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3
+                             0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+                <span class="text-sm">Logout</span>
+            </button>
+        </div>
+    </aside>
+
+
+    <!-- ==================================================================
+         MAIN COLUMN
+         ================================================================== -->
+    <div class="flex-1 flex flex-col h-screen overflow-hidden">
+
+        <!-- ── Header ──────────────────────────────────────────────────── -->
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center
+                       justify-between px-6 flex-shrink-0">
+
+            <!-- Breadcrumb -->
+            <div class="flex items-center gap-2 text-sm">
+                <a href="/platform/tenants.html"
+                   class="text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    Tenants
+                </a>
+                <span class="text-slate-300">/</span>
+                <span id="breadcrumbName" class="text-slate-900 font-medium">—</span>
+            </div>
+
+            <!-- Right: status badge + actions + avatar -->
+            <div class="flex items-center gap-3">
+                <span id="headerStatusBadge"></span>
+
+                <!-- Quick actions -->
+                <button id="btnAccountRecovery"
+                        onclick="doAccountRecovery()"
+                        class="h-9 px-3 border border-slate-200 bg-white rounded-card text-sm
+                               text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11
+                                 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0
+                                 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                    </svg>
+                    Account Recovery
+                </button>
+
+                <button id="btnToggleActive" onclick="doToggleActive()"
+                        class="h-9 px-3 border border-slate-200 bg-white rounded-card text-sm
+                               text-slate-700 hover:bg-slate-50 transition-colors">
+                    —
+                </button>
+
+                <!-- User avatar -->
+                <div class="relative">
+                    <button id="userMenuBtn"
+                            class="flex items-center gap-2 h-9 px-2 rounded-card
+                                   hover:bg-slate-50 transition-colors">
+                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                            <span id="avatarInitial"
+                                  class="text-white text-sm font-semibold select-none"></span>
+                        </div>
+                        <span id="usernameDisplay" class="text-sm text-slate-700 font-medium"></span>
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor"
+                             stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div id="userDropdown"
+                         class="hidden absolute right-0 top-full mt-1 w-40 bg-white border
+                                border-slate-200 rounded-card shadow-lg py-1 z-50">
+                        <button id="dropdownLogout"
+                                class="w-full text-left px-4 py-2 text-sm text-slate-700
+                                       hover:bg-slate-50 transition-colors">
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+
+        <!-- ── Scrollable page body ─────────────────────────────────────── -->
+        <main class="flex-1 overflow-y-auto">
+
+            <!-- Loading skeleton shown until data arrives -->
+            <div id="pageLoading" class="p-6">
+                <div class="h-8 w-48 bg-slate-200 rounded-card animate-pulse mb-2"></div>
+                <div class="h-4 w-32 bg-slate-100 rounded-card animate-pulse mb-6"></div>
+                <div class="grid grid-cols-3 gap-4 mb-6">
+                    <div class="h-24 bg-slate-100 rounded-card animate-pulse"></div>
+                    <div class="h-24 bg-slate-100 rounded-card animate-pulse"></div>
+                    <div class="h-24 bg-slate-100 rounded-card animate-pulse"></div>
+                </div>
+            </div>
+
+            <!-- Page content — hidden until data loads -->
+            <div id="pageContent" class="hidden p-6">
+
+                <!-- Tenant name + code header -->
+                <div class="mb-5">
+                    <h1 id="tenantName"
+                        class="text-xl font-semibold text-slate-900 leading-none"></h1>
+                    <p class="mt-1 text-sm text-slate-500">
+                        <span id="tenantCode" class="font-mono"></span>
+                        <span class="mx-1.5 text-slate-300">·</span>
+                        <span id="tenantCreated"></span>
+                    </p>
+                </div>
+
+                <!-- ==============================================================
+                     TAB NAV
+                     ============================================================== -->
+                <div class="flex border-b border-slate-200 mb-6 gap-1" role="tablist">
+                    <button class="tab-btn tab-active   px-4 pb-3 text-sm transition-colors"
+                            data-tab="overview"     onclick="switchTab('overview')">Overview</button>
+                    <button class="tab-btn tab-inactive px-4 pb-3 text-sm transition-colors"
+                            data-tab="users"        onclick="switchTab('users')">Users</button>
+                    <button class="tab-btn tab-inactive px-4 pb-3 text-sm transition-colors"
+                            data-tab="branches"     onclick="switchTab('branches')">Branches</button>
+                    <button class="tab-btn tab-inactive px-4 pb-3 text-sm transition-colors"
+                            data-tab="devices"      onclick="switchTab('devices')">Devices</button>
+                    <button class="tab-btn tab-inactive px-4 pb-3 text-sm transition-colors"
+                            data-tab="subscription" onclick="switchTab('subscription')">Subscription</button>
+                    <button class="tab-btn tab-inactive px-4 pb-3 text-sm transition-colors"
+                            data-tab="modules"      onclick="switchTab('modules')">Modules</button>
+                    <button class="tab-btn tab-inactive px-4 pb-3 text-sm transition-colors"
+                            data-tab="activity"     onclick="switchTab('activity')">Activity</button>
+                </div>
+
+
+                <!-- ═══════════════════════════════════════════════════════
+                     OVERVIEW TAB
+                     ═══════════════════════════════════════════════════════ -->
+                <div id="tab-overview">
+
+                    <!-- Stat cards -->
+                    <div class="grid grid-cols-3 gap-4 mb-6">
+
+                        <div class="bg-white border border-slate-200 rounded-card p-5">
+                            <p class="text-xs font-medium text-slate-500 uppercase tracking-widest mb-1">Users</p>
+                            <p id="statUsers" class="text-3xl font-semibold text-slate-900">—</p>
+                        </div>
+
+                        <div class="bg-white border border-slate-200 rounded-card p-5">
+                            <p class="text-xs font-medium text-slate-500 uppercase tracking-widest mb-1">Branches</p>
+                            <p id="statBranches" class="text-3xl font-semibold text-slate-900">—</p>
+                        </div>
+
+                        <div class="bg-white border border-slate-200 rounded-card p-5">
+                            <p class="text-xs font-medium text-slate-500 uppercase tracking-widest mb-1">Devices</p>
+                            <p id="statDevices" class="text-3xl font-semibold text-slate-900">—</p>
+                        </div>
+                    </div>
+
+                    <!-- Two-column lower section -->
+                    <div class="grid grid-cols-2 gap-4">
+
+                        <!-- Owner card -->
+                        <div class="bg-white border border-slate-200 rounded-card p-5">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-sm font-semibold text-slate-900">Owner Account</h2>
+                                <button onclick="doAccountRecovery()"
+                                        class="text-xs text-blue-600 hover:text-blue-700 font-medium
+                                               transition-colors">
+                                    Send Password Reset
+                                </button>
+                            </div>
+                            <dl class="space-y-3 text-sm">
+                                <div class="flex items-start gap-3">
+                                    <dt class="w-24 text-slate-500 flex-shrink-0">Name</dt>
+                                    <dd id="ownerName" class="text-slate-900 font-medium">—</dd>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <dt class="w-24 text-slate-500 flex-shrink-0">Username</dt>
+                                    <dd id="ownerUsername" class="text-slate-700 font-mono">—</dd>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <dt class="w-24 text-slate-500 flex-shrink-0">Email</dt>
+                                    <dd id="ownerEmail" class="text-slate-700 break-all">—</dd>
+                                </div>
+                            </dl>
+                        </div>
+
+                        <!-- Tenant information -->
+                        <div class="bg-white border border-slate-200 rounded-card p-5">
+                            <h2 class="text-sm font-semibold text-slate-900 mb-4">Tenant Information</h2>
+                            <dl class="space-y-3 text-sm">
+                                <div class="flex items-start gap-3">
+                                    <dt class="w-24 text-slate-500 flex-shrink-0">Business</dt>
+                                    <dd id="infoName" class="text-slate-900 font-medium">—</dd>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <dt class="w-24 text-slate-500 flex-shrink-0">Code</dt>
+                                    <dd id="infoCode" class="text-slate-700 font-mono tracking-wide">—</dd>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <dt class="w-24 text-slate-500 flex-shrink-0">Template</dt>
+                                    <dd id="infoBusinessTemplate" class="text-slate-700">—</dd>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <dt class="w-24 text-slate-500 flex-shrink-0">Status</dt>
+                                    <dd id="infoStatus">—</dd>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <dt class="w-24 text-slate-500 flex-shrink-0">Plan</dt>
+                                    <dd id="infoPlan" class="text-slate-700">—</dd>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <dt class="w-24 text-slate-500 flex-shrink-0">Created</dt>
+                                    <dd id="infoCreated" class="text-slate-700">—</dd>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <dt class="w-24 text-slate-500 flex-shrink-0">Expires</dt>
+                                    <dd id="infoExpires" class="text-slate-700">—</dd>
+                                </div>
+                            </dl>
+                        </div>
+                    </div>
+                </div><!-- /tab-overview -->
+
+
+                <!-- ═══════════════════════════════════════════════════════
+                     USERS TAB
+                     Data: GET /api/platform/tenants/{id}/users (pending impl.)
+                     ═══════════════════════════════════════════════════════ -->
+                <div id="tab-users" class="hidden">
+
+                    <!-- Toolbar -->
+                    <div class="flex items-center justify-between gap-4 mb-4">
+                        <div class="flex items-center gap-3 flex-1">
+                            <!-- Search -->
+                            <div class="relative flex-1 max-w-xs">
+                                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+                                     fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+                                </svg>
+                                <input id="usersSearchInput" type="search" placeholder="Search users…"
+                                       oninput="applyUserFilters()"
+                                       class="w-full h-10 pl-9 pr-3 border border-slate-200 rounded-card
+                                              text-sm focus:outline-none focus:ring-2 focus:ring-blue-500
+                                              focus:border-transparent" />
+                            </div>
+
+                            <!-- Role filter -->
+                            <select id="usersFilterRole" onchange="applyUserFilters()"
+                                    class="h-10 pl-3 pr-8 border border-slate-200 rounded-card
+                                           text-sm text-slate-700 bg-white
+                                           focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">All Roles</option>
+                                <option value="Admin">Admin</option>
+                                <option value="Manager">Manager</option>
+                                <option value="Cashier">Cashier</option>
+                            </select>
+
+                            <!-- Status filter -->
+                            <select id="usersFilterStatus" onchange="applyUserFilters()"
+                                    class="h-10 pl-3 pr-8 border border-slate-200 rounded-card
+                                           text-sm text-slate-700 bg-white
+                                           focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">All Statuses</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <span id="usersCount" class="text-sm text-slate-500"></span>
+                            <button onclick="openAddUserDrawer()"
+                                    class="h-10 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm
+                                           font-medium rounded-card transition-colors flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                                </svg>
+                                Add User
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Table card -->
+                    <div class="bg-white border border-slate-200 rounded-card overflow-hidden">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-200 bg-slate-50">
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Username</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Role</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-4 py-3"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <tr>
+                                    <td colspan="5" class="px-6 py-12 text-center text-sm text-slate-400">
+                                        Loading users…
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div><!-- /tab-users -->
+
+
+                <!-- ═══════════════════════════════════════════════════════
+                     BRANCHES TAB
+                     Data: GET /api/platform/tenants/{id}/branches
+                     ═══════════════════════════════════════════════════════ -->
+                <div id="tab-branches" class="hidden">
+
+                    <!-- Toolbar -->
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="relative">
+                                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+                                     fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+                                </svg>
+                                <input id="branchSearchInput" type="search" placeholder="Search branches…"
+                                       oninput="applyBranchFilters()"
+                                       class="h-10 pl-9 pr-3 w-60 border border-slate-200 rounded-card
+                                              text-sm focus:outline-none focus:ring-2 focus:ring-blue-500
+                                              focus:border-transparent" />
+                            </div>
+                            <span id="branchCount" class="text-sm text-slate-500"></span>
+                        </div>
+
+                        <button onclick="openAddBranchDrawer()"
+                                class="h-10 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm
+                                       font-medium rounded-card transition-colors flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Add Branch
+                        </button>
+                    </div>
+
+                    <!-- Table card -->
+                    <div class="bg-white border border-slate-200 rounded-card overflow-hidden">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-200 bg-slate-50">
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Branch</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Code</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Address</th>
+                                    <th class="px-6 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Devices</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created</th>
+                                </tr>
+                            </thead>
+                            <tbody id="branchesTableBody">
+                                <tr>
+                                    <td colspan="6" class="px-6 py-12 text-center text-sm text-slate-400">
+                                        Loading branches…
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div><!-- /tab-branches -->
+
+
+                <!-- ═══════════════════════════════════════════════════════
+                     DEVICES TAB
+                     Data: GET /api/platform/tenants/{id}/devices
+                     ═══════════════════════════════════════════════════════ -->
+                <div id="tab-devices" class="hidden">
+
+                    <!-- Toolbar -->
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <!-- Search -->
+                            <div class="relative">
+                                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+                                     fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+                                </svg>
+                                <input id="deviceSearchInput" type="search" placeholder="Search devices…"
+                                       oninput="applyDeviceFilters()"
+                                       class="h-10 pl-9 pr-3 w-56 border border-slate-200 rounded-card
+                                              text-sm focus:outline-none focus:ring-2 focus:ring-blue-500
+                                              focus:border-transparent" />
+                            </div>
+
+                            <!-- Branch filter -->
+                            <select id="deviceFilterBranch" onchange="applyDeviceFilters()"
+                                    class="h-10 pl-3 pr-8 border border-slate-200 rounded-card
+                                           text-sm text-slate-700 bg-white
+                                           focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">All Branches</option>
+                            </select>
+
+                            <!-- Status filter -->
+                            <select id="deviceFilterStatus" onchange="applyDeviceFilters()"
+                                    class="h-10 pl-3 pr-8 border border-slate-200 rounded-card
+                                           text-sm text-slate-700 bg-white
+                                           focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">All Statuses</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+
+                            <span id="deviceCount" class="text-sm text-slate-500"></span>
+                        </div>
+
+                        <span class="text-xs text-slate-400">
+                            Devices are added by the tenant. Use the actions below for emergency
+                            suspend / revoke.
+                        </span>
+                    </div>
+
+                    <!-- Table card -->
+                    <div class="bg-white border border-slate-200 rounded-card overflow-hidden">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-200 bg-slate-50">
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Device</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Code</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Branch</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Type</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Last Sync</th>
+                                    <th class="px-4 py-3"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="devicesTableBody">
+                                <tr>
+                                    <td colspan="7" class="px-6 py-12 text-center text-sm text-slate-400">
+                                        Loading devices…
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div><!-- /tab-devices -->
+
+
+                <!-- ═══════════════════════════════════════════════════════
+                     SUBSCRIPTION TAB
+                     Data: from TenantDetailResponse (already loaded in Overview)
+                     ═══════════════════════════════════════════════════════ -->
+                <div id="tab-subscription" class="hidden">
+                    <div class="max-w-lg">
+                        <div class="bg-white border border-slate-200 rounded-card p-6 space-y-5">
+
+                            <!-- Plan -->
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">Plan</p>
+                                <p id="subPlanName" class="text-base font-semibold text-slate-900">—</p>
+                            </div>
+
+                            <!-- Status -->
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                                <div id="subStatusBadge"></div>
+                            </div>
+
+                            <!-- Started -->
+                            <div class="grid grid-cols-2 gap-5">
+                                <div>
+                                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">Started</p>
+                                    <p id="subStarted" class="text-sm text-slate-900">—</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">Renewal / Expires</p>
+                                    <p id="subExpires" class="text-sm text-slate-900">—</p>
+                                </div>
+                            </div>
+
+                            <!-- Trial (shown only when in trial) -->
+                            <div id="subTrialRow" class="hidden">
+                                <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">Trial Ends</p>
+                                <p id="subTrialEnds" class="text-sm text-slate-900">—</p>
+                            </div>
+
+                            <div class="border-t border-slate-100 pt-4 flex items-center gap-3">
+                                <button onclick="openPlanChange()"
+                                        class="h-10 px-4 border border-slate-300 bg-white rounded-card
+                                               text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    Change Plan
+                                </button>
+                                <button id="subSuspendBtn" onclick="doSuspendSubscription()"
+                                        class="h-10 px-4 border border-red-200 bg-white rounded-card
+                                               text-sm text-red-600 hover:bg-red-50 transition-colors">
+                                    Suspend Subscription
+                                </button>
+                                <button id="subExtendTrialBtn" onclick="goExtendTrial()" class="hidden
+                                        h-10 px-4 border border-blue-200 bg-white rounded-card
+                                        text-sm text-blue-700 hover:bg-blue-50 transition-colors">
+                                    Extend Trial →
+                                </button>
+                            </div>
+
+                            <!-- No subscription state -->
+                            <div id="subNoneMsg" class="hidden text-sm text-slate-400 italic">
+                                No active subscription. Assign a plan from the onboarding flow.
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- /tab-subscription -->
+
+
+                <!-- ═══════════════════════════════════════════════════════
+                     MODULES TAB — read-only. Module visibility is decided by
+                     this tenant's Business Template (config.modules.hidden),
+                     not per-tenant — every tenant on the same template sees
+                     the same modules, so there's nothing to edit here.
+                     ═══════════════════════════════════════════════════════ -->
+                <div id="tab-modules" class="hidden">
+                    <div class="bg-white border border-slate-200 rounded-card p-6 max-w-3xl">
+                        <div class="flex items-start justify-between gap-4 mb-5">
+                            <div>
+                                <h2 class="text-sm font-semibold text-slate-900">Dashboard Modules</h2>
+                                <p class="text-xs text-slate-400 mt-0.5">Which sections appear in this tenant's dashboard, resolved from its Business Template — the backend also blocks the hidden routes, not just the sidebar. Edit visibility in <a id="modTemplateLink" href="/platform/business-templates.html" class="text-blue-600 hover:underline">Business Templates</a>.</p>
+                            </div>
+                            <span id="modAllBadge" class="hidden text-[11px] font-medium text-emerald-600 uppercase whitespace-nowrap">All modules</span>
+                        </div>
+
+                        <div id="modMsg" class="hidden rounded-card p-3 mb-4 text-sm"></div>
+
+                        <div class="border-t border-slate-100 pt-4">
+                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Visible modules</p>
+                            <div id="modGrid" class="space-y-3"></div>
+                        </div>
+                    </div>
+                </div><!-- /tab-modules -->
+
+
+                <!-- ═══════════════════════════════════════════════════════
+                     ACTIVITY / AUDIT LOG TAB
+                     TODO: requires GET /api/platform/audit-logs?tenant_id=…
+                     Shows placeholder rows until the endpoint is built.
+                     ═══════════════════════════════════════════════════════ -->
+                <div id="tab-activity" class="hidden">
+
+                    <!-- Filters -->
+                    <div class="flex items-center gap-3 mb-4 flex-wrap">
+                        <select id="auditFilterUser" onchange="applyAuditFilters()"
+                                class="h-10 pl-3 pr-8 border border-slate-200 rounded-card text-sm
+                                       text-slate-700 bg-white focus:outline-none focus:ring-2
+                                       focus:ring-blue-500">
+                            <option value="">All Users</option>
+                            <option value="SuperAdmin">SuperAdmin</option>
+                            <option value="Owner">Owner</option>
+                        </select>
+
+                        <select id="auditFilterAction" onchange="applyAuditFilters()"
+                                class="h-10 pl-3 pr-8 border border-slate-200 rounded-card text-sm
+                                       text-slate-700 bg-white focus:outline-none focus:ring-2
+                                       focus:ring-blue-500">
+                            <option value="">All Actions</option>
+                            <option value="created">Created</option>
+                            <option value="updated">Updated</option>
+                            <option value="deleted">Deleted</option>
+                            <option value="login">Login</option>
+                        </select>
+
+                        <input id="auditFilterDate" type="date" onchange="applyAuditFilters()"
+                               class="h-10 px-3 border border-slate-200 rounded-card text-sm
+                                      text-slate-700 bg-white focus:outline-none focus:ring-2
+                                      focus:ring-blue-500" />
+                    </div>
+
+                    <!-- Table -->
+                    <div class="bg-white border border-slate-200 rounded-card overflow-hidden">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-200 bg-slate-50">
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider w-32">Time</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider w-36">User</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="auditTableBody">
+                                <!-- Placeholder rows — replace with real API data when available -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Note -->
+                    <p class="text-xs text-slate-400 mt-3">
+                        Audit log endpoint (GET /api/platform/audit-logs) is not yet implemented.
+                        Rows above are illustrative placeholders.
+                    </p>
+                </div><!-- /tab-activity -->
+
+            </div><!-- /pageContent -->
+        </main>
+    </div><!-- /main column -->
+
+
+    <!-- ==================================================================
+         REGISTER DEVICE DRAWER
+         POST /api/platform/tenants/{id}/devices
+         ================================================================== -->
+
+    <div id="deviceDrawerBackdrop"
+         class="hidden fixed inset-0 bg-slate-900/50 z-40 transition-opacity duration-200"
+         onclick="closeRegisterDeviceDrawer()"></div>
+
+    <div id="registerDeviceDrawer"
+         class="fixed right-0 top-0 h-full w-full max-w-[440px] bg-white border-l border-slate-200
+                z-50 flex flex-col drawer-closed transition-transform duration-300">
+
+        <!-- Header -->
+        <div class="h-16 flex items-center justify-between px-6 border-b border-slate-200 flex-shrink-0">
+            <h2 class="text-base font-semibold text-slate-900">Register Device</h2>
+            <button onclick="closeRegisterDeviceDrawer()"
+                    class="w-9 h-9 flex items-center justify-center rounded-card
+                           text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Error banner -->
+        <div id="deviceDrawerError"
+             class="hidden mx-6 mt-4 flex items-start gap-2 px-3 py-2.5
+                    bg-red-50 border border-red-200 rounded-card flex-shrink-0">
+            <svg class="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0
+                         00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414
+                         1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414
+                         10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clip-rule="evenodd"/>
+            </svg>
+            <p id="deviceDrawerErrorText" class="text-[12px] text-red-700"></p>
+        </div>
+
+        <!-- Form body -->
+        <div class="flex-1 overflow-y-auto">
+            <form id="registerDeviceForm" onsubmit="return false;" class="px-6 py-5 space-y-4">
+
+                <!-- Branch -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                        Branch <span class="text-red-500">*</span>
+                    </label>
+                    <select id="d_branch_id"
+                            onchange="autoGenDeviceCode()"
+                            class="w-full h-10 pl-3 pr-3 border border-slate-200 rounded-card text-sm
+                                   bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <option value="">— Select Branch —</option>
+                    </select>
+                </div>
+
+                <!-- Device Name + Code -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                            Device Name <span class="text-red-500">*</span>
+                        </label>
+                        <input id="d_name" type="text" placeholder="Tablet 01"
+                               oninput="autoGenDeviceCode()"
+                               class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                      focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                            Device Code <span class="text-red-500">*</span>
+                        </label>
+                        <input id="d_code" type="text" placeholder="MAIN-T01" maxlength="20"
+                               class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                      font-mono uppercase focus:outline-none focus:ring-2
+                                      focus:ring-blue-500" required />
+                        <p class="mt-1 text-[11px] text-slate-400">Unique within the branch.</p>
+                    </div>
+                </div>
+
+                <!-- Device Type -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1.5">Device Type</label>
+                    <select id="d_type"
+                            class="w-full h-10 pl-3 pr-3 border border-slate-200 rounded-card text-sm
+                                   bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="POS">POS Terminal</option>
+                        <option value="KIOSK">Self-Service Kiosk</option>
+                        <option value="DISPLAY">Customer Display</option>
+                    </select>
+                </div>
+
+                <!-- Active toggle -->
+                <div class="flex items-center justify-between py-2">
+                    <div>
+                        <p class="text-sm font-medium text-slate-700">Active</p>
+                        <p class="text-[12px] text-slate-400 mt-0.5">
+                            Inactive devices cannot record sales.
+                        </p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input id="d_is_active" type="checkbox" checked class="sr-only peer" />
+                        <div class="w-10 h-6 bg-slate-200 rounded-full peer
+                                    peer-checked:bg-blue-600 transition-colors"></div>
+                        <div class="absolute left-[2px] top-[2px] w-5 h-5 bg-white rounded-full
+                                    shadow transition-transform peer-checked:translate-x-4"></div>
+                    </label>
+                </div>
+
+                <!-- Info note -->
+                <div class="flex items-start gap-2 px-3 py-2.5 bg-blue-50 border border-blue-100 rounded-card">
+                    <svg class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1
+                                 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1
+                                 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                    <p class="text-[12px] text-blue-700 leading-snug">
+                        The device code is used by the Android app to authenticate.
+                        Last sync time is reported by the app and visible in the Devices table.
+                    </p>
+                </div>
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 flex-shrink-0">
+            <button onclick="closeRegisterDeviceDrawer()"
+                    class="h-10 px-4 border border-slate-300 bg-white rounded-card
+                           text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                Cancel
+            </button>
+            <button id="registerDeviceSubmitBtn" onclick="submitRegisterDevice()"
+                    class="h-10 px-5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium
+                           rounded-card transition-colors disabled:opacity-60 disabled:cursor-not-allowed
+                           flex items-center gap-2">
+                <svg id="registerDeviceSpinner" class="hidden w-4 h-4 animate-spin"
+                     fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                </svg>
+                <span id="registerDeviceBtnText">Register Device</span>
+            </button>
+        </div>
+    </div><!-- /registerDeviceDrawer -->
+
+
+    <!-- ==================================================================
+         ACCOUNT RECOVERY MODAL
+         Opened from the header button or the Overview owner card.
+         ================================================================== -->
+    <div id="recoveryModal"
+         class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeRecoveryModal()"></div>
+        <div class="relative bg-white rounded-card shadow-xl w-full max-w-sm z-10">
+
+            <!-- Header -->
+            <div class="px-6 py-5 border-b border-slate-200 flex items-center justify-between">
+                <h3 class="text-base font-semibold text-slate-900">Account Recovery</h3>
+                <button onclick="closeRecoveryModal()"
+                        class="w-8 h-8 flex items-center justify-center rounded-card
+                               text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Owner info -->
+            <div class="px-6 py-5 space-y-3 border-b border-slate-100">
+                <div class="flex gap-3 text-sm">
+                    <span class="w-24 text-slate-500 flex-shrink-0">Tenant Owner</span>
+                    <span id="rm_owner_name" class="font-medium text-slate-900">—</span>
+                </div>
+                <div class="flex gap-3 text-sm">
+                    <span class="w-24 text-slate-500 flex-shrink-0">Username</span>
+                    <span id="rm_owner_username" class="font-mono text-slate-700">—</span>
+                </div>
+                <div class="flex gap-3 text-sm">
+                    <span class="w-24 text-slate-500 flex-shrink-0">Email</span>
+                    <span id="rm_owner_email" class="text-slate-700 break-all">—</span>
+                </div>
+            </div>
+
+            <!-- Recovery method -->
+            <div class="px-6 py-5 space-y-3">
+                <p class="text-sm font-medium text-slate-700">Recovery Method</p>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="radio" name="recoveryMethod" value="email" checked
+                           class="accent-blue-600" />
+                    <span class="text-sm text-slate-700">Send password reset email</span>
+                </label>
+                <p class="text-xs text-slate-400">
+                    To set a password directly instead, use <span class="font-medium text-slate-600">Set password</span>
+                    next to the user in the Users tab.
+                </p>
+
+                <!-- Audit warning -->
+                <div class="flex items-start gap-2 px-3 py-2.5 bg-amber-50 border border-amber-100
+                            rounded-card mt-2">
+                    <svg class="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" fill="currentColor"
+                         viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                              d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75
+                                 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11
+                                 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0
+                                 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <p class="text-[12px] text-amber-700 leading-snug">
+                        This action will be recorded in the audit log.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                <button onclick="closeRecoveryModal()"
+                        class="h-10 px-4 border border-slate-200 bg-white rounded-card
+                               text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                    Cancel
+                </button>
+                <button onclick="submitRecovery()"
+                        class="h-10 px-5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium
+                               rounded-card transition-colors flex items-center gap-2">
+                    <svg id="recoverySpinner" class="hidden w-4 h-4 animate-spin"
+                         fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                stroke="currentColor" stroke-width="4"/>
+                        <path class="opacity-75" fill="currentColor"
+                              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                    </svg>
+                    Start Recovery
+                </button>
+            </div>
+        </div>
+    </div><!-- /recoveryModal -->
+
+
+    <!-- ==================================================================
+         SET PASSWORD MODAL  (direct force-set for any tenant user)
+         POST /api/platform/tenants/{id}/users/{user_id}/reset-password
+         ================================================================== -->
+    <div id="setPwModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeSetPasswordModal()"></div>
+        <div class="relative bg-white rounded-card shadow-xl w-full max-w-sm z-10">
+            <div class="px-6 py-5 border-b border-slate-200 flex items-center justify-between">
+                <h3 class="text-base font-semibold text-slate-900">Set Password</h3>
+                <button onclick="closeSetPasswordModal()"
+                        class="w-8 h-8 flex items-center justify-center rounded-card text-slate-400 hover:text-slate-600 hover:bg-slate-50">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="px-6 py-5 space-y-3">
+                <p class="text-sm text-slate-600">
+                    Directly set a new password for <span id="spw_user" class="font-medium text-slate-900">—</span>.
+                    Share it with the user; they can change it later from their account.
+                </p>
+                <div>
+                    <label class="block text-xs font-medium text-slate-700 mb-1.5">New password (min 6 characters)</label>
+                    <div class="relative">
+                        <input id="spw_password" type="text" placeholder="e.g. Temp-4821"
+                               class="w-full h-10 pl-3 pr-16 border border-slate-200 rounded-card text-sm font-mono
+                                      focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        <button type="button" onclick="genTempPassword('spw_password')"
+                                class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-medium text-blue-600 hover:text-blue-800">
+                            Generate
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-start gap-2 px-3 py-2.5 bg-amber-50 border border-amber-100 rounded-card">
+                    <svg class="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <p class="text-[12px] text-amber-700 leading-snug">This action is recorded in the audit log.</p>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                <button onclick="closeSetPasswordModal()"
+                        class="h-10 px-4 border border-slate-200 bg-white rounded-card text-sm text-slate-700 hover:bg-slate-50">
+                    Cancel
+                </button>
+                <button onclick="submitSetPassword()"
+                        class="h-10 px-5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-card">
+                    Set Password
+                </button>
+            </div>
+        </div>
+    </div><!-- /setPwModal -->
+
+
+    <!-- ==================================================================
+         ADD BRANCH DRAWER
+         POST /api/platform/tenants/{id}/branches
+         ================================================================== -->
+
+    <!-- Backdrop -->
+    <div id="branchDrawerBackdrop"
+         class="hidden fixed inset-0 bg-slate-900/50 z-40 transition-opacity duration-200"
+         onclick="closeAddBranchDrawer()"></div>
+
+    <!-- Drawer panel -->
+    <div id="addBranchDrawer"
+         class="fixed right-0 top-0 h-full w-full max-w-[480px] bg-white border-l border-slate-200
+                z-50 flex flex-col drawer-closed transition-transform duration-300">
+
+        <!-- Drawer header -->
+        <div class="h-16 flex items-center justify-between px-6 border-b border-slate-200 flex-shrink-0">
+            <h2 class="text-base font-semibold text-slate-900">Add Branch</h2>
+            <button onclick="closeAddBranchDrawer()"
+                    class="w-9 h-9 flex items-center justify-center rounded-card
+                           text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Error banner -->
+        <div id="branchDrawerError"
+             class="hidden mx-6 mt-4 flex items-start gap-2 px-3 py-2.5
+                    bg-red-50 border border-red-200 rounded-card flex-shrink-0">
+            <svg class="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0
+                         00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414
+                         1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414
+                         10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clip-rule="evenodd"/>
+            </svg>
+            <p id="branchDrawerErrorText" class="text-[12px] text-red-700"></p>
+        </div>
+
+        <!-- Scrollable form body -->
+        <div class="flex-1 overflow-y-auto">
+            <form id="addBranchForm" onsubmit="return false;" class="px-6 py-5 space-y-4">
+
+                <!-- Branch Name + Code -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                            Branch Name <span class="text-red-500">*</span>
+                        </label>
+                        <input id="b_name" type="text" placeholder="Main Branch"
+                               oninput="autoGenBranchCode()"
+                               class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                      focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                            Branch Code <span class="text-red-500">*</span>
+                        </label>
+                        <input id="b_code" type="text" placeholder="MAIN01" maxlength="10"
+                               class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                      font-mono uppercase focus:outline-none focus:ring-2
+                                      focus:ring-blue-500" required />
+                        <p class="mt-1 text-[11px] text-slate-400">Unique within this tenant.</p>
+                    </div>
+                </div>
+
+                <!-- Address -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1.5">Address</label>
+                    <input id="b_address" type="text" placeholder="Street address"
+                           class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+
+                <!-- City + Phone -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">City</label>
+                        <select id="b_city"
+                                class="w-full h-10 pl-3 pr-3 border border-slate-200 rounded-card
+                                       text-sm bg-white focus:outline-none focus:ring-2
+                                       focus:ring-blue-500">
+                            <option value="">— Select City —</option>
+                            <option>Karachi</option>
+                            <option>Lahore</option>
+                            <option>Islamabad</option>
+                            <option>Rawalpindi</option>
+                            <option>Faisalabad</option>
+                            <option>Multan</option>
+                            <option>Peshawar</option>
+                            <option>Quetta</option>
+                            <option>Sialkot</option>
+                            <option>Gujranwala</option>
+                            <option>Hyderabad</option>
+                            <option>Bahawalpur</option>
+                            <option>Sargodha</option>
+                            <option>Sukkur</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Phone</label>
+                        <input id="b_phone" type="tel" placeholder="+92 300 0000000"
+                               class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                      focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                </div>
+
+                <!-- Status toggle -->
+                <div class="flex items-center justify-between py-2">
+                    <div>
+                        <p class="text-sm font-medium text-slate-700">Active</p>
+                        <p class="text-[12px] text-slate-400 mt-0.5">
+                            Inactive branches cannot record sales.
+                        </p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input id="b_is_active" type="checkbox" checked class="sr-only peer" />
+                        <div class="w-10 h-6 bg-slate-200 rounded-full peer
+                                    peer-checked:bg-blue-600 transition-colors"></div>
+                        <div class="absolute left-[2px] top-[2px] w-5 h-5 bg-white rounded-full
+                                    shadow transition-transform
+                                    peer-checked:translate-x-4"></div>
+                    </label>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- Drawer footer -->
+        <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 flex-shrink-0">
+            <button onclick="closeAddBranchDrawer()"
+                    class="h-10 px-4 border border-slate-300 bg-white rounded-card
+                           text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                Cancel
+            </button>
+            <button id="addBranchSubmitBtn" onclick="submitAddBranch()"
+                    class="h-10 px-5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium
+                           rounded-card transition-colors disabled:opacity-60 disabled:cursor-not-allowed
+                           flex items-center gap-2">
+                <svg id="addBranchSpinner" class="hidden w-4 h-4 animate-spin"
+                     fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                </svg>
+                <span id="addBranchBtnText">Add Branch</span>
+            </button>
+        </div>
+    </div><!-- /addBranchDrawer -->
+
+
+    <!-- ==================================================================
+         ADD USER DRAWER
+         POST /api/platform/tenants/{id}/users
+         ================================================================== -->
+    <div id="userDrawerBackdrop"
+         class="hidden fixed inset-0 bg-slate-900/50 z-40 transition-opacity duration-200"
+         onclick="closeAddUserDrawer()"></div>
+
+    <div id="addUserDrawer"
+         class="fixed right-0 top-0 h-full w-full max-w-[480px] bg-white border-l border-slate-200
+                z-50 flex flex-col drawer-closed transition-transform duration-300">
+
+        <!-- Drawer header -->
+        <div class="h-16 flex items-center justify-between px-6 border-b border-slate-200 flex-shrink-0">
+            <h2 class="text-base font-semibold text-slate-900">Add User</h2>
+            <button onclick="closeAddUserDrawer()"
+                    class="w-9 h-9 flex items-center justify-center rounded-card
+                           text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Error banner -->
+        <div id="userDrawerError"
+             class="hidden mx-6 mt-4 flex items-start gap-2 px-3 py-2.5
+                    bg-red-50 border border-red-200 rounded-card flex-shrink-0">
+            <svg class="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0
+                         00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414
+                         1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414
+                         10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clip-rule="evenodd"/>
+            </svg>
+            <p id="userDrawerErrorText" class="text-[12px] text-red-700"></p>
+        </div>
+
+        <!-- Scrollable form body -->
+        <div class="flex-1 overflow-y-auto">
+            <form id="addUserForm" onsubmit="return false;" class="px-6 py-5 space-y-4">
+
+                <!-- Full Name -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                        Full Name <span class="text-red-500">*</span>
+                    </label>
+                    <input id="u_full_name" type="text" placeholder="Ahmad Khan"
+                           class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                </div>
+
+                <!-- Username + Role -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                            Username <span class="text-red-500">*</span>
+                        </label>
+                        <input id="u_username" type="text" placeholder="ahmad_khan"
+                               class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                      font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                        <p class="mt-1 text-[11px] text-slate-400">Lowercase letters, numbers, underscore.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Role</label>
+                        <select id="u_role"
+                                class="w-full h-10 pl-3 pr-3 border border-slate-200 rounded-card
+                                       text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="Staff">Staff</option>
+                            <option value="Cashier">Cashier</option>
+                            <option value="Manager">Manager</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Email (optional) -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                        Email <span class="text-slate-400 text-xs font-normal">(optional)</span>
+                    </label>
+                    <input id="u_email" type="email" placeholder="ahmad@shop.com"
+                           class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                        Password <span class="text-red-500">*</span>
+                    </label>
+                    <input id="u_password" type="password" placeholder="Min. 4 characters"
+                           class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                </div>
+
+            </form>
+        </div>
+
+        <!-- Drawer footer -->
+        <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 flex-shrink-0">
+            <button onclick="closeAddUserDrawer()"
+                    class="h-10 px-4 border border-slate-300 bg-white rounded-card
+                           text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                Cancel
+            </button>
+            <button id="addUserSubmitBtn" onclick="submitAddUser()"
+                    class="h-10 px-5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium
+                           rounded-card transition-colors disabled:opacity-60 disabled:cursor-not-allowed
+                           flex items-center gap-2">
+                <svg id="addUserSpinner" class="hidden w-4 h-4 animate-spin"
+                     fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                </svg>
+                <span id="addUserBtnText">Add User</span>
+            </button>
+        </div>
+    </div><!-- /addUserDrawer -->
+
+
+    <!-- ==================================================================
+         DEVICE REGISTRATION CODE MODAL
+         Shown after registering a device or regenerating a code.
+         ================================================================== -->
+    <div id="regCodeModal"
+         class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/60" onclick="closeRegCodeModal()"></div>
+        <div class="relative bg-white rounded-card shadow-2xl w-full max-w-md z-10 overflow-hidden">
+
+            <!-- Amber top bar -->
+            <div class="h-1.5 bg-amber-400 w-full"></div>
+
+            <!-- Header -->
+            <div class="px-6 pt-5 pb-4 border-b border-slate-100 flex items-start justify-between gap-4">
+                <div>
+                    <h3 class="text-base font-semibold text-slate-900">Device Registration Code</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        Enter this code in the POS app to activate the device.
+                        <strong class="text-amber-600">Valid for 10 minutes only.</strong>
+                    </p>
+                </div>
+                <button onclick="closeRegCodeModal()"
+                        class="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-card
+                               text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Registration code display -->
+            <div class="px-6 py-5">
+                <!-- The code itself -->
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="flex-1 bg-slate-50 border border-slate-200 rounded-card px-4 py-3 text-center">
+                        <p class="text-[11px] text-slate-400 uppercase tracking-wider mb-1">Registration Code</p>
+                        <p id="rcm_code" class="text-3xl font-bold font-mono tracking-[0.2em] text-slate-900 select-all">
+                            ????-????
+                        </p>
+                    </div>
+                    <button onclick="copyRegCode()"
+                            id="rcm_copyBtn"
+                            class="h-12 w-12 flex-shrink-0 flex items-center justify-center border border-slate-200
+                                   bg-white hover:bg-blue-50 hover:border-blue-300 rounded-card transition-colors">
+                        <svg id="rcm_copyIcon" class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6
+                                     12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2
+                                     0 002 2z"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Countdown -->
+                <div class="flex items-center gap-2 mb-5">
+                    <svg class="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0"/>
+                    </svg>
+                    <span class="text-sm text-amber-600 font-medium">
+                        Expires in <span id="rcm_countdown" class="font-bold">10:00</span>
+                    </span>
+                </div>
+
+                <!-- Device info grid -->
+                <div class="space-y-2 text-sm border-t border-slate-100 pt-4">
+                    <div class="flex gap-3">
+                        <span class="w-28 text-slate-400 flex-shrink-0">Tenant</span>
+                        <span id="rcm_tenant" class="font-medium text-slate-800"></span>
+                    </div>
+                    <div class="flex gap-3">
+                        <span class="w-28 text-slate-400 flex-shrink-0">Branch</span>
+                        <span id="rcm_branch" class="font-medium text-slate-800"></span>
+                    </div>
+                    <div class="flex gap-3">
+                        <span class="w-28 text-slate-400 flex-shrink-0">Device Name</span>
+                        <span id="rcm_device" class="font-medium text-slate-800"></span>
+                    </div>
+                    <div class="flex gap-3">
+                        <span class="w-28 text-slate-400 flex-shrink-0">Device Code</span>
+                        <span id="rcm_device_code" class="font-mono text-slate-800"></span>
+                    </div>
+                    <div id="rcm_email_row" class="flex gap-3 hidden">
+                        <span class="w-28 text-slate-400 flex-shrink-0">Owner Email</span>
+                        <span id="rcm_email" class="text-slate-800"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center gap-3">
+                <p class="text-[11px] text-slate-400 flex-1 leading-snug">
+                    Screenshot or copy the code before closing. It cannot be retrieved after this dialog is dismissed.
+                </p>
+                <button onclick="closeRegCodeModal()"
+                        class="h-9 px-4 bg-slate-800 hover:bg-slate-900 text-white text-sm
+                               font-medium rounded-card transition-colors flex-shrink-0">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div><!-- /regCodeModal -->
+
+
+    <!-- ==================================================================
+         CONFIRM MODAL — reusable for suspend/activate/recovery
+         ================================================================== -->
+    <div id="confirmModal"
+         class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeConfirm()"></div>
+        <div class="relative bg-white rounded-card shadow-xl p-6 w-full max-w-sm z-10">
+            <h3 id="confirmTitle" class="text-base font-semibold text-slate-900 mb-2">Confirm</h3>
+            <p  id="confirmMessage" class="text-sm text-slate-600 mb-5"></p>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeConfirm()"
+                        class="h-10 px-4 border border-slate-200 bg-white rounded-card
+                               text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                    Cancel
+                </button>
+                <button id="confirmOkBtn"
+                        class="h-10 px-4 rounded-card text-sm text-white font-medium transition-colors">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==================================================================
+         TOAST
+         ================================================================== -->
+    <div id="toast"
+         class="hidden fixed bottom-6 right-6 z-50 flex items-center gap-3
+                px-4 py-3 rounded-card shadow-lg border text-sm font-medium">
+        <svg id="toastIcon" class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"></svg>
+        <span id="toastText"></span>
+    </div>
+
+
+    <!-- ==================================================================
+         JAVASCRIPT
+         ================================================================== -->
+    <script>
+        /**
+         * Tenant Detail page controller
+         * ------------------------------
+         * Reads ?id from the query string, loads TenantDetailResponse from
+         * GET /api/platform/tenants/{id}/detail, and populates all tabs.
+         *
+         * Tabs:
+         *   overview     — stat cards + owner + tenant info (loaded on boot)
+         *   users        — loads on first activation (GET /api/platform/tenants/{id}/users — pending)
+         *   branches     — loads on first activation (GET /api/platform/tenants/{id}/branches)
+         *   devices      — placeholder
+         *   subscription — placeholder
+         *   activity     — placeholder
+         */
+
+        const API_BASE  = window.API_BASE_URL ?? '';
+        const TOKEN_KEY = 'platform_token';
+
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (!token) window.location.replace('/platform/login.html');
+
+        // Tenant ID from URL
+        const tenantId = new URLSearchParams(window.location.search).get('id');
+        if (!tenantId) window.location.replace('/platform/tenants.html');
+
+        // Page state
+        let tenantDetail  = null;   // TenantDetailResponse
+        let allBranches   = [];     // BranchPlatformResponse[]
+        let allDevices    = [];     // DevicePlatformResponse[]
+        let allUsers      = [];     // User[] — populated when the users endpoint exists
+        let tabLoaded     = { overview: false, users: false, branches: false, devices: false, modules: false };
+        let currentTab    = 'overview';
+        let _isSuper      = false;
+        let MODULE_CATALOG = [];
+
+
+        // ── Auth helpers ───────────────────────────────────────────────────
+
+        async function loadAdminHeader() {
+            try {
+                const me = await apiFetch('/api/platform/auth/me');
+                if (!me) return;
+                _isSuper = me.is_super === true;
+                const display = me.full_name || me.email;
+                document.getElementById('usernameDisplay').textContent = display;
+                document.getElementById('avatarInitial').textContent   = display.charAt(0).toUpperCase();
+            } catch { /* keep placeholder */ }
+        }
+
+        // ── Modules tab ────────────────────────────────────────────────────
+        function modMsg(kind, txt) {
+            const el = document.getElementById('modMsg');
+            el.textContent = txt;
+            el.className = 'rounded-card p-3 mb-4 text-sm ' +
+                (kind === 'ok' ? 'bg-green-50 border border-green-200 text-green-700'
+                               : 'bg-red-50 border border-red-200 text-red-700');
+            el.classList.remove('hidden');
+        }
+        function renderModGrid(visible, hidden) {
+            const byGroup = {};
+            MODULE_CATALOG.forEach(m => { (byGroup[m.group] = byGroup[m.group] || []).push(m); });
+            document.getElementById('modGrid').innerHTML = Object.entries(byGroup).map(([grp, items]) => `
+                <div>
+                    <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wide mb-1.5">${esc(grp)}</p>
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                        ${items.map(m => `
+                            <span class="flex items-center gap-2 text-sm ${hidden.includes(m.key) ? 'text-slate-300 line-through' : 'text-slate-700'}">
+                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    ${hidden.includes(m.key)
+                                        ? '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>'
+                                        : '<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>'}
+                                </svg>
+                                ${esc(m.label)}
+                            </span>`).join('')}
+                    </div>
+                </div>`).join('');
+        }
+        async function loadModules() {
+            try {
+                const [cat, detail] = await Promise.all([
+                    apiFetch('/api/platform/business-templates/modules/catalog'),
+                    apiFetch(`/api/platform/tenants/${tenantId}/detail`),
+                ]);
+                MODULE_CATALOG = cat;
+                let hidden = [];
+                if (detail.business_template_id) {
+                    const tpl = await apiFetch(`/api/platform/business-templates/${detail.business_template_id}`);
+                    hidden = (tpl.config && tpl.config.modules && tpl.config.modules.hidden) || [];
+                    document.getElementById('modTemplateLink').href =
+                        `/platform/business-templates.html?edit=${detail.business_template_id}`;
+                }
+                document.getElementById('modAllBadge').classList.toggle('hidden', hidden.length > 0);
+                renderModGrid(cat.filter(m => !hidden.includes(m.key)).map(m => m.key), hidden);
+            } catch (e) { modMsg('err', 'Failed to load: ' + (e.message || e)); }
+        }
+
+
+        // ── API helper ─────────────────────────────────────────────────────
+
+        async function apiFetch(path, options = {}) {
+            const res = await fetch(API_BASE + path, {
+                ...options,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type':  'application/json',
+                    ...(options.headers ?? {}),
+                },
+            });
+            if (res.status === 401) {
+                localStorage.removeItem(TOKEN_KEY);
+                window.location.replace('/platform/login.html');
+                return null;
+            }
+            if (!res.ok) {
+                const body = await res.json().catch(() => ({}));
+                throw new Error(body.detail ?? `API ${res.status}`);
+            }
+            return res.json();
+        }
+
+
+        // ── XSS-safe escape ────────────────────────────────────────────────
+
+        function esc(v) {
+            if (v == null) return '—';
+            return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                            .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function fmtDate(iso) {
+            if (!iso) return '—';
+            return new Date(iso).toLocaleDateString('en-PK', {
+                day: '2-digit', month: 'short', year: 'numeric',
+            });
+        }
+
+
+        // ── Status badge ───────────────────────────────────────────────────
+
+        function badge(cls, label) {
+            return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full
+                                text-xs font-medium ${cls}">${esc(label)}</span>`;
+        }
+
+        function statusBadge(isActive, subStatus) {
+            if (!isActive) return badge('bg-red-100 text-red-700', 'Suspended');
+            const map = {
+                ACTIVE:    ['bg-green-100 text-green-700', 'Active'],
+                TRIAL:     ['bg-amber-100 text-amber-700', 'Trial'],
+                EXPIRED:   ['bg-red-100 text-red-700',     'Expired'],
+                CANCELLED: ['bg-red-100 text-red-700',     'Cancelled'],
+            };
+            const [cls, label] = map[subStatus] ?? ['bg-slate-100 text-slate-600', subStatus ?? 'No Plan'];
+            return badge(cls, label);
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // TAB SWITCHING
+        // ════════════════════════════════════════════════════════════════
+
+        function switchTab(name) {
+            // Update button styles
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                const isActive = btn.dataset.tab === name;
+                btn.classList.toggle('tab-active',   isActive);
+                btn.classList.toggle('tab-inactive', !isActive);
+            });
+
+            // Show/hide panels
+            ['overview','users','branches','devices','subscription','modules','activity'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== name);
+            });
+
+            currentTab = name;
+
+            if (name === 'modules' && !tabLoaded.modules) {
+                tabLoaded.modules = true;
+                loadModules();
+            }
+
+            // Lazy-load data on first activation
+            if (name === 'branches' && !tabLoaded.branches) {
+                tabLoaded.branches = true;
+                loadBranches();
+            }
+            if (name === 'users' && !tabLoaded.users) {
+                tabLoaded.users = true;
+                loadUsers();
+            }
+            if (name === 'devices' && !tabLoaded.devices) {
+                tabLoaded.devices = true;
+                // Branches must be loaded first (device drawer uses them)
+                if (!tabLoaded.branches) { tabLoaded.branches = true; loadBranches(); }
+                loadDevices();
+            }
+            if (name === 'subscription' && tenantDetail) {
+                populateSubscriptionTab(tenantDetail);
+            }
+            if (name === 'activity') {
+                renderAuditTable(getPlaceholderAudit());
+            }
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // OVERVIEW — load TenantDetailResponse
+        // ════════════════════════════════════════════════════════════════
+
+        async function loadDetail() {
+            try {
+                tenantDetail = await apiFetch(`/api/platform/tenants/${tenantId}/detail`);
+                if (!tenantDetail) return;
+
+                tabLoaded.overview = true;
+                populateOverview(tenantDetail);
+
+                document.getElementById('pageLoading').classList.add('hidden');
+                document.getElementById('pageContent').classList.remove('hidden');
+
+            } catch (err) {
+                document.getElementById('pageLoading').innerHTML = `
+                    <div class="flex items-center gap-2 text-sm text-red-500">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0
+                                000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586
+                                10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293
+                                1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1
+                                0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                        Failed to load tenant: ${esc(err.message)}
+                    </div>`;
+            }
+        }
+
+        function populateOverview(d) {
+            // Header
+            document.getElementById('breadcrumbName').textContent = d.name;
+            document.getElementById('tenantName').textContent     = d.name;
+            document.getElementById('tenantCode').textContent     = d.tenant_code;
+            document.getElementById('tenantCreated').textContent  = `Created ${fmtDate(d.created_at)}`;
+            document.title = `${d.name} — STORIXX`;
+
+            // Header status badge
+            document.getElementById('headerStatusBadge').innerHTML =
+                statusBadge(d.is_active, d.subscription_status);
+
+            // Header toggle button
+            const toggleBtn = document.getElementById('btnToggleActive');
+            if (d.is_active) {
+                toggleBtn.textContent = 'Suspend';
+                toggleBtn.className = toggleBtn.className.replace(/text-\S+/, '')
+                    + ' h-9 px-3 border border-red-200 bg-white rounded-card text-sm text-red-600'
+                    + ' hover:bg-red-50 transition-colors';
+            } else {
+                toggleBtn.textContent = 'Activate';
+                toggleBtn.className = toggleBtn.className.replace(/text-\S+/, '')
+                    + ' h-9 px-3 border border-green-200 bg-white rounded-card text-sm text-green-600'
+                    + ' hover:bg-green-50 transition-colors';
+            }
+
+            // Stat cards
+            document.getElementById('statUsers').textContent    = d.user_count ?? '—';
+            document.getElementById('statBranches').textContent = d.branch_count ?? '—';
+            document.getElementById('statDevices').textContent  = d.device_count ?? '—';
+
+            // Owner section
+            document.getElementById('ownerName').textContent     = d.owner_name     ?? '—';
+            document.getElementById('ownerUsername').textContent = d.owner_username  ?? '—';
+            document.getElementById('ownerEmail').textContent    = d.owner_email     ?? '—';
+
+            // Tenant info section
+            document.getElementById('infoName').textContent    = d.name;
+            document.getElementById('infoCode').textContent    = d.tenant_code;
+            document.getElementById('infoBusinessTemplate').textContent = d.business_template_name ?? '—';
+            document.getElementById('infoStatus').innerHTML    =
+                statusBadge(d.is_active, d.subscription_status);
+            document.getElementById('infoPlan').textContent    = d.plan_name ?? '— No Plan';
+            document.getElementById('infoCreated').textContent = fmtDate(d.created_at);
+            document.getElementById('infoExpires').textContent = fmtDate(d.expires_at);
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // ════════════════════════════════════════════════════════════════
+        // USERS TAB — GET /api/platform/tenants/{id}/users
+        // ════════════════════════════════════════════════════════════════
+
+        async function loadUsers() {
+            const tbody = document.getElementById('usersTableBody');
+            try {
+                const users = await apiFetch(`/api/platform/tenants/${tenantId}/users`);
+                allUsers = Array.isArray(users) ? users : [];
+                renderUsersTable(allUsers);
+            } catch (err) {
+                tbody.innerHTML = `
+                    <tr><td colspan="5" class="px-6 py-10 text-center text-sm text-red-500">
+                        ${esc(err.message)}
+                    </td></tr>`;
+            }
+        }
+
+        function renderUsersTable(users) {
+            const tbody = document.getElementById('usersTableBody');
+            document.getElementById('usersCount').textContent =
+                users.length ? `${users.length} user${users.length !== 1 ? 's' : ''}` : '';
+
+            if (!users.length) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center">
+                            <p class="text-sm text-slate-400">No users found.</p>
+                            <p class="text-xs text-slate-300 mt-1">Click "Add User" to create the first user for this tenant.</p>
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            tbody.innerHTML = users.map(u => `
+                <tr class="border-t border-slate-100 hover:bg-slate-50 transition-colors">
+                    <td class="px-6 py-4">
+                        <p class="text-sm font-medium text-slate-900">${esc(u.full_name)}</p>
+                        ${u.email ? `<p class="text-xs text-slate-400 mt-0.5">${esc(u.email)}</p>` : ''}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-600 font-mono">${esc(u.username)}</td>
+                    <td class="px-6 py-4 text-sm text-slate-700">${esc((u.roles ?? []).join(', ') || '—')}</td>
+                    <td class="px-6 py-4">
+                        ${u.is_active
+                            ? badge('bg-green-100 text-green-700', 'Active')
+                            : badge('bg-slate-100 text-slate-600', 'Inactive')}
+                    </td>
+                    <td class="px-4 py-4 text-right">
+                        <button onclick="openSetPasswordModal('${escapeJSAttribute(u.id)}', '${escapeJSAttribute(u.full_name)}', '${escapeJSAttribute(u.username)}')"
+                                class="text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline">
+                            Set password
+                        </button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        function applyUserFilters() {
+            const q      = document.getElementById('usersSearchInput').value.trim().toLowerCase();
+            const role   = document.getElementById('usersFilterRole').value;
+            const status = document.getElementById('usersFilterStatus').value;
+
+            const filtered = allUsers.filter(u => {
+                if (q) {
+                    const hay = [u.full_name, u.username, u.email].filter(Boolean).join(' ').toLowerCase();
+                    if (!hay.includes(q)) return false;
+                }
+                if (role && !(u.roles ?? []).includes(role)) return false;
+                if (status === 'active'   && !u.is_active) return false;
+                if (status === 'inactive' &&  u.is_active) return false;
+                return true;
+            });
+
+            renderUsersTable(filtered);
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // ADD USER DRAWER
+        // POST /api/platform/tenants/{id}/users
+        // ════════════════════════════════════════════════════════════════
+
+        function openAddUserDrawer() {
+            document.getElementById('addUserDrawer').classList.replace('drawer-closed','drawer-open');
+            document.getElementById('userDrawerBackdrop').classList.remove('hidden');
+            document.getElementById('userDrawerError').classList.add('hidden');
+            document.getElementById('addUserForm').reset();
+        }
+
+        function closeAddUserDrawer() {
+            document.getElementById('addUserDrawer').classList.replace('drawer-open','drawer-closed');
+            document.getElementById('userDrawerBackdrop').classList.add('hidden');
+        }
+
+        async function submitAddUser() {
+            const btn     = document.getElementById('addUserSubmitBtn');
+            const spinner = document.getElementById('addUserSpinner');
+            const btnText = document.getElementById('addUserBtnText');
+            const errDiv  = document.getElementById('userDrawerError');
+            const errText = document.getElementById('userDrawerErrorText');
+
+            const full_name = document.getElementById('u_full_name').value.trim();
+            const username  = document.getElementById('u_username').value.trim().toLowerCase();
+            const role_name = document.getElementById('u_role').value;
+            const email     = document.getElementById('u_email').value.trim() || null;
+            const password  = document.getElementById('u_password').value;
+
+            if (!full_name || !username || !password) {
+                errText.textContent = 'Full Name, Username and Password are required.';
+                errDiv.classList.remove('hidden');
+                return;
+            }
+            if (password.length < 4) {
+                errText.textContent = 'Password must be at least 4 characters.';
+                errDiv.classList.remove('hidden');
+                return;
+            }
+
+            errDiv.classList.add('hidden');
+            btn.disabled        = true;
+            spinner.classList.remove('hidden');
+            btnText.textContent = 'Adding…';
+
+            try {
+                const user = await apiFetch(`/api/platform/tenants/${tenantId}/users`, {
+                    method: 'POST',
+                    body: JSON.stringify({ full_name, username, email, password, role_name }),
+                });
+
+                closeAddUserDrawer();
+                allUsers.push(user);
+                renderUsersTable(allUsers);
+                showToast('success', `User "${user.username}" created.`);
+
+            } catch (err) {
+                errText.textContent = err.message;
+                errDiv.classList.remove('hidden');
+            } finally {
+                btn.disabled        = false;
+                spinner.classList.add('hidden');
+                btnText.textContent = 'Add User';
+            }
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // BRANCHES TAB — GET /api/platform/tenants/{id}/branches
+        // ════════════════════════════════════════════════════════════════
+
+        async function loadBranches() {
+            const tbody = document.getElementById('branchesTableBody');
+            try {
+                allBranches = await apiFetch(`/api/platform/tenants/${tenantId}/branches`);
+                renderBranchesTable(allBranches);
+            } catch (err) {
+                tbody.innerHTML = `
+                    <tr><td colspan="6" class="px-6 py-10 text-center text-sm text-red-500">
+                        ${esc(err.message)}
+                    </td></tr>`;
+            }
+        }
+
+        function renderBranchesTable(branches) {
+            const tbody = document.getElementById('branchesTableBody');
+            document.getElementById('branchCount').textContent =
+                branches.length
+                    ? `${branches.length} branch${branches.length !== 1 ? 'es' : ''}`
+                    : '';
+
+            if (!branches.length) {
+                tbody.innerHTML = `
+                    <tr><td colspan="6" class="px-6 py-12 text-center text-sm text-slate-400">
+                        No branches yet. Click <strong>Add Branch</strong> to create one.
+                    </td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = branches.map(b => `
+                <tr class="border-t border-slate-100 hover:bg-slate-50 transition-colors">
+                    <td class="px-6 py-4">
+                        <p class="text-sm font-medium text-slate-900">${esc(b.name)}</p>
+                        ${b.phone ? `<p class="text-xs text-slate-400 mt-0.5">${esc(b.phone)}</p>` : ''}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-600 font-mono tracking-wide">
+                        ${esc(b.branch_code)}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-500">
+                        ${esc(b.address)}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-700 text-center">
+                        ${b.device_count ?? 0}
+                    </td>
+                    <td class="px-6 py-4">
+                        ${b.is_active
+                            ? badge('bg-green-100 text-green-700', 'Active')
+                            : badge('bg-slate-100 text-slate-600', 'Inactive')}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-400">${fmtDate(b.created_at)}</td>
+                </tr>`).join('');
+        }
+
+        function applyBranchFilters() {
+            const q = document.getElementById('branchSearchInput').value.trim().toLowerCase();
+            const filtered = q
+                ? allBranches.filter(b =>
+                    [b.name, b.branch_code, b.address].filter(Boolean).join(' ').toLowerCase().includes(q))
+                : allBranches;
+            renderBranchesTable(filtered);
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // REGISTRATION CODE MODAL
+        // Shown after device creation or code regeneration.
+        // ════════════════════════════════════════════════════════════════
+
+        let _regCodeTimer = null;
+
+        function openRegistrationCodeModal(device) {
+            clearInterval(_regCodeTimer);
+
+            // Populate fields
+            document.getElementById('rcm_code').textContent    = device.registration_code_display ?? device.registration_code;
+            document.getElementById('rcm_tenant').textContent  = `${device.tenant_name} (${device.tenant_code})`;
+            document.getElementById('rcm_branch').textContent  = `${device.branch_name} · ${device.branch_code}`;
+            document.getElementById('rcm_device').textContent  = device.name;
+            document.getElementById('rcm_device_code').textContent = device.device_code;
+
+            const emailRow = document.getElementById('rcm_email_row');
+            if (device.owner_email) {
+                document.getElementById('rcm_email').textContent = device.owner_email;
+                emailRow.classList.remove('hidden');
+            } else {
+                emailRow.classList.add('hidden');
+            }
+
+            // Reset copy icon
+            document.getElementById('rcm_copyIcon').innerHTML = `
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6
+                         12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2
+                         0 002 2z"/>`;
+
+            // Countdown from expiry time
+            const expiresAt = new Date(device.registration_code_expires_at).getTime();
+
+            function tick() {
+                const remaining = Math.max(0, expiresAt - Date.now());
+                const minutes   = Math.floor(remaining / 60000);
+                const seconds   = Math.floor((remaining % 60000) / 1000);
+                const el        = document.getElementById('rcm_countdown');
+                if (!el) { clearInterval(_regCodeTimer); return; }
+                el.textContent  = `${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+                if (remaining === 0) {
+                    clearInterval(_regCodeTimer);
+                    el.textContent  = 'Expired';
+                    el.classList.add('text-red-600');
+                }
+            }
+
+            tick();
+            _regCodeTimer = setInterval(tick, 1000);
+
+            document.getElementById('regCodeModal').classList.remove('hidden');
+        }
+
+        function closeRegCodeModal() {
+            clearInterval(_regCodeTimer);
+            document.getElementById('regCodeModal').classList.add('hidden');
+        }
+
+        function copyRegCode() {
+            const code = document.getElementById('rcm_code').textContent.trim();
+            navigator.clipboard.writeText(code).then(() => {
+                const icon = document.getElementById('rcm_copyIcon');
+                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>`;
+                setTimeout(() => {
+                    icon.innerHTML = `
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6
+                                 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2
+                                 0 002 2z"/>`;
+                }, 2000);
+            });
+        }
+
+        async function regenerateCode(deviceId) {
+            try {
+                const device = await apiFetch(
+                    `/api/platform/tenants/${tenantId}/devices/${deviceId}/registration-code`,
+                    { method: 'POST' }
+                );
+                // Update the device in allDevices (is_activated may have changed)
+                const idx = allDevices.findIndex(d => d.id === deviceId);
+                if (idx !== -1) allDevices[idx] = { ...allDevices[idx], ...device };
+                renderDevicesTable(allDevices);
+                openRegistrationCodeModal(device);
+            } catch (err) {
+                showToast('error', err.message);
+            }
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // ADD BRANCH DRAWER
+        // POST /api/platform/tenants/{id}/branches
+        // ════════════════════════════════════════════════════════════════
+
+        function openAddBranchDrawer() {
+            document.getElementById('addBranchDrawer').classList.replace('drawer-closed','drawer-open');
+            document.getElementById('branchDrawerBackdrop').classList.remove('hidden');
+            document.getElementById('branchDrawerError').classList.add('hidden');
+            document.getElementById('addBranchForm').reset();
+        }
+
+        function closeAddBranchDrawer() {
+            document.getElementById('addBranchDrawer').classList.replace('drawer-open','drawer-closed');
+            document.getElementById('branchDrawerBackdrop').classList.add('hidden');
+        }
+
+        function autoGenBranchCode() {
+            const name = document.getElementById('b_name').value;
+            const code = name
+                .toUpperCase()
+                .replace(/[^A-Z0-9]/g, '')
+                .substring(0, 4)
+                .padEnd(4, 'X')
+                + '01';
+            document.getElementById('b_code').value = code;
+        }
+
+        async function submitAddBranch() {
+            const btn     = document.getElementById('addBranchSubmitBtn');
+            const spinner = document.getElementById('addBranchSpinner');
+            const btnText = document.getElementById('addBranchBtnText');
+            const errDiv  = document.getElementById('branchDrawerError');
+            const errText = document.getElementById('branchDrawerErrorText');
+
+            const name      = document.getElementById('b_name').value.trim();
+            const code      = document.getElementById('b_code').value.trim().toUpperCase();
+            const address   = document.getElementById('b_address').value.trim() || null;
+            const city      = document.getElementById('b_city').value || null;
+            const phone     = document.getElementById('b_phone').value.trim() || null;
+            const is_active = document.getElementById('b_is_active').checked;
+
+            if (!name || !code) {
+                errText.textContent = 'Branch Name and Code are required.';
+                errDiv.classList.remove('hidden');
+                return;
+            }
+
+            errDiv.classList.add('hidden');
+            btn.disabled        = true;
+            spinner.classList.remove('hidden');
+            btnText.textContent = 'Adding…';
+
+            try {
+                const branch = await apiFetch(`/api/platform/tenants/${tenantId}/branches`, {
+                    method: 'POST',
+                    body: JSON.stringify({ name, branch_code: code, address, city, phone, is_active }),
+                });
+
+                closeAddBranchDrawer();
+                allBranches.push(branch);
+                renderBranchesTable(allBranches);
+                showToast('success', `Branch "${branch.name}" created.`);
+
+                // Update branch count in overview stat card
+                if (tenantDetail) {
+                    tenantDetail.branch_count = (tenantDetail.branch_count ?? 0) + 1;
+                    document.getElementById('statBranches').textContent = tenantDetail.branch_count;
+                }
+
+            } catch (err) {
+                errText.textContent = err.message;
+                errDiv.classList.remove('hidden');
+            } finally {
+                btn.disabled        = false;
+                spinner.classList.add('hidden');
+                btnText.textContent = 'Add Branch';
+            }
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // DEVICES TAB — GET /api/platform/tenants/{id}/devices
+        // ════════════════════════════════════════════════════════════════
+
+        async function loadDevices() {
+            const tbody = document.getElementById('devicesTableBody');
+            try {
+                allDevices = await apiFetch(`/api/platform/tenants/${tenantId}/devices`);
+                populateBranchFilter();
+                renderDevicesTable(allDevices);
+            } catch (err) {
+                tbody.innerHTML = `
+                    <tr><td colspan="6" class="px-6 py-10 text-center text-sm text-red-500">
+                        ${esc(err.message)}
+                    </td></tr>`;
+            }
+        }
+
+        function populateBranchFilter() {
+            const sel = document.getElementById('deviceFilterBranch');
+            // Clear previous options (keep "All Branches")
+            while (sel.options.length > 1) sel.remove(1);
+            const seen = new Set();
+            for (const d of allDevices) {
+                if (!seen.has(d.branch_id)) {
+                    seen.add(d.branch_id);
+                    const opt = document.createElement('option');
+                    opt.value = d.branch_id;
+                    opt.textContent = d.branch_name;
+                    sel.appendChild(opt);
+                }
+            }
+        }
+
+        function fmtLastSync(iso) {
+            if (!iso) return '—';
+            const diff = Date.now() - new Date(iso).getTime();
+            const secs = Math.floor(diff / 1000);
+            if (secs < 60)  return `${secs}s`;
+            if (secs < 3600) return `${Math.floor(secs / 60)}m`;
+            if (secs < 86400) return `${Math.floor(secs / 3600)}h`;
+            return `${Math.floor(secs / 86400)}d`;
+        }
+
+        function renderDevicesTable(devices) {
+            const tbody = document.getElementById('devicesTableBody');
+            document.getElementById('deviceCount').textContent =
+                devices.length ? `${devices.length} device${devices.length !== 1 ? 's' : ''}` : '';
+
+            if (!devices.length) {
+                tbody.innerHTML = `
+                    <tr><td colspan="7" class="px-6 py-12 text-center text-sm text-slate-400">
+                        No devices registered yet. Click <strong>Register Device</strong> to add one.
+                    </td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = devices.map(d => `
+                <tr class="border-t border-slate-100 hover:bg-slate-50 transition-colors">
+                    <td class="px-6 py-4">
+                        <p class="text-sm font-medium text-slate-900">${esc(d.name)}</p>
+                        <p class="text-xs text-slate-400 font-mono mt-0.5">${esc(d.device_type)}</p>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-600 font-mono tracking-wide">
+                        ${esc(d.device_code)}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-700">
+                        ${esc(d.branch_name)}
+                        <span class="text-slate-400 font-mono text-xs ml-1">${esc(d.branch_code)}</span>
+                    </td>
+                    <td class="px-6 py-4 text-xs text-slate-500 uppercase tracking-wide">
+                        ${esc(d.device_type)}
+                    </td>
+                    <td class="px-6 py-4">${deviceStatusBadge(d)}</td>
+                    <td class="px-6 py-4 text-sm text-slate-500">
+                        ${d.last_sync_at ? fmtLastSync(d.last_sync_at) : '<span class="text-slate-300">Never</span>'}
+                    </td>
+                    <td class="px-4 py-4 text-right whitespace-nowrap">${deviceRowActions(d)}</td>
+                </tr>`).join('');
+        }
+
+        function deviceStatusBadge(d) {
+            if (d.status === 'ACTIVE')    return badge('bg-green-100 text-green-700', 'Active');
+            if (d.status === 'PENDING')   return badge('bg-amber-100 text-amber-700', 'Pending');
+            if (d.status === 'REVOKED')   return badge('bg-slate-800 text-white', 'Revoked');
+            if (d.status === 'SUSPENDED') {
+                const by = d.suspended_scope === 'PLATFORM' ? 'Suspended · platform' : 'Suspended · tenant';
+                return badge('bg-red-100 text-red-700', by);
+            }
+            return badge('bg-slate-100 text-slate-600', d.status || '—');
+        }
+
+        function deviceRowActions(d) {
+            const b = (label, action, cls) =>
+                `<button onclick="deviceAction('${escapeJSAttribute(d.id)}','${escapeJSAttribute(action)}')" class="text-xs font-medium ${cls}">${label}</button>`;
+            const sep = '<span class="text-slate-200 mx-1.5">·</span>';
+            const parts = [];
+            if (d.status === 'ACTIVE' || d.status === 'PENDING')
+                parts.push(b('Suspend', 'suspend', 'text-amber-600 hover:text-amber-800'));
+            if (d.status === 'SUSPENDED')
+                parts.push(b('Reactivate', 'reactivate', 'text-green-600 hover:text-green-800'));
+            if (d.status !== 'REVOKED')
+                parts.push(b('Revoke', 'revoke', 'text-red-600 hover:text-red-800'));
+            return parts.join(sep) || '<span class="text-xs text-slate-300">—</span>';
+        }
+
+        async function deviceAction(deviceId, action) {
+            const labels = { suspend: 'suspended', reactivate: 'reactivated', revoke: 'revoked' };
+            if (action === 'revoke' && !confirm('Permanently revoke this device? This cannot be undone.')) return;
+            try {
+                await apiFetch(`/api/platform/devices/${deviceId}/${action}`, { method: 'POST' });
+                showToast('success', `Device ${labels[action]}.`);
+                loadDevices();
+            } catch (e) {
+                showToast('error', e.message);
+            }
+        }
+
+        function applyDeviceFilters() {
+            const q        = document.getElementById('deviceSearchInput').value.trim().toLowerCase();
+            const branchId = document.getElementById('deviceFilterBranch').value;
+            const status   = document.getElementById('deviceFilterStatus').value;
+
+            const filtered = allDevices.filter(d => {
+                if (q) {
+                    const hay = [d.name, d.device_code, d.branch_name].join(' ').toLowerCase();
+                    if (!hay.includes(q)) return false;
+                }
+                if (branchId && d.branch_id !== branchId) return false;
+                if (status === 'active'   && !d.is_active) return false;
+                if (status === 'inactive' &&  d.is_active) return false;
+                return true;
+            });
+
+            renderDevicesTable(filtered);
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // REGISTER DEVICE DRAWER
+        // POST /api/platform/tenants/{id}/devices
+        // ════════════════════════════════════════════════════════════════
+
+        function openRegisterDeviceDrawer() {
+            // Populate branch dropdown from already-loaded branches
+            const sel = document.getElementById('d_branch_id');
+            while (sel.options.length > 1) sel.remove(1);
+            for (const b of allBranches) {
+                const opt = document.createElement('option');
+                opt.value = b.id;
+                opt.dataset.code = b.branch_code;   // used by autoGenDeviceCode
+                opt.textContent = b.name;
+                sel.appendChild(opt);
+            }
+
+            document.getElementById('registerDeviceDrawer').classList.replace('drawer-closed','drawer-open');
+            document.getElementById('deviceDrawerBackdrop').classList.remove('hidden');
+            document.getElementById('deviceDrawerError').classList.add('hidden');
+            document.getElementById('registerDeviceForm').reset();
+        }
+
+        function closeRegisterDeviceDrawer() {
+            document.getElementById('registerDeviceDrawer').classList.replace('drawer-open','drawer-closed');
+            document.getElementById('deviceDrawerBackdrop').classList.add('hidden');
+        }
+
+        function autoGenDeviceCode() {
+            const branchSel = document.getElementById('d_branch_id');
+            const name      = document.getElementById('d_name').value;
+            if (!branchSel.value || !name) return;
+
+            // Pattern: {BRANCH_CODE}-T{num}  e.g. "DHA-T01"
+            // data-code is set when branch options are populated
+            const branchOpt  = branchSel.options[branchSel.selectedIndex];
+            const branchCode = (branchOpt?.dataset?.code ?? '')
+                .replace(/[^A-Z0-9]/gi, '').toUpperCase().substring(0, 6);
+            // Extract trailing number from name ("Tablet 01" → "01") or fallback to "01"
+            const suffix = (name.match(/\d+$/) ?? ['01'])[0].padStart(2, '0');
+            document.getElementById('d_code').value = `${branchCode}-T${suffix}`;
+        }
+
+        async function submitRegisterDevice() {
+            const btn     = document.getElementById('registerDeviceSubmitBtn');
+            const spinner = document.getElementById('registerDeviceSpinner');
+            const btnText = document.getElementById('registerDeviceBtnText');
+            const errDiv  = document.getElementById('deviceDrawerError');
+            const errText = document.getElementById('deviceDrawerErrorText');
+
+            const branch_id   = document.getElementById('d_branch_id').value;
+            const name        = document.getElementById('d_name').value.trim();
+            const device_code = document.getElementById('d_code').value.trim().toUpperCase();
+            const device_type = document.getElementById('d_type').value;
+            const is_active   = document.getElementById('d_is_active').checked;
+
+            if (!branch_id || !name || !device_code) {
+                errText.textContent = 'Branch, Device Name and Device Code are required.';
+                errDiv.classList.remove('hidden');
+                return;
+            }
+
+            errDiv.classList.add('hidden');
+            btn.disabled        = true;
+            spinner.classList.remove('hidden');
+            btnText.textContent = 'Registering…';
+
+            try {
+                const device = await apiFetch(`/api/platform/tenants/${tenantId}/devices`, {
+                    method: 'POST',
+                    body: JSON.stringify({ branch_id, device_code, name, device_type, is_active }),
+                });
+
+                closeRegisterDeviceDrawer();
+                allDevices.push(device);
+                populateBranchFilter();
+                renderDevicesTable(allDevices);
+
+                // Update device count in Overview stat card
+                if (tenantDetail) {
+                    tenantDetail.device_count = (tenantDetail.device_count ?? 0) + 1;
+                    document.getElementById('statDevices').textContent = tenantDetail.device_count;
+                }
+
+                // Show the one-time registration code modal
+                openRegistrationCodeModal(device);
+
+            } catch (err) {
+                errText.textContent = err.message;
+                errDiv.classList.remove('hidden');
+            } finally {
+                btn.disabled        = false;
+                spinner.classList.add('hidden');
+                btnText.textContent = 'Register Device';
+            }
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // SUBSCRIPTION TAB — populated from already-loaded TenantDetailResponse
+        // ════════════════════════════════════════════════════════════════
+
+        function populateSubscriptionTab(d) {
+            const hasSubscription = !!d.subscription_id;
+            document.getElementById('subNoneMsg').classList.toggle('hidden', hasSubscription);
+            document.getElementById('subSuspendBtn').classList.toggle('hidden', !hasSubscription);
+
+            document.getElementById('subPlanName').textContent =
+                d.plan_name ?? (hasSubscription ? '—' : 'No Plan');
+            document.getElementById('subStatusBadge').innerHTML =
+                statusBadge(d.is_active, d.subscription_status);
+            document.getElementById('subExpires').textContent = fmtDate(d.expires_at);
+
+            // Trial row
+            const trialRow = document.getElementById('subTrialRow');
+            if (d.trial_ends_at) {
+                trialRow.classList.remove('hidden');
+                document.getElementById('subTrialEnds').textContent = fmtDate(d.trial_ends_at);
+            } else {
+                trialRow.classList.add('hidden');
+            }
+
+            // Started: not in TenantDetailResponse — show "—" until a subscription detail endpoint exists
+            document.getElementById('subStarted').textContent = '—';
+
+            // Extend Trial — super admin only, and only while a trial is actually running.
+            // The full Extend Trial UI (with live preview) lives on subscriptions.html;
+            // this button hands off there rather than duplicating that modal here.
+            document.getElementById('subExtendTrialBtn').classList.toggle(
+                'hidden', !(_isSuper && hasSubscription && d.subscription_status === 'TRIAL')
+            );
+        }
+
+        function goExtendTrial() {
+            location.href = '/platform/subscriptions.html?tenant='
+                + encodeURIComponent(tenantDetail?.tenant_code || '')
+                + '&extendTrial=1';
+        }
+
+        function doSuspendSubscription() {
+            openConfirm(
+                'Suspend Subscription',
+                `Suspend the subscription for "${tenantDetail?.name}"? The tenant will lose access.`,
+                'bg-red-600 hover:bg-red-700',
+                async () => {
+                    try {
+                        // Suspend the tenant (no dedicated subscription-suspend endpoint yet)
+                        const updated = await apiFetch(
+                            `/api/platform/tenants/${tenantId}/suspend`,
+                            { method: 'POST' }
+                        );
+                        tenantDetail.is_active = updated.is_active;
+                        populateOverview(tenantDetail);
+                        populateSubscriptionTab(tenantDetail);
+                        showToast('success', 'Subscription suspended.');
+                    } catch (err) {
+                        showToast('error', err.message);
+                    }
+                }
+            );
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // ACTIVITY TAB — placeholder rows (real endpoint pending)
+        // ════════════════════════════════════════════════════════════════
+
+        function getPlaceholderAudit() {
+            const ownerUser = tenantDetail?.owner_username ?? 'Owner';
+            return [
+                { time: '10:42', user: 'SuperAdmin', action: 'Created tenant' },
+                { time: '10:45', user: 'SuperAdmin', action: 'Added initial branch' },
+                { time: '10:50', user: ownerUser,    action: 'Logged in' },
+                { time: '11:02', user: ownerUser,    action: 'Updated business info' },
+            ];
+        }
+
+        function renderAuditTable(rows) {
+            const tbody = document.getElementById('auditTableBody');
+            if (!rows.length) {
+                tbody.innerHTML = `
+                    <tr><td colspan="3" class="px-6 py-8 text-center text-sm text-slate-400">
+                        No audit entries match your filters.
+                    </td></tr>`;
+                return;
+            }
+            tbody.innerHTML = rows.map(r => `
+                <tr class="border-t border-slate-100">
+                    <td class="px-6 py-3 text-sm text-slate-400 font-mono">${esc(r.time)}</td>
+                    <td class="px-6 py-3 text-sm font-medium text-slate-700">${esc(r.user)}</td>
+                    <td class="px-6 py-3 text-sm text-slate-600">${esc(r.action)}</td>
+                </tr>`).join('');
+        }
+
+        function applyAuditFilters() {
+            const user   = document.getElementById('auditFilterUser').value;
+            const action = document.getElementById('auditFilterAction').value;
+            const rows   = getPlaceholderAudit().filter(r => {
+                if (user   && r.user.toLowerCase() !== user.toLowerCase()) return false;
+                if (action && !r.action.toLowerCase().includes(action)) return false;
+                return true;
+            });
+            renderAuditTable(rows);
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // ACCOUNT RECOVERY MODAL
+        // ════════════════════════════════════════════════════════════════
+
+        function openRecoveryModal() {
+            if (!tenantDetail) return;
+            document.getElementById('rm_owner_name').textContent     = tenantDetail.owner_name     ?? '—';
+            document.getElementById('rm_owner_username').textContent = tenantDetail.owner_username  ?? '—';
+            document.getElementById('rm_owner_email').textContent    = tenantDetail.owner_email     ?? '—';
+            // Reset radio
+            document.querySelector('input[name="recoveryMethod"][value="email"]').checked = true;
+            document.getElementById('recoveryModal').classList.remove('hidden');
+        }
+
+        function closeRecoveryModal() {
+            document.getElementById('recoveryModal').classList.add('hidden');
+        }
+
+        async function submitRecovery() {
+            const method  = document.querySelector('input[name="recoveryMethod"]:checked')?.value ?? 'email';
+            const spinner = document.getElementById('recoverySpinner');
+            spinner.classList.remove('hidden');
+            try {
+                await apiFetch(`/api/platform/tenants/${tenantId}/account-recovery`, { method: 'POST' });
+                closeRecoveryModal();
+                if (method === 'email') {
+                    showToast('success', 'Password reset email initiated.');
+                } else {
+                    showToast('info', 'Recovery link generated. See email service logs.');
+                }
+            } catch (err) {
+                showToast('error', err.message);
+            } finally {
+                spinner.classList.add('hidden');
+            }
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // SET PASSWORD MODAL  (direct force-set for a tenant user)
+        // ════════════════════════════════════════════════════════════════
+
+        let setPwUserId = null;
+
+        function genTempPassword(inputId) {
+            const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+            let out = '';
+            for (let i = 0; i < 10; i++) out += chars[Math.floor(Math.random() * chars.length)];
+            document.getElementById(inputId).value = out;
+        }
+
+        function openSetPasswordModal(userId, fullName, username) {
+            setPwUserId = userId;
+            document.getElementById('spw_user').textContent = `${fullName} (${username})`;
+            document.getElementById('spw_password').value = '';
+            document.getElementById('setPwModal').classList.remove('hidden');
+        }
+
+        function closeSetPasswordModal() {
+            document.getElementById('setPwModal').classList.add('hidden');
+            setPwUserId = null;
+        }
+
+        async function submitSetPassword() {
+            if (!setPwUserId) return;
+            const pw = document.getElementById('spw_password').value;
+            if (!pw || pw.length < 6) {
+                showToast('error', 'Password must be at least 6 characters.');
+                return;
+            }
+            try {
+                // Endpoint takes a bare JSON string body (Body(...) scalar, not embedded).
+                await apiFetch(`/api/platform/tenants/${tenantId}/users/${setPwUserId}/reset-password`, {
+                    method: 'POST',
+                    body: JSON.stringify(pw),
+                });
+                closeSetPasswordModal();
+                showToast('success', 'Password updated. Share it with the user securely.');
+            } catch (err) {
+                showToast('error', err.message);
+            }
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // QUICK ACTIONS (header buttons)
+        // ════════════════════════════════════════════════════════════════
+
+        function doAccountRecovery() {
+            openRecoveryModal();
+        }
+
+        function doToggleActive() {
+            if (!tenantDetail) return;
+            const willSuspend = tenantDetail.is_active;
+            openConfirm(
+                willSuspend ? 'Suspend Tenant' : 'Activate Tenant',
+                willSuspend
+                    ? `Suspend "${tenantDetail.name}"? They will lose access immediately.`
+                    : `Re-activate "${tenantDetail.name}" and restore their access?`,
+                willSuspend ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700',
+                async () => {
+                    try {
+                        const endpoint = willSuspend ? 'suspend' : 'activate';
+                        const updated = await apiFetch(
+                            `/api/platform/tenants/${tenantId}/${endpoint}`,
+                            { method: 'POST' }
+                        );
+                        tenantDetail.is_active = updated.is_active;
+                        populateOverview(tenantDetail);
+                        showToast('success', willSuspend ? 'Tenant suspended.' : 'Tenant activated.');
+                    } catch (err) {
+                        showToast('error', err.message);
+                    }
+                }
+            );
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // CONFIRM MODAL
+        // ════════════════════════════════════════════════════════════════
+
+        let confirmCallback = null;
+
+        function openConfirm(title, message, btnClass, callback) {
+            document.getElementById('confirmTitle').textContent   = title;
+            document.getElementById('confirmMessage').textContent = message;
+            const btn = document.getElementById('confirmOkBtn');
+            btn.className = `h-10 px-4 rounded-card text-sm text-white font-medium transition-colors ${btnClass}`;
+            btn.textContent = 'Confirm';
+            confirmCallback = callback;
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+
+        function closeConfirm() {
+            document.getElementById('confirmModal').classList.add('hidden');
+            confirmCallback = null;
+        }
+
+        document.getElementById('confirmOkBtn').addEventListener('click', () => {
+            if (confirmCallback) { confirmCallback(); closeConfirm(); }
+        });
+
+
+        // ════════════════════════════════════════════════════════════════
+        // TOAST
+        // ════════════════════════════════════════════════════════════════
+
+        let toastTimer = null;
+
+        function showToast(type, message) {
+            const toast = document.getElementById('toast');
+            const icon  = document.getElementById('toastIcon');
+            const text  = document.getElementById('toastText');
+
+            const styles = {
+                success: { border: 'border-green-200 bg-green-50 text-green-800', fill: '#16A34A',
+                    path: 'M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' },
+                error:   { border: 'border-red-200 bg-red-50 text-red-800',       fill: '#DC2626',
+                    path: 'M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z' },
+                info:    { border: 'border-blue-200 bg-blue-50 text-blue-800',    fill: '#2563EB',
+                    path: 'M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z' },
+            };
+
+            const s = styles[type] ?? styles.info;
+            toast.className = `fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3
+                               rounded-card shadow-lg border text-sm font-medium ${s.border}`;
+            icon.setAttribute('fill', s.fill);
+            icon.innerHTML = `<path fill-rule="evenodd" d="${s.path}" clip-rule="evenodd"/>`;
+            text.textContent = message;
+
+            toast.classList.remove('hidden');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toast.classList.add('hidden'), 4000);
+        }
+
+
+        // ════════════════════════════════════════════════════════════════
+        // HEADER — USER MENU + LOGOUT
+        // ════════════════════════════════════════════════════════════════
+
+        const userMenuBtn  = document.getElementById('userMenuBtn');
+        const userDropdown = document.getElementById('userDropdown');
+
+        userMenuBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            userDropdown.classList.toggle('hidden');
+        });
+        document.addEventListener('click', () => userDropdown.classList.add('hidden'));
+
+        function logout() {
+            localStorage.removeItem(TOKEN_KEY);
+            window.location.replace('/platform/login.html');
+        }
+        document.getElementById('sidebarLogout').addEventListener('click', logout);
+        document.getElementById('dropdownLogout').addEventListener('click', logout);
+
+
+        // ════════════════════════════════════════════════════════════════
+        // BOOT
+        // ════════════════════════════════════════════════════════════════
+
+        loadAdminHeader();
+        loadDetail();
+
+    </script>
+
+    <script src="/shared/responsive.js" defer></script>
+<dialog id="planChangeDialog" class="rounded-xl p-6 max-w-md w-full">
+<form id="planChangeForm"><h2 class="text-xl font-semibold mb-4">Change subscription plan</h2>
+<label>Plan<select id="changePlanId" required class="w-full border p-3 my-2"></select></label>
+<label>Billing cycle<select id="changePlanCycle" class="w-full border p-3 my-2"><option value="MONTHLY">Monthly</option><option value="YEARLY">Yearly</option></select></label>
+<p class="text-sm my-4">The new plan and limits apply immediately. The current expiry date stays the same; renewal uses the new price.</p>
+<p id="planChangeError" class="text-red-600"></p><button type="button" onclick="document.getElementById('planChangeDialog').close()" class="p-3">Cancel</button><button type="submit" class="p-3 bg-indigo-600 text-white rounded">Save plan</button></form></dialog>
+<script>
+async function openPlanChange(){
+ if(!tenantDetail?.subscription_id){showToast('error','Assign a subscription first.');return;}
+ try {const plans=await apiFetch('/api/platform/plans/');const select=document.getElementById('changePlanId');select.replaceChildren();for(const p of plans){if(p.is_active)select.add(new Option(p.name,p.id));}
+ const sub=await apiFetch('/api/platform/subscriptions/'+tenantDetail.subscription_id);select.value=sub.plan_id;document.getElementById('changePlanCycle').value=sub.billing_cycle;document.getElementById('planChangeDialog').showModal();}catch(e){showToast('error',e.message);}}
+document.getElementById('planChangeForm').onsubmit=async event=>{event.preventDefault();const button=event.submitter;button.disabled=true;try{await apiFetch('/api/platform/subscriptions/'+tenantDetail.subscription_id,{method:'PATCH',body:JSON.stringify({plan_id:document.getElementById('changePlanId').value,billing_cycle:document.getElementById('changePlanCycle').value})});document.getElementById('planChangeDialog').close();window.location.reload();}catch(e){document.getElementById('planChangeError').textContent=e.message;}finally{button.disabled=false;}};
+</script>
+</body>
+</html>

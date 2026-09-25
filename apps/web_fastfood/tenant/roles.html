@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Roles - Tenant Admin</title>
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+</head>
+<body class="bg-slate-50 min-h-screen flex">
+
+    <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+    <aside class="w-64 flex-shrink-0 h-screen bg-white border-r border-slate-200 flex flex-col overflow-y-auto fixed left-0 top-0 z-30">
+
+        <!-- Tenant branding -->
+        <div class="h-16 flex items-center px-5 border-b border-slate-200 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span class="text-white text-sm font-bold select-none">T</span>
+                </div>
+                <div>
+                    <p class="text-slate-900 text-sm font-semibold leading-none" id="sidebarTenantName">Loading…</p>
+                    <p class="text-indigo-600 text-[11px] leading-none mt-0.5 font-medium" id="sidebarTenantCode">—</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 px-3 py-4 space-y-0.5">
+
+            <a href="/tenant/dashboard.html"
+               class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                Overview
+            </a>
+
+            <a href="/tenant/sales.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                Sales
+            </a>
+
+            <a href="/tenant/reports.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                Reports
+            </a>
+
+        <a href="/tenant/shifts.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Cash Shortages
+        </a>
+
+            <a href="/tenant/menu.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                Menu
+            </a>
+
+
+        <a href="/tenant/variant-options.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+            Variant Options
+        </a>
+
+        <a href="/tenant/addon-groups.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+            Add-on Groups
+        </a>
+
+            <a href="/tenant/promotions.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg>
+                Promotions
+            </a>
+
+            <a href="/tenant/deals.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+                Deals
+            </a>
+
+            <a href="/tenant/branches.html"
+               class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                Branches
+            </a>
+
+            <a href="/tenant/preparation-stations.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z"/>
+                </svg>
+                Kitchen Stations
+            </a>
+
+            <a href="/tenant/devices.html"
+               class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                Devices
+            </a>
+
+            <a href="/tenant/users.html"
+               class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                Users
+            </a>
+
+            <!-- Active: Roles -->
+            <a href="/tenant/roles.html"
+               class="bg-indigo-50 text-indigo-700 font-medium rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+                Roles
+            </a>
+
+            <a href="/tenant/activity.html"
+               class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0"/>
+                </svg>
+                Activity
+            </a>
+
+            <a href="/tenant/expenses.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-6 4h6m-6 4h4M5 3h14a2 2 0 012 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 012-2z"/></svg>
+                Expenses
+            </a>
+            <a href="/tenant/employees.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+                Employees
+            </a>
+            <a href="/tenant/salaries.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Salaries
+            </a>
+            <a href="/tenant/inventory.html"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                Inventory
+            </a>
+
+            <a href="/tenant/subscription.html"
+               class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                </svg>
+                Subscription
+            </a>
+
+            <a href="/tenant/settings.html"
+               class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                Settings
+            </a>
+        </nav>
+
+        <!-- User footer -->
+        <div class="border-t border-slate-200 p-4 flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                    <span class="text-indigo-700 text-sm font-semibold" id="userInitial">?</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-slate-900 truncate" id="sidebarUserName">—</p>
+                    <p class="text-xs text-slate-500 truncate" id="sidebarUserRoles">—</p>
+                </div>
+                <button onclick="logout()" title="Logout" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ── Main content ──────────────────────────────────────────────────────── -->
+    <div class="ml-64 flex-1 flex flex-col min-h-screen">
+
+        <!-- Header -->
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center px-6 sticky top-0 z-20">
+            <h1 class="text-2xl font-semibold text-slate-900">Roles</h1>
+        </header>
+
+        <!-- Page body -->
+        <main class="flex-1 p-6">
+
+            <!-- Error banner -->
+            <div id="errorBanner" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-5 text-sm"></div>
+
+            <!-- Loading spinner -->
+            <div id="loadingSpinner" class="flex items-center justify-center py-24">
+                <svg class="animate-spin w-8 h-8 text-indigo-600" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                </svg>
+            </div>
+
+            <!-- Two-panel layout: 40% roles list / 60% role detail -->
+            <div id="mainLayout" class="hidden flex gap-6 h-[calc(100vh-8rem)]">
+
+                <!-- ── Left Panel: Roles List (40%) ── -->
+                <div class="w-2/5 flex flex-col gap-4">
+
+                    <!-- New Role inline form card -->
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+                        <h3 class="text-sm font-semibold text-slate-900 mb-3">New Role</h3>
+                        <div id="newRoleError" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm mb-3"></div>
+                        <div class="space-y-3">
+                            <input id="newRoleName" type="text" placeholder="Role name (required)"
+                                   class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                            <input id="newRoleDesc" type="text" placeholder="Description (optional)"
+                                   class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                            <button onclick="createRole()"
+                                    id="createRoleBtn"
+                                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-60">
+                                Create Role
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Roles list card — scrollable -->
+                    <div class="flex-1 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                        <div class="px-4 py-3 border-b border-slate-200 flex-shrink-0">
+                            <p class="text-sm font-semibold text-slate-900">All Roles</p>
+                        </div>
+                        <div id="rolesList" class="flex-1 overflow-y-auto divide-y divide-slate-100">
+                            <!-- Role cards injected by JS -->
+                        </div>
+                        <div id="rolesEmpty" class="hidden flex-1 flex items-center justify-center py-10 text-slate-400 text-sm">
+                            No roles yet. Create the first one above.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Right Panel: Role Detail (60%) ── -->
+                <div class="flex-1 flex flex-col">
+                    <div id="noRoleSelected" class="flex-1 flex flex-col items-center justify-center text-slate-400 bg-white rounded-xl border border-slate-200 shadow-sm">
+                        <svg class="w-14 h-14 mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                        <p class="text-sm font-medium text-slate-500">Select a role to view and manage permissions</p>
+                    </div>
+
+                    <!-- Role detail panel (hidden until role selected) -->
+                    <div id="roleDetail" class="hidden flex-1 bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+
+                        <!-- Role header + edit -->
+                        <div class="px-6 py-4 border-b border-slate-200 flex-shrink-0">
+                            <!-- View mode -->
+                            <div id="roleDetailView">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div class="flex-1 min-w-0">
+                                        <h2 class="text-lg font-semibold text-slate-900 truncate" id="detailRoleName">—</h2>
+                                        <p class="text-sm text-slate-500 mt-0.5" id="detailRoleDesc">—</p>
+                                    </div>
+                                    <div class="flex items-center gap-2 flex-shrink-0">
+                                        <span id="detailRoleStatus"></span>
+                                        <button onclick="startEditRole()"
+                                                class="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors border border-indigo-200 hover:border-indigo-400 px-3 py-1.5 rounded-lg">
+                                            Edit
+                                        </button>
+                                        <button onclick="deleteSelectedRole()"
+                                                class="text-sm font-medium text-red-600 hover:text-red-800 transition-colors border border-red-200 hover:border-red-400 px-3 py-1.5 rounded-lg">
+                                            Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Edit mode (hidden by default) -->
+                            <div id="roleDetailEdit" class="hidden">
+                                <div id="roleEditError" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm mb-3"></div>
+                                <div class="space-y-3">
+                                    <input id="editRoleName" type="text" placeholder="Role name"
+                                           class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                    <input id="editRoleDesc" type="text" placeholder="Description"
+                                           class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                    <div class="flex items-center gap-3">
+                                        <input id="editRoleActive" type="checkbox"
+                                               class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500" />
+                                        <label for="editRoleActive" class="text-sm font-medium text-slate-700">Active</label>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button onclick="saveRoleEdit()" id="saveRoleEditBtn"
+                                                class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-60">
+                                            Save
+                                        </button>
+                                        <button onclick="cancelRoleEdit()"
+                                                class="px-4 py-2 rounded-lg text-sm font-medium border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Permissions section — scrollable -->
+                        <div class="flex-1 overflow-y-auto px-6 py-4">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-sm font-semibold text-slate-900">Permissions</h3>
+                                <!-- Spinner shown while a permission toggle is in flight -->
+                                <svg id="permSpinner" class="hidden animate-spin w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                                </svg>
+                            </div>
+
+                            <!-- Permissions loading spinner -->
+                            <div id="permLoadingSpinner" class="hidden flex items-center justify-center py-10">
+                                <svg class="animate-spin w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                                </svg>
+                            </div>
+
+                            <!-- Grouped permissions rendered here -->
+                            <div id="permissionsContainer" class="space-y-6">
+                                <!-- Module groups injected by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ── Scripts ───────────────────────────────────────────────────────────── -->
+    <script>
+        // ── API helpers ──────────────────────────────────────────────────────────
+        const BASE = '/api/v1';
+        function getToken() { return localStorage.getItem('tenant_token'); }
+
+        async function apiFetch(path, opts = {}) {
+            const res = await fetch(BASE + path, {
+                ...opts,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + getToken(),
+                    ...(opts.headers || {})
+                }
+            });
+            if (res.status === 401) {
+                localStorage.removeItem('tenant_token');
+                location.href = '/tenant/login.html';
+                throw new Error('Unauthorized');
+            }
+            if (!res.ok) {
+                const e = await res.json().catch(() => ({}));
+                throw new Error(e.detail || 'Request failed');
+            }
+            if (res.status === 204) return null;
+            return res.json();
+        }
+
+        function logout() {
+            localStorage.removeItem('tenant_token');
+            localStorage.removeItem('tenant_me');
+            location.href = '/tenant/login.html';
+        }
+
+        function showToast(msg, type = 'success') {
+            const t = document.createElement('div');
+            t.className = `fixed bottom-4 right-4 z-50 px-4 py-3 rounded-lg text-sm font-medium shadow-lg ${type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`;
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        // ── Sidebar init ─────────────────────────────────────────────────────────
+        async function initSidebar() {
+            const token = localStorage.getItem('tenant_token');
+            if (!token) { location.href = '/tenant/login.html'; return false; }
+            try {
+                const me = await apiFetch('/auth/me'); window.SHOP_CCY = (me && me.currency) || 'Rs.';
+                localStorage.setItem('tenant_me', JSON.stringify(me));
+                document.getElementById('sidebarTenantName').textContent = me.tenant?.name || 'My Business';
+                document.getElementById('sidebarTenantCode').textContent = me.tenant?.code || '';
+                document.getElementById('sidebarUserName').textContent = me.full_name || me.username;
+                document.getElementById('userInitial').textContent = (me.full_name || me.username || '?')[0].toUpperCase();
+                document.getElementById('sidebarUserRoles').textContent = me.roles?.length ? me.roles.join(', ') : 'No roles';
+                return me;
+            } catch(e) { return false; }
+        }
+
+        // ── State ────────────────────────────────────────────────────────────────
+        let allRoles       = [];    // list of RoleResponse
+        let allPermissions = [];    // list of all system PermissionResponse
+        let selectedRole   = null;  // currently selected RoleResponse
+        let rolePermIds    = new Set(); // set of permission IDs assigned to selected role
+        let currentMe      = null;
+
+        function canAdministerPermissions() {
+            const allowed = new Set(['admin', 'owner', 'superadmin', 'super admin']);
+            return !!currentMe && (currentMe.roles || []).some(r => allowed.has(String(r).trim().toLowerCase()));
+        }
+
+        // ── Escape HTML ──────────────────────────────────────────────────────────
+        function escHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        // ── Page init ────────────────────────────────────────────────────────────
+        async function init() {
+            currentMe = await initSidebar();
+            await loadPageData();
+        }
+
+        async function loadPageData() {
+            showSpinner(true);
+            hideError();
+            try {
+                // Load roles and all permissions in parallel
+                const [roles, perms] = await Promise.all([
+                    apiFetch('/roles/'),
+                    apiFetch('/roles/permissions/all')
+                ]);
+                allRoles = roles;
+                allPermissions = perms;
+                renderRolesList();
+                document.getElementById('mainLayout').classList.remove('hidden');
+            } catch(e) {
+                showError(e.message);
+            } finally {
+                showSpinner(false);
+            }
+        }
+
+        // ── Render roles list (left panel) ───────────────────────────────────────
+        function renderRolesList() {
+            const container = document.getElementById('rolesList');
+            const empty     = document.getElementById('rolesEmpty');
+
+            if (!allRoles.length) {
+                container.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
+            }
+            empty.classList.add('hidden');
+
+            container.innerHTML = allRoles.map(r => {
+                const isSelected = selectedRole && selectedRole.id === r.id;
+                const badge = r.is_active
+                    ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Active</span>`
+                    : `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Inactive</span>`;
+
+                return `
+                <div onclick="selectRole('${escapeJSAttribute(r.id)}')"
+                     class="px-4 py-3 cursor-pointer hover:bg-slate-50 transition-colors flex items-center justify-between gap-3
+                            ${isSelected ? 'border-l-4 border-indigo-500 bg-indigo-50' : 'border-l-4 border-transparent'}">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-slate-900 truncate ${isSelected ? 'text-indigo-700' : ''}">${escHtml(r.name)}</p>
+                        <p class="text-xs text-slate-500 mt-0.5 truncate">${escHtml(r.description || '—')}</p>
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        ${badge}
+                        <button onclick="event.stopPropagation(); deleteRole('${escapeJSAttribute(r.id)}', '${escapeJSAttribute(r.name)}')"
+                                class="text-slate-400 hover:text-red-600 transition-colors" title="Delete role">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // ── Select a role → load its permissions ─────────────────────────────────
+        async function selectRole(roleId) {
+            selectedRole = allRoles.find(r => r.id === roleId) || null;
+            if (!selectedRole) return;
+
+            // Re-render list to update highlight
+            renderRolesList();
+
+            // Show detail panel
+            document.getElementById('noRoleSelected').classList.add('hidden');
+            document.getElementById('roleDetail').classList.remove('hidden');
+
+            // Populate view header
+            cancelRoleEdit(); // ensure we're in view mode
+            updateDetailHeader();
+
+            // Load this role's permissions
+            await loadRolePermissions(roleId);
+        }
+
+        function updateDetailHeader() {
+            if (!selectedRole) return;
+            document.getElementById('detailRoleName').textContent = selectedRole.name;
+            document.getElementById('detailRoleDesc').textContent = selectedRole.description || 'No description';
+            const statusEl = document.getElementById('detailRoleStatus');
+            statusEl.innerHTML = selectedRole.is_active
+                ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Active</span>`
+                : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Inactive</span>`;
+        }
+
+        // ── Load & render permissions for selected role ───────────────────────────
+        async function loadRolePermissions(roleId) {
+            const spinner    = document.getElementById('permLoadingSpinner');
+            const container  = document.getElementById('permissionsContainer');
+            spinner.classList.remove('hidden');
+            container.innerHTML = '';
+
+            try {
+                const assigned = await apiFetch(`/roles/${roleId}/permissions`);
+                rolePermIds = new Set(assigned.map(p => p.id));
+                renderPermissions();
+            } catch(e) {
+                showToast('Failed to load permissions: ' + e.message, 'error');
+            } finally {
+                spinner.classList.add('hidden');
+            }
+        }
+
+        // ── Render permissions grouped by module ─────────────────────────────────
+        function renderPermissions() {
+            const container = document.getElementById('permissionsContainer');
+
+            // Group all system permissions by their module field
+            const groups = {};
+            allPermissions.forEach(p => {
+                const mod = p.module || 'other';
+                if (!groups[mod]) groups[mod] = [];
+                groups[mod].push(p);
+            });
+
+            const moduleOrder = ['branches','devices','users','roles','sales','products','categories','reports','settings','other'];
+
+            // Sort keys: known order first, then alphabetical
+            const keys = Object.keys(groups).sort((a, b) => {
+                const ia = moduleOrder.indexOf(a);
+                const ib = moduleOrder.indexOf(b);
+                if (ia === -1 && ib === -1) return a.localeCompare(b);
+                if (ia === -1) return 1;
+                if (ib === -1) return -1;
+                return ia - ib;
+            });
+
+            container.innerHTML = keys.map(mod => {
+                const perms = groups[mod];
+                const rows = perms.map(p => {
+                    const checked = rolePermIds.has(p.id);
+                    const editable = canAdministerPermissions();
+                    return `
+                    <div class="flex items-start gap-3 py-2">
+                        <div class="pt-0.5">
+                            <input type="checkbox"
+                                   id="perm-${p.id}"
+                                   ${checked ? 'checked' : ''}
+                                   ${editable ? '' : 'disabled'}
+                                   onchange="togglePermission('${escapeJSAttribute(p.id)}', this.checked)"
+                                   class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 ${editable ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}" />
+                        </div>
+                        <label for="perm-${p.id}" class="flex-1 cursor-pointer">
+                            <p class="text-sm font-medium text-slate-800">${escHtml(p.name)}</p>
+                            ${p.description ? `<p class="text-xs text-slate-500 mt-0.5">${escHtml(p.description)}</p>` : ''}
+                            <p class="text-xs text-slate-400 font-mono mt-0.5">${escHtml(p.code)}</p>
+                        </label>
+                    </div>`;
+                }).join('');
+
+                return `
+                <div>
+                    <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2 pb-1 border-b border-slate-100">
+                        ${escHtml(mod)}
+                    </h4>
+                    <div class="space-y-1">${rows}</div>
+                </div>`;
+            }).join('');
+        }
+
+        // ── Toggle permission (assign/remove) ────────────────────────────────────
+        async function togglePermission(permId, shouldAssign) {
+            if (!selectedRole || !canAdministerPermissions()) return;
+            const bigSpinner = document.getElementById('permSpinner');
+            const checkbox   = document.getElementById(`perm-${permId}`);
+
+            // Disable checkbox while request is in flight
+            if (checkbox) checkbox.disabled = true;
+            bigSpinner.classList.remove('hidden');
+
+            try {
+                if (shouldAssign) {
+                    await apiFetch(`/roles/${selectedRole.id}/permissions`, {
+                        method: 'POST',
+                        body: JSON.stringify({ permission_id: permId })
+                    });
+                    rolePermIds.add(permId);
+                } else {
+                    await apiFetch(`/roles/${selectedRole.id}/permissions/${permId}`, { method: 'DELETE' });
+                    rolePermIds.delete(permId);
+                }
+                showToast(shouldAssign ? 'Permission granted.' : 'Permission revoked.');
+            } catch(e) {
+                // Revert checkbox on failure
+                if (checkbox) checkbox.checked = !shouldAssign;
+                showToast(e.message, 'error');
+            } finally {
+                if (checkbox) checkbox.disabled = false;
+                bigSpinner.classList.add('hidden');
+            }
+        }
+
+        // ── Create role ──────────────────────────────────────────────────────────
+        async function createRole() {
+            if (!canAdministerPermissions()) { showToast('Only a tenant Super Admin or Admin can create roles.', 'error'); return; }
+            const name = document.getElementById('newRoleName').value.trim();
+            const desc = document.getElementById('newRoleDesc').value.trim();
+            const errEl = document.getElementById('newRoleError');
+            const btn   = document.getElementById('createRoleBtn');
+
+            errEl.classList.add('hidden');
+            if (!name) { errEl.textContent = 'Role name is required.'; errEl.classList.remove('hidden'); return; }
+
+            btn.disabled = true;
+            btn.textContent = 'Creating…';
+            try {
+                const created = await apiFetch('/roles/', {
+                    method: 'POST',
+                    body: JSON.stringify({ name, description: desc || null })
+                });
+                allRoles.push(created);
+                document.getElementById('newRoleName').value = '';
+                document.getElementById('newRoleDesc').value = '';
+                renderRolesList();
+                showToast('Role created.');
+                // Auto-select the new role
+                await selectRole(created.id);
+            } catch(e) {
+                errEl.textContent = e.message;
+                errEl.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Create Role';
+            }
+        }
+
+        // ── Edit role inline ─────────────────────────────────────────────────────
+        function startEditRole() {
+            if (!selectedRole || !canAdministerPermissions()) { showToast('Only a tenant Super Admin or Admin can edit roles.', 'error'); return; }
+            document.getElementById('editRoleName').value   = selectedRole.name;
+            document.getElementById('editRoleDesc').value   = selectedRole.description || '';
+            document.getElementById('editRoleActive').checked = selectedRole.is_active;
+            document.getElementById('roleDetailView').classList.add('hidden');
+            document.getElementById('roleDetailEdit').classList.remove('hidden');
+            document.getElementById('roleEditError').classList.add('hidden');
+        }
+
+        function cancelRoleEdit() {
+            document.getElementById('roleDetailView').classList.remove('hidden');
+            document.getElementById('roleDetailEdit').classList.add('hidden');
+        }
+
+        async function saveRoleEdit() {
+            if (!selectedRole || !canAdministerPermissions()) return;
+            const name     = document.getElementById('editRoleName').value.trim();
+            const desc     = document.getElementById('editRoleDesc').value.trim();
+            const is_active = document.getElementById('editRoleActive').checked;
+            const errEl    = document.getElementById('roleEditError');
+            const btn      = document.getElementById('saveRoleEditBtn');
+
+            errEl.classList.add('hidden');
+            if (!name) { errEl.textContent = 'Role name is required.'; errEl.classList.remove('hidden'); return; }
+
+            btn.disabled = true; btn.textContent = 'Saving…';
+            try {
+                const updated = await apiFetch(`/roles/${selectedRole.id}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ name, description: desc || null, is_active })
+                });
+                // Update local state
+                Object.assign(selectedRole, updated);
+                const idx = allRoles.findIndex(r => r.id === selectedRole.id);
+                if (idx !== -1) allRoles[idx] = selectedRole;
+                renderRolesList();
+                cancelRoleEdit();
+                updateDetailHeader();
+                showToast('Role updated.');
+            } catch(e) {
+                errEl.textContent = e.message;
+                errEl.classList.remove('hidden');
+            } finally {
+                btn.disabled = false; btn.textContent = 'Save';
+            }
+        }
+
+        // ── Delete role (from list trash icon) ───────────────────────────────────
+        async function deleteRole(roleId, roleName) {
+            if (!canAdministerPermissions()) { showToast('Only a tenant Super Admin or Admin can delete roles.', 'error'); return; }
+            if (!window.confirm(`Delete role "${roleName}"? This cannot be undone.`)) return;
+            try {
+                await apiFetch(`/roles/${roleId}`, { method: 'DELETE' });
+                allRoles = allRoles.filter(r => r.id !== roleId);
+                if (selectedRole && selectedRole.id === roleId) {
+                    selectedRole = null;
+                    document.getElementById('noRoleSelected').classList.remove('hidden');
+                    document.getElementById('roleDetail').classList.add('hidden');
+                }
+                renderRolesList();
+                showToast('Role deleted.');
+            } catch(e) {
+                showToast(e.message, 'error');
+            }
+        }
+
+        // ── Delete selected role (from detail header) ────────────────────────────
+        function deleteSelectedRole() {
+            if (!selectedRole) return;
+            deleteRole(selectedRole.id, selectedRole.name);
+        }
+
+        // ── UI helpers ───────────────────────────────────────────────────────────
+        function showSpinner(visible) {
+            document.getElementById('loadingSpinner').classList.toggle('hidden', !visible);
+        }
+        function showError(msg) {
+            const el = document.getElementById('errorBanner');
+            el.textContent = msg;
+            el.classList.remove('hidden');
+        }
+        function hideError() {
+            document.getElementById('errorBanner').classList.add('hidden');
+        }
+
+        // ── Bootstrap ────────────────────────────────────────────────────────────
+        init();
+    </script>
+
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

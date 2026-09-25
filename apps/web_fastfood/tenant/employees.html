@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Employees - Tenant Admin</title>
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+</head>
+<body class="bg-slate-50 min-h-screen flex">
+
+    <aside class="w-64 flex-shrink-0 h-screen bg-white border-r border-slate-200 flex flex-col overflow-y-auto fixed left-0 top-0 z-30">
+        <div class="h-16 flex items-center px-5 border-b border-slate-200 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span class="text-white text-sm font-bold select-none">T</span>
+                </div>
+                <div>
+                    <p class="text-slate-900 text-sm font-semibold leading-none" id="sidebarTenantName">Loading…</p>
+                    <p class="text-indigo-600 text-[11px] leading-none mt-0.5 font-medium" id="sidebarTenantCode">—</p>
+                </div>
+            </div>
+        </div>
+        <nav class="flex-1 px-3 py-4 space-y-0.5" id="sidebarNav"></nav>
+        <div class="border-t border-slate-200 p-4 flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                    <span class="text-indigo-700 text-sm font-semibold" id="userInitial">?</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-slate-900 truncate" id="sidebarUserName">—</p>
+                    <p class="text-xs text-slate-500 truncate" id="sidebarUserRoles">—</p>
+                </div>
+                <button onclick="logout()" title="Logout" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <main class="ml-64 flex-1 min-h-screen overflow-y-auto">
+        <div class="p-8">
+            <div class="flex items-start justify-between gap-3 mb-6 flex-wrap">
+                <div>
+                    <h1 class="text-2xl font-semibold text-slate-900">Employees</h1>
+                    <p class="text-sm text-slate-500 mt-1">Staff records with an auto-assigned employee number (<span class="font-mono">EMP-0001</span>).</p>
+                </div>
+                <div class="flex gap-2" id="actionBtns">
+                    <button onclick="exportCsv()" class="inline-flex items-center gap-2 border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-lg px-3 py-2">CSV</button>
+                    <button id="pdfBtn" onclick="downloadEmployeesPdf()" class="inline-flex items-center gap-2 border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-lg px-3 py-2">Print / Export PDF</button>
+                    <button onclick="openAdd()" id="addBtn" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg px-4 py-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Add Employee
+                    </button>
+                </div>
+            </div>
+
+            <div id="errorBanner" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-6 text-sm"></div>
+            <div id="denied" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm p-10 text-center">
+                <p class="text-slate-700 font-medium">You don't have access to Employees.</p>
+                <p class="text-sm text-slate-500 mt-1">Ask an admin to grant you the <span class="font-mono">employees.view</span> permission.</p>
+            </div>
+
+            <div id="pageLoading" class="bg-white rounded-xl border border-slate-200 shadow-sm p-8 text-center">
+                <div class="inline-block w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-sm text-slate-500 mt-2">Loading…</p>
+            </div>
+
+            <div id="content" class="hidden">
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+                        <p class="text-xs text-slate-500 uppercase tracking-wide">Active headcount</p>
+                        <p class="text-xl font-semibold text-slate-900 mt-1" id="kpiActive">—</p>
+                    </div>
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+                        <p class="text-xs text-slate-500 uppercase tracking-wide">Monthly commitment</p>
+                        <p class="text-xl font-semibold text-slate-900 mt-1" id="kpiCommit">—</p>
+                    </div>
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+                        <p class="text-xs text-slate-500 uppercase tracking-wide">Paid this month</p>
+                        <p class="text-xl font-semibold text-slate-900 mt-1" id="kpiPaid">—</p>
+                    </div>
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+                        <p class="text-xs text-slate-500 uppercase tracking-wide">Unpaid this month</p>
+                        <p class="text-xl font-semibold text-red-600 mt-1" id="kpiUnpaid">—</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-6">
+                    <p class="text-sm font-semibold text-slate-900 mb-3">Headcount &amp; salary by department</p>
+                    <div id="deptRows" class="space-y-3"></div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mb-5 flex flex-wrap gap-3 items-end" id="filterBar">
+                    <div><label class="block text-xs font-medium text-slate-500 mb-1">Search</label>
+                        <input type="text" id="fQ" placeholder="name / no. / role" class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm" /></div>
+                    <div><label class="block text-xs font-medium text-slate-500 mb-1">Status</label>
+                        <select id="fStatus" class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm bg-white">
+                            <option value="">All</option><option value="active">Active</option><option value="on_leave">On leave</option><option value="terminated">Terminated</option>
+                        </select></div>
+                    <div><label class="block text-xs font-medium text-slate-500 mb-1">Department</label>
+                        <select id="fDept" class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm bg-white min-w-36"><option value="">All</option></select></div>
+                    <div><label class="block text-xs font-medium text-slate-500 mb-1">Branch</label>
+                        <select id="fBranch" class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm bg-white min-w-36"><option value="">All</option></select></div>
+                    <button onclick="applyFilters()" class="bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium rounded-lg px-4 py-1.5">Apply</button>
+                    <button onclick="resetFilters()" class="text-slate-500 hover:text-slate-700 text-sm px-2 py-1.5">Reset</button>
+                    <span id="rangeLabel" class="ml-auto text-xs text-slate-400"></span>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-50 border-b border-slate-200">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">No.</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Name</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Designation</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Department</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Branch</th>
+                                    <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Salary</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">This month</th>
+                                    <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase no-print" id="thActions">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rows" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                        <div id="empty" class="hidden p-10 text-center text-sm text-slate-500">No employees match.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add / Edit drawer -->
+    <div id="empModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeEmp()"></div>
+        <div class="relative bg-white rounded-xl shadow-xl w-full max-w-lg z-10 flex flex-col max-h-[88vh]">
+            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                <h3 class="text-base font-semibold text-slate-900" id="empTitle">Add Employee</h3>
+                <button onclick="closeEmp()" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            </div>
+            <div class="px-6 py-5 space-y-3 overflow-y-auto">
+                <div><label class="block text-xs font-medium text-slate-600 mb-1">Full name *</label>
+                    <input id="f_name" type="text" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm" /></div>
+                <div id="f_pinGroup">
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Attendance PIN <span class="text-slate-400 font-normal">(optional)</span></label>
+                    <input id="f_pin" type="text" inputmode="numeric" maxlength="6" placeholder="4–6 digits — lets them clock in/out on the tablet"
+                           class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm" />
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Designation</label>
+                        <input id="f_desig" type="text" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm" /></div>
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Department</label>
+                        <input id="f_dept" type="text" list="deptList" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm" />
+                        <datalist id="deptList"></datalist></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Monthly salary *</label>
+                        <input id="f_salary" type="number" min="0" step="0.01" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm" /></div>
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Employment type</label>
+                        <select id="f_etype" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm bg-white">
+                            <option>Full-time</option><option>Part-time</option><option>Contract</option><option>Intern</option>
+                        </select></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Status</label>
+                        <select id="f_status" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm bg-white">
+                            <option value="active">Active</option><option value="on_leave">On leave</option><option value="terminated">Terminated</option>
+                        </select></div>
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Branch</label>
+                        <select id="f_branch" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm bg-white"><option value="">— None —</option></select></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Join date</label>
+                        <input id="f_join" type="date" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm" /></div>
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">End date</label>
+                        <input id="f_end" type="date" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm" /></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Phone</label>
+                        <input id="f_phone" type="text" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm" /></div>
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Email</label>
+                        <input id="f_email" type="email" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm" /></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">CNIC / National ID</label>
+                        <input id="f_nid" type="text" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm" /></div>
+                    <div><label class="block text-xs font-medium text-slate-600 mb-1">Bank account</label>
+                        <input id="f_acct" type="text" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm" /></div>
+                </div>
+                <div><label class="block text-xs font-medium text-slate-600 mb-1">Bank name</label>
+                    <input id="f_bank" type="text" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm" /></div>
+                <div><label class="block text-xs font-medium text-slate-600 mb-1">Address</label>
+                    <textarea id="f_addr" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"></textarea></div>
+                <div><label class="block text-xs font-medium text-slate-600 mb-1">Notes</label>
+                    <textarea id="f_notes" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"></textarea></div>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
+                <button onclick="closeEmp()" class="h-10 px-4 border border-slate-200 rounded-lg text-sm text-slate-700 hover:bg-slate-50">Cancel</button>
+                <button id="empSave" onclick="saveEmp()" class="h-10 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cfModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/50" onclick="closeCf()"></div>
+        <div class="relative bg-white rounded-xl shadow-xl w-full max-w-sm z-10">
+            <div class="px-6 py-5"><h3 class="text-base font-semibold text-slate-900 mb-1">Archive employee</h3><p id="cfText" class="text-sm text-slate-500"></p></div>
+            <div class="px-6 pb-5 flex justify-end gap-3">
+                <button onclick="closeCf()" class="h-9 px-4 border border-slate-200 rounded-lg text-sm text-slate-700 hover:bg-slate-50">Cancel</button>
+                <button id="cfOk" class="h-9 px-4 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg">Archive</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Set Attendance PIN Modal -->
+    <div id="setPinModal" class="hidden fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-xl w-full max-w-sm p-6">
+            <h3 class="text-base font-semibold text-slate-900 mb-1">Set Attendance PIN</h3>
+            <p class="text-sm text-slate-500 mb-4">Clock-in PIN for <strong id="setPinName" class="text-slate-900"></strong> on the POS tablet — independent of any POS login.</p>
+            <div id="setPinError" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm mb-3"></div>
+            <input id="setPinInput" type="text" inputmode="numeric" maxlength="6" placeholder="4–6 digits"
+                   class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <div class="flex justify-end gap-3">
+                <button onclick="closeSetPinModal()"
+                        class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors">
+                    Cancel
+                </button>
+                <button id="setPinBtn" onclick="confirmSetPin()"
+                        class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition-colors">
+                    Set PIN
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-[60] space-y-2"></div>
+
+    <script src="/tenant/hr-common.js"></script>
+    <script>
+        const PAGE = 'employees';
+        let CAN_MANAGE = false, branches = [], employees = [], summary = null;
+
+        async function loadAll() {
+            const f = {
+                q: document.getElementById('fQ').value.trim() || null,
+                status: document.getElementById('fStatus').value || null,
+                department: document.getElementById('fDept').value || null,
+                branch_id: document.getElementById('fBranch').value || null,
+            };
+            const [list, sum, brs, depts] = await Promise.all([
+                apiFetch(`/employees?${qs(f)}`),
+                apiFetch('/salaries/summary'),
+                apiFetch('/branches/stats').catch(() => []),
+                apiFetch('/employees/departments').catch(() => []),
+            ]);
+            employees = list; summary = sum; branches = brs || [];
+            fillDeptSelects(depts || []);
+            fillBranchSelects();
+            renderKpis(); renderDepts(); renderTable();
+            document.getElementById('rangeLabel').textContent = `${employees.length} shown · ${sum.headcount_total} total`;
+        }
+
+        function downloadEmployeesPdf() {
+            const f = {
+                q: document.getElementById('fQ').value.trim() || null,
+                status: document.getElementById('fStatus').value || null,
+                department: document.getElementById('fDept').value || null,
+                branch_id: document.getElementById('fBranch').value || null,
+            };
+            downloadPdfReport(`/employees/pdf?${qs(f)}`, 'employee-register.pdf', document.getElementById('pdfBtn'));
+        }
+
+        function fillDeptSelects(depts) {
+            const opts = '<option value="">All</option>' + depts.map(d => `<option>${esc(d)}</option>`).join('');
+            const cur = document.getElementById('fDept').value;
+            document.getElementById('fDept').innerHTML = opts;
+            document.getElementById('fDept').value = cur;
+            document.getElementById('deptList').innerHTML = depts.map(d => `<option value="${esc(d)}"></option>`).join('');
+        }
+        function fillBranchSelects() {
+            const o = branches.map(b => `<option value="${b.id}">${esc(b.name)}</option>`).join('');
+            const cur = document.getElementById('fBranch').value;
+            document.getElementById('fBranch').innerHTML = '<option value="">All</option>' + o;
+            document.getElementById('fBranch').value = cur;
+            document.getElementById('f_branch').innerHTML = '<option value="">— None —</option>' + o;
+        }
+
+        function renderKpis() {
+            document.getElementById('kpiActive').textContent = summary.headcount_active;
+            document.getElementById('kpiCommit').textContent = money(summary.monthly_commitment);
+            document.getElementById('kpiPaid').textContent = money(summary.this_month_net_paid);
+            document.getElementById('kpiUnpaid').textContent = summary.this_month_unpaid_count;
+        }
+        function renderDepts() {
+            const rows = summary.by_department || [];
+            const max = Math.max(1, ...rows.map(r => Number(r.monthly_salary)));
+            document.getElementById('deptRows').innerHTML = rows.length ? rows.map(r => `
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="font-medium text-slate-700">${esc(r.department)} <span class="text-slate-400">· ${r.headcount}</span></span>
+                        <span class="text-slate-500">${money(r.monthly_salary)}</span>
+                    </div>
+                    <div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-indigo-500" style="width:${Math.round(Number(r.monthly_salary) / max * 100)}%"></div></div>
+                </div>`).join('') : '<p class="text-sm text-slate-400">No employees yet.</p>';
+        }
+        function statusPill(s) {
+            const m = { active: 'bg-green-50 text-green-700', on_leave: 'bg-amber-50 text-amber-700', terminated: 'bg-slate-100 text-slate-500' };
+            return `<span class="px-2 py-0.5 rounded-full text-xs font-medium ${m[s] || 'bg-slate-100 text-slate-600'}">${esc(s.replace('_', ' '))}</span>`;
+        }
+        function renderTable() {
+            const tb = document.getElementById('rows'), empty = document.getElementById('empty');
+            if (!employees.length) { tb.innerHTML = ''; empty.classList.remove('hidden'); return; }
+            empty.classList.add('hidden');
+            tb.innerHTML = employees.map(e => `
+                <tr class="hover:bg-slate-50">
+                    <td class="px-4 py-3 font-mono text-xs text-slate-500 whitespace-nowrap">${esc(e.employee_no)}</td>
+                    <td class="px-4 py-3 font-medium text-slate-900">${esc(e.full_name)}${e.has_pin
+                        ? '<span class="ml-1.5 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">PIN set</span>' : ''}</td>
+                    <td class="px-4 py-3 text-slate-600">${esc(e.designation || '—')}</td>
+                    <td class="px-4 py-3 text-slate-600">${esc(e.department || '—')}</td>
+                    <td class="px-4 py-3 text-slate-600">${esc(e.branch_name || '—')}</td>
+                    <td class="px-4 py-3 text-right font-medium text-slate-900 whitespace-nowrap">${money(e.monthly_salary)}</td>
+                    <td class="px-4 py-3">${statusPill(e.status)}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">${e.paid_this_month
+                        ? '<span class="text-green-600 text-xs font-medium">Paid</span>'
+                        : '<span class="text-red-500 text-xs font-medium">Unpaid</span>'}</td>
+                    <td class="px-4 py-3 text-right whitespace-nowrap no-print">${CAN_MANAGE ? `
+                        <button onclick='editEmp(${JSON.stringify(e.id)})' class="text-xs font-medium text-indigo-600 hover:text-indigo-800">Edit</button>
+                        <span class="text-slate-200 mx-1">·</span>
+                        <button onclick='promptSetPin(${JSON.stringify(e.id)}, ${JSON.stringify(e.full_name)})' class="text-xs font-medium text-indigo-600 hover:text-indigo-800">${e.has_pin ? 'Change PIN' : 'Set PIN'}</button>
+                        <span class="text-slate-200 mx-1">·</span>
+                        <button onclick='askArchive(${JSON.stringify(e.id)}, ${JSON.stringify(e.full_name)})' class="text-xs font-medium text-red-600 hover:text-red-800">Archive</button>` : '<span class="text-slate-300 text-xs">—</span>'}</td>
+                </tr>`).join('');
+        }
+
+        function applyFilters() { loadAll().catch(e => showToast(e.message, 'error')); }
+        function resetFilters() {
+            ['fQ', 'fStatus', 'fDept', 'fBranch'].forEach(id => document.getElementById(id).value = '');
+            applyFilters();
+        }
+
+        let editId = null;
+        function openAdd() {
+            if (!CAN_MANAGE) return;
+            editId = null; document.getElementById('empTitle').textContent = 'Add Employee';
+            ['f_name', 'f_pin', 'f_desig', 'f_dept', 'f_salary', 'f_join', 'f_end', 'f_phone', 'f_email', 'f_nid', 'f_acct', 'f_bank', 'f_addr', 'f_notes'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('f_etype').value = 'Full-time';
+            document.getElementById('f_status').value = 'active';
+            document.getElementById('f_branch').value = '';
+            document.getElementById('f_pinGroup').style.display = 'block';
+            document.getElementById('empModal').classList.remove('hidden');
+        }
+        function editEmp(id) {
+            const e = employees.find(x => x.id === id); if (!e) return;
+            editId = id; document.getElementById('empTitle').textContent = `Edit ${e.employee_no}`;
+            document.getElementById('f_pinGroup').style.display = 'none';
+            document.getElementById('f_name').value = e.full_name || '';
+            document.getElementById('f_desig').value = e.designation || '';
+            document.getElementById('f_dept').value = e.department || '';
+            document.getElementById('f_salary').value = e.monthly_salary ?? '';
+            document.getElementById('f_etype').value = e.employment_type || 'Full-time';
+            document.getElementById('f_status').value = e.status || 'active';
+            document.getElementById('f_branch').value = e.branch_id || '';
+            document.getElementById('f_join').value = e.join_date || '';
+            document.getElementById('f_end').value = e.end_date || '';
+            document.getElementById('f_phone').value = e.phone || '';
+            document.getElementById('f_email').value = e.email || '';
+            document.getElementById('f_nid').value = e.national_id || '';
+            document.getElementById('f_acct').value = e.bank_account || '';
+            document.getElementById('f_bank').value = e.bank_name || '';
+            document.getElementById('f_addr').value = e.address || '';
+            document.getElementById('f_notes').value = e.notes || '';
+            document.getElementById('empModal').classList.remove('hidden');
+        }
+        function closeEmp() { document.getElementById('empModal').classList.add('hidden'); }
+        async function saveEmp() {
+            const body = {
+                full_name: document.getElementById('f_name').value.trim(),
+                designation: document.getElementById('f_desig').value.trim() || null,
+                department: document.getElementById('f_dept').value.trim() || null,
+                monthly_salary: document.getElementById('f_salary').value || '0',
+                employment_type: document.getElementById('f_etype').value,
+                status: document.getElementById('f_status').value,
+                branch_id: document.getElementById('f_branch').value || null,
+                join_date: document.getElementById('f_join').value || null,
+                end_date: document.getElementById('f_end').value || null,
+                phone: document.getElementById('f_phone').value.trim() || null,
+                email: document.getElementById('f_email').value.trim() || null,
+                national_id: document.getElementById('f_nid').value.trim() || null,
+                bank_account: document.getElementById('f_acct').value.trim() || null,
+                bank_name: document.getElementById('f_bank').value.trim() || null,
+                address: document.getElementById('f_addr').value.trim() || null,
+                notes: document.getElementById('f_notes').value.trim() || null,
+            };
+            if (!body.full_name) { showToast('Enter a name.', 'error'); return; }
+            if (!editId) {
+                const pin = document.getElementById('f_pin').value.trim();
+                if (pin) {
+                    if (!/^\d{4,6}$/.test(pin)) { showToast('Attendance PIN must be 4–6 digits.', 'error'); return; }
+                    body.pin = pin;
+                }
+            }
+            const btn = document.getElementById('empSave'); btn.disabled = true;
+            const savedId = editId;
+            try {
+                if (editId) await apiFetch(`/employees/${editId}`, { method: 'PATCH', body: JSON.stringify(body) });
+                else await apiFetch('/employees', { method: 'POST', body: JSON.stringify(body) });
+                closeEmp(); showToast(editId ? 'Employee updated.' : 'Employee added.');
+                await loadAll();
+                // Changing Status (active/on_leave/terminated) while the
+                // Status filter is set to something else moves the row out
+                // of the current view — loadAll() re-queries with that
+                // filter, so say so instead of letting an edit look like it
+                // deleted the employee.
+                const wantStatus = document.getElementById('fStatus').value;
+                if (savedId && wantStatus && !employees.some(e => e.id === savedId)) {
+                    const filterLabel = document.getElementById('fStatus').selectedOptions[0]?.text || wantStatus;
+                    showToast(`Employee updated. They no longer match "${filterLabel}", so they're hidden from this view — not deleted.`);
+                }
+            } catch (e) { showToast(e.message, 'error'); } finally { btn.disabled = false; }
+        }
+
+        let archId = null;
+        function askArchive(id, name) {
+            archId = id;
+            document.getElementById('cfText').textContent = `Archive ${name}? Their salary history is kept; they stop appearing in the payroll register.`;
+            document.getElementById('cfOk').onclick = doArchive;
+            document.getElementById('cfModal').classList.remove('hidden');
+        }
+        function closeCf() { document.getElementById('cfModal').classList.add('hidden'); }
+        async function doArchive() {
+            closeCf();
+            try { await apiFetch(`/employees/${archId}`, { method: 'DELETE' }); showToast('Employee archived.'); await loadAll(); }
+            catch (e) { showToast(e.message, 'error'); }
+        }
+
+        // ── Set attendance PIN ───────────────────────────────────────────
+        let setPinTargetId = null;
+        function promptSetPin(id, name) {
+            setPinTargetId = id;
+            document.getElementById('setPinName').textContent = name;
+            document.getElementById('setPinInput').value = '';
+            document.getElementById('setPinError').classList.add('hidden');
+            document.getElementById('setPinModal').classList.remove('hidden');
+        }
+        function closeSetPinModal() {
+            setPinTargetId = null;
+            document.getElementById('setPinModal').classList.add('hidden');
+        }
+        async function confirmSetPin() {
+            const pin = document.getElementById('setPinInput').value.trim();
+            const errEl = document.getElementById('setPinError');
+            if (!/^\d{4,6}$/.test(pin)) {
+                errEl.textContent = 'PIN must be 4–6 digits.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+            const btn = document.getElementById('setPinBtn');
+            btn.disabled = true; btn.textContent = 'Saving…';
+            try {
+                await apiFetch(`/employees/${setPinTargetId}/set-pin`, { method: 'POST', body: JSON.stringify({ pin }) });
+                showToast('Attendance PIN updated.');
+                closeSetPinModal();
+                await loadAll();
+            } catch (e) {
+                errEl.textContent = e.message;
+                errEl.classList.remove('hidden');
+            } finally {
+                btn.disabled = false; btn.textContent = 'Set PIN';
+            }
+        }
+
+        function exportCsv() {
+            const head = ['Employee No', 'Name', 'Designation', 'Department', 'Branch', 'Monthly Salary', 'Status', 'Paid this month', 'Join date', 'Phone', 'Email'];
+            const lines = employees.map(e => [
+                e.employee_no, e.full_name, e.designation || '', e.department || '', e.branch_name || '',
+                e.monthly_salary, e.status, e.paid_this_month ? 'Yes' : 'No', e.join_date || '', e.phone || '', e.email || '',
+            ]);
+            downloadCsv('employees', head, lines);
+        }
+
+        (async () => {
+            const me = await initSidebar('employees');
+            if (!me) return;
+            const perms = me.permissions || [];
+            const canView = perms.includes('*') || perms.includes('employees.view');
+            CAN_MANAGE = perms.includes('*') || perms.includes('employees.manage');
+            document.getElementById('pageLoading').classList.add('hidden');
+            if (!canView) { document.getElementById('denied').classList.remove('hidden'); document.getElementById('actionBtns').classList.add('hidden'); return; }
+            if (!CAN_MANAGE) { document.getElementById('addBtn').classList.add('hidden'); document.getElementById('thActions').textContent = ''; }
+            try { await loadAll(); document.getElementById('content').classList.remove('hidden'); }
+            catch (e) {
+                if (e && e.message === 'Unauthorized') return;
+                const b = document.getElementById('errorBanner');
+                b.textContent = 'Failed to load: ' + ((e && e.message) || e);
+                b.classList.remove('hidden');
+            }
+        })();
+    </script>
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

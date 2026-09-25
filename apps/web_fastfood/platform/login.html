@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <!--
+        SuperAdmin Login — STORIXX
+        ================================================
+        Entry point for the platform admin panel.
+
+        API:     POST /api/platform/auth/login
+        Body:    { "username": "...", "password": "..." }
+        Success: stores access_token in localStorage as "platform_token"
+                 then redirects to /platform/dashboard.html
+        Error:   displays server's { detail: "..." } message inline
+
+        Depends on: /api/platform/auth/login (backend_fastfood)
+        Style:      follows web_fastfood/STYLE_GUIDE.md
+    -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - STORIXX</title>
+
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <!-- Locally compiled Tailwind CSS; rebuild with ../build-css.ps1. -->
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+
+    <style>
+        /*
+         * Only custom CSS that Tailwind cannot produce directly.
+         * border-radius: 10px is our system-wide card radius (STYLE_GUIDE §10).
+         * Tailwind's nearest is rounded-xl (12px) — too round — so we pin it here.
+         */
+        .rounded-card { border-radius: 10px; }
+
+        /* Smooth placeholder color for all inputs */
+        input::placeholder { color: #94A3B8; }
+    </style>
+</head>
+
+<body class="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-10">
+
+    <!--
+        ════════════════════════════════════════════════
+        LOGIN CARD
+        Centered on the page. Max-width 440px.
+        ════════════════════════════════════════════════
+    -->
+    <div class="w-full max-w-[440px] bg-white border border-slate-200 rounded-card shadow-sm">
+
+        <!-- ── Branding area ───────────────────────────────────── -->
+        <!--
+            Sits at the top of the card.
+            Logo mark + app name + subtitle.
+        -->
+        <div class="px-8 pt-8 pb-6 text-center border-b border-slate-100">
+
+            <!-- Logo mark -->
+            <img src="/assets/logo-mark.png?v=3" alt="STORIXX" class="inline-block w-16 h-16 mb-4 object-contain" />
+
+            <!-- App name — Page Title scale: 24px / 600 -->
+            <h1 class="text-2xl font-semibold text-slate-900">STORIXX</h1>
+
+            <!-- Subtitle — Secondary text scale: 13px / 400 -->
+            <p class="text-[13px] text-slate-500 mt-0.5">SaaS Platform</p>
+
+        </div><!-- /branding -->
+
+
+        <!-- ── Form section ────────────────────────────────────── -->
+        <div class="px-8 py-7">
+
+            <!-- Section heading — Card Heading scale: 16px / 600 -->
+            <h2 class="text-base font-semibold text-slate-900 mb-6">SuperAdmin Login</h2>
+
+            <!--
+                Error banner — hidden until a login attempt fails.
+                Shown inline above the form, not as an alert popup.
+            -->
+            <div id="errorBanner"
+                 class="hidden mb-5 flex items-start gap-2.5
+                        px-4 py-3 bg-red-50 border border-red-200 rounded-card">
+
+                <!-- Alert icon -->
+                <svg class="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0"
+                     fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                    <path fill-rule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707
+                             7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293
+                             1.293a1 1 0 101.414 1.414L10 11.414l1.293
+                             1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1
+                             1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                          clip-rule="evenodd"/>
+                </svg>
+                <p id="errorText" class="text-sm text-red-600 leading-snug"></p>
+            </div>
+
+            <!-- ── Login form ───────────────────────────────────── -->
+            <form id="loginForm" novalidate>
+
+                <!-- Email -->
+                <div class="mb-4">
+                    <label for="email"
+                           class="block text-sm font-medium text-slate-700 mb-1.5">
+                        Email
+                    </label>
+                    <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        autocomplete="email"
+                        spellcheck="false"
+                        placeholder="admin@example.com"
+                        class="w-full h-10 px-3
+                               border border-slate-200 rounded-card
+                               text-sm text-slate-900
+                               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                               transition-shadow"
+                    />
+                </div>
+
+                <!-- Password with show/hide toggle -->
+                <div class="mb-6">
+                    <label for="password"
+                           class="block text-sm font-medium text-slate-700 mb-1.5">
+                        Password
+                    </label>
+
+                    <!-- Wrapper provides positioning context for the eye button -->
+                    <div class="relative">
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            autocomplete="current-password"
+                            placeholder="••••••••••••"
+                            class="w-full h-10 pl-3 pr-10
+                                   border border-slate-200 rounded-card
+                                   text-sm text-slate-900
+                                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                   transition-shadow"
+                        />
+
+                        <!--
+                            Eye toggle button.
+                            Swaps between eyeOpen / eyeOff SVGs via JS.
+                            aria-label updated dynamically for screen readers.
+                        -->
+                        <button
+                            type="button"
+                            id="togglePassword"
+                            aria-label="Show password"
+                            class="absolute inset-y-0 right-0 flex items-center px-3
+                                   text-slate-400 hover:text-slate-600 transition-colors">
+
+                            <!-- Eye open — visible when password is hidden (default) -->
+                            <svg id="eyeOpen" class="w-[18px] h-[18px]"
+                                 fill="none" stroke="currentColor" stroke-width="1.75"
+                                 viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M2.458 12C3.732 7.943 7.523 5 12 5
+                                         c4.478 0 8.268 2.943 9.542 7
+                                         -1.274 4.057-5.064 7-9.542 7
+                                         -4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+
+                            <!-- Eye off — visible when password is shown -->
+                            <svg id="eyeOff" class="w-[18px] h-[18px] hidden"
+                                 fill="none" stroke="currentColor" stroke-width="1.75"
+                                 viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M13.875 18.825A10.05 10.05 0 0112 19
+                                         c-4.478 0-8.268-2.943-9.543-7
+                                         a9.97 9.97 0 011.563-3.029
+                                         m5.858.908a3 3 0 114.243 4.243
+                                         M9.878 9.878l4.242 4.242
+                                         M9.88 9.88l-3.29-3.29
+                                         m7.532 7.532l3.29 3.29
+                                         M3 3l3.59 3.59
+                                         m0 0A9.953 9.953 0 0112 5
+                                         c4.478 0 8.268 2.943 9.543 7
+                                         a10.025 10.025 0 01-4.132 5.411
+                                         m0 0L21 21"/>
+                            </svg>
+
+                        </button>
+                    </div>
+                </div>
+
+                <!--
+                    Login button — Primary style (STYLE_GUIDE §11).
+                    h-10, bg-blue-600, rounded-lg (8px ≈ rounded-card), full width.
+                    disabled state fades to 60% opacity while the request is in-flight.
+                -->
+                <button
+                    type="submit"
+                    id="loginBtn"
+                    class="w-full h-10
+                           bg-blue-600 hover:bg-blue-700
+                           text-white text-sm font-medium
+                           rounded-card transition-colors
+                           disabled:opacity-60 disabled:cursor-not-allowed
+                           flex items-center justify-center gap-2">
+
+                    <!-- Spinner — shown only while loading -->
+                    <svg id="spinner"
+                         class="hidden w-4 h-4 animate-spin text-white"
+                         fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                stroke="currentColor" stroke-width="4"/>
+                        <path class="opacity-75" fill="currentColor"
+                              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                    </svg>
+
+                    <span id="loginBtnText">Login</span>
+                </button>
+
+            </form><!-- /loginForm -->
+
+            <!-- Forgot Password — toggles the reset panel below -->
+            <p class="text-center mt-5">
+                <button type="button" id="forgotLink"
+                        class="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors">
+                    Forgot Password?
+                </button>
+            </p>
+
+            <!-- ── Self-service reset (POST /api/platform/auth/forgot-password + /reset-password) ── -->
+            <div id="resetPanel" class="hidden mt-5 pt-5 border-t border-slate-100">
+                <div id="resetMsg" class="hidden rounded-card p-3 mb-4 text-sm"></div>
+
+                <div id="resetStep1">
+                    <p class="text-sm text-slate-600 mb-3">Enter your platform-admin email. We'll send a 6-digit code.</p>
+                    <input id="r_email" type="email" placeholder="you@company.com"
+                           class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm mb-3
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <button type="button" id="r_sendBtn"
+                            class="w-full h-10 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-card">Send reset code</button>
+                </div>
+
+                <div id="resetStep2" class="hidden">
+                    <p class="text-sm text-slate-600 mb-3">Enter the code from the email and a new password (min 8 characters).</p>
+                    <input id="r_otp" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code"
+                           class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm mb-3 tracking-widest text-center
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <input id="r_newpass" type="password" placeholder="New password"
+                           class="w-full h-10 px-3 border border-slate-200 rounded-card text-sm mb-3
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <button type="button" id="r_resetBtn"
+                            class="w-full h-10 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-card">Set new password</button>
+                </div>
+
+                <p class="text-center mt-3">
+                    <button type="button" id="backToLogin" class="text-xs text-slate-500 hover:underline">Back to sign in</button>
+                </p>
+            </div>
+
+        </div><!-- /form section -->
+
+    </div><!-- /card -->
+
+
+    <!--
+        ════════════════════════════════════════════════
+        JAVASCRIPT
+        ════════════════════════════════════════════════
+    -->
+    <script>
+        /**
+         * Login page controller
+         * ---------------------
+         * 1. Redirect immediately if already authenticated.
+         * 2. Toggle password field visibility.
+         * 3. POST credentials → /api/platform/auth/login.
+         * 4. On 200: persist token, redirect to dashboard.
+         * 5. On error: display server message in the error banner.
+         *
+         * API_BASE can be overridden by setting window.API_BASE_URL
+         * before this script runs (useful in dev/staging environments).
+         * Example: <script>window.API_BASE_URL = 'http://localhost:8000';<\/script>
+         */
+
+        const API_BASE = window.API_BASE_URL ?? '';
+
+        // ── Element references ──────────────────────────────────────
+        const loginForm   = document.getElementById('loginForm');
+        const emailEl     = document.getElementById('email');
+        const passwordEl  = document.getElementById('password');
+        const loginBtn    = document.getElementById('loginBtn');
+        const loginBtnTxt = document.getElementById('loginBtnText');
+        const spinner     = document.getElementById('spinner');
+        const errorBanner = document.getElementById('errorBanner');
+        const errorText   = document.getElementById('errorText');
+        const toggleBtn   = document.getElementById('togglePassword');
+        const eyeOpen     = document.getElementById('eyeOpen');
+        const eyeOff      = document.getElementById('eyeOff');
+
+
+        // ── Redirect if already logged in ───────────────────────────
+        // Avoids showing the login screen to an already-authenticated user.
+        if (localStorage.getItem('platform_token')) {
+            window.location.replace('/platform/dashboard.html');
+        }
+
+
+        // ── Password visibility toggle ──────────────────────────────
+        toggleBtn.addEventListener('click', () => {
+            const isPassword = passwordEl.type === 'password';
+
+            // Swap input type
+            passwordEl.type = isPassword ? 'text' : 'password';
+
+            // Swap icons
+            eyeOpen.classList.toggle('hidden', isPassword);   // hide eye-open when showing text
+            eyeOff.classList.toggle('hidden', !isPassword);   // show eye-off when showing text
+
+            // Update aria-label for screen readers
+            toggleBtn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+        });
+
+
+        // ── Error banner helpers ────────────────────────────────────
+
+        /** Show the inline error banner with a given message. */
+        function showError(message) {
+            errorText.textContent = message;
+            errorBanner.classList.remove('hidden');
+        }
+
+        /** Hide the inline error banner. */
+        function hideError() {
+            errorBanner.classList.add('hidden');
+        }
+
+
+        // ── Loading state helpers ───────────────────────────────────
+
+        /** Switch button into loading state while request is in-flight. */
+        function setLoading(isLoading) {
+            loginBtn.disabled = isLoading;
+            spinner.classList.toggle('hidden', !isLoading);
+            loginBtnTxt.textContent = isLoading ? 'Logging in…' : 'Login';
+        }
+
+
+        // ── Form submit ─────────────────────────────────────────────
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            hideError();
+
+            const email    = emailEl.value.trim();
+            const password = passwordEl.value;
+
+            // Client-side empty-field guard — don't hit the network for blank inputs
+            if (!email || !password) {
+                showError('Please enter your email and password.');
+                emailEl.focus();
+                return;
+            }
+
+            setLoading(true);
+
+            try {
+                /*
+                 * POST /api/platform/auth/login
+                 * Body:    { email, password }   (JSON)
+                 * Success: { access_token, refresh_token, token_type, expires_in }
+                 * Error:   { detail: "..." }
+                 */
+                const response = await fetch(`${API_BASE}/api/platform/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    // Use the server's detail message when available, else a generic fallback
+                    showError(data.detail ?? 'Login failed. Please check your credentials.');
+                    passwordEl.value = '';   // clear password on failure for security
+                    passwordEl.focus();
+                    return;
+                }
+
+                // Persist token — all platform API calls will attach this via
+                // Authorization: Bearer <token> headers
+                localStorage.setItem('platform_token', data.access_token);
+
+                // Navigate to the platform dashboard
+                window.location.href = '/platform/dashboard.html';
+
+            } catch (_networkError) {
+                // Catches: server offline, DNS failure, CORS block, etc.
+                showError('Unable to reach the server. Please check your connection.');
+            } finally {
+                // Always restore button state, even if an error was thrown
+                setLoading(false);
+            }
+        });
+
+
+        // ── Self-service forgot / reset password ────────────────────
+        const resetPanel = document.getElementById('resetPanel');
+        const resetMsg   = document.getElementById('resetMsg');
+        const rStep1 = document.getElementById('resetStep1');
+        const rStep2 = document.getElementById('resetStep2');
+
+        function rShow(kind, text) {
+            resetMsg.textContent = text;
+            resetMsg.className = 'rounded-card p-3 mb-4 text-sm ' +
+                (kind === 'ok' ? 'bg-green-50 border border-green-200 text-green-700'
+                               : 'bg-red-50 border border-red-200 text-red-700');
+            resetMsg.classList.remove('hidden');
+        }
+
+        document.getElementById('forgotLink').addEventListener('click', () => {
+            loginForm.classList.add('hidden');
+            document.getElementById('forgotLink').parentElement.classList.add('hidden');
+            resetPanel.classList.remove('hidden');
+            document.getElementById('r_email').value = emailEl.value.trim();
+        });
+        document.getElementById('backToLogin').addEventListener('click', () => {
+            resetPanel.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+            document.getElementById('forgotLink').parentElement.classList.remove('hidden');
+            resetMsg.classList.add('hidden');
+            rStep1.classList.remove('hidden');
+            rStep2.classList.add('hidden');
+        });
+
+        document.getElementById('r_sendBtn').addEventListener('click', async () => {
+            const email = document.getElementById('r_email').value.trim();
+            if (!email) { rShow('err', 'Enter your email.'); return; }
+            const btn = document.getElementById('r_sendBtn');
+            btn.disabled = true; btn.textContent = 'Sending…';
+            try {
+                // Always 200 — the response never reveals whether the account exists.
+                await fetch(`${API_BASE}/api/platform/auth/forgot-password`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email }),
+                });
+                rShow('ok', 'If that account exists, a 6-digit code is on its way. It expires in 15 minutes.');
+                rStep1.classList.add('hidden');
+                rStep2.classList.remove('hidden');
+            } catch {
+                rShow('err', 'Could not reach the server. Try again.');
+            } finally {
+                btn.disabled = false; btn.textContent = 'Send reset code';
+            }
+        });
+
+        document.getElementById('r_resetBtn').addEventListener('click', async () => {
+            const token        = document.getElementById('r_otp').value.trim();
+            const new_password = document.getElementById('r_newpass').value;
+            if (!token || new_password.length < 8) {
+                rShow('err', 'Enter the code and a password of at least 8 characters.');
+                return;
+            }
+            const btn = document.getElementById('r_resetBtn');
+            btn.disabled = true; btn.textContent = 'Saving…';
+            try {
+                const res = await fetch(`${API_BASE}/api/platform/auth/reset-password`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, new_password }),
+                });
+                if (!res.ok) {
+                    const e = await res.json().catch(() => ({}));
+                    throw new Error(e.detail || 'Invalid or expired code.');
+                }
+                rShow('ok', 'Password updated. You can sign in now.');
+                setTimeout(() => document.getElementById('backToLogin').click(), 1500);
+            } catch (err) {
+                rShow('err', err.message);
+            } finally {
+                btn.disabled = false; btn.textContent = 'Set new password';
+            }
+        });
+    </script>
+
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

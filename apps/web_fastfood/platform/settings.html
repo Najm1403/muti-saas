@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../shared/safe-text.js"></script>
+    <!--
+        Settings — STORIXX
+        ========================================
+        Platform-level configuration. Super admin only for writes.
+
+        API:
+          GET  /api/platform/settings    → dict[key, value|null]
+          PATCH /api/platform/settings   → dict[key, value|null]  (super-admin only)
+
+        Setting keys:
+          platform_name, default_trial_days, default_currency, timezone,
+          smtp_host, smtp_port, smtp_username, smtp_password,
+          smtp_from_email, smtp_from_name,
+          max_login_attempts, session_timeout_hours,
+          notifications_enabled
+    -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings - STORIXX</title>
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+    <style>
+        .rounded-card { border-radius: 10px; }
+        body { overflow: hidden; }
+    </style>
+</head>
+
+<body class="flex h-screen bg-slate-50 text-slate-900">
+
+    <!-- ================================================================
+         SIDEBAR
+         ================================================================ -->
+    <aside class="w-64 flex-shrink-0 h-screen bg-slate-900 flex flex-col overflow-y-auto">
+        <div class="h-16 flex items-center px-5 border-b border-slate-800 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <img src="/assets/logo-mark.png?v=3" alt="STORIXX" class="w-8 h-8 rounded-[6px] flex-shrink-0 object-contain" />
+                <div>
+                    <p class="text-white text-sm font-semibold leading-none">STORIXX</p>
+                    <p class="text-slate-500 text-[11px] leading-none mt-0.5">SaaS Platform</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="flex-1 px-3 py-4 space-y-0.5">
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-1 pb-2">Overview</p>
+            <a href="/platform/dashboard.html" class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card text-slate-300 hover:bg-slate-800 hover:text-white border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                <span class="text-sm">Dashboard</span>
+            </a>
+            <a href="/platform/reports.html" class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card text-slate-300 hover:bg-slate-800 hover:text-white border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                <span class="text-sm">Reports</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Management</p>
+            <a href="/platform/tenants.html" class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card text-slate-300 hover:bg-slate-800 hover:text-white border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                <span class="text-sm">Tenants</span>
+            </a>
+            <a href="/platform/business-templates.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M20 7h-4V5a3 3 0 00-3-3h-2a3 3 0 00-3 3v2H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM10 5a1 1 0 011-1h2a1 1 0 011 1v2h-4V5z"/>
+                </svg>
+                <span class="text-sm">Business Templates</span>
+            </a>
+            <a href="/platform/config-reference.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s4.332.477 5.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                <span class="text-sm">Config Reference</span>
+            </a>
+            <a href="/platform/platform_users.html" class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card text-slate-300 hover:bg-slate-800 hover:text-white border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span class="text-sm">Platform Users</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Billing</p>
+            <a href="/platform/plans.html" class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card text-slate-300 hover:bg-slate-800 hover:text-white border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                <span class="text-sm">Plans</span>
+            </a>
+            <a href="/platform/subscriptions.html" class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card text-slate-300 hover:bg-slate-800 hover:text-white border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                <span class="text-sm">Subscriptions</span>
+            </a>
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Human Resources</p>
+            <a href="/platform/employees.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm">Employees</span>
+            </a>
+            <a href="/platform/salaries.html"
+               class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card
+                      text-slate-300 hover:bg-slate-800 hover:text-white
+                      border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="text-sm">Salaries</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">Monitoring</p>
+            <a href="/platform/sync-health.html" class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card text-slate-300 hover:bg-slate-800 hover:text-white border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
+                <span class="text-sm">Sync Health</span>
+            </a>
+            <a href="/platform/activity.html" class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card text-slate-300 hover:bg-slate-800 hover:text-white border-l-[3px] border-transparent transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                <span class="text-sm">Activity Logs</span>
+            </a>
+
+            <p class="text-[11px] font-medium text-slate-500 uppercase tracking-widest px-[13px] pt-5 pb-2">System</p>
+            <!-- Settings — ACTIVE -->
+            <a href="/platform/settings.html" class="flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card bg-slate-800 text-white font-medium border-l-[3px] border-blue-500">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span class="text-sm">Settings</span>
+            </a>
+        </nav>
+
+        <div class="px-3 py-4 border-t border-slate-800 flex-shrink-0">
+            <button onclick="logout()" class="w-full flex items-center gap-3 pl-[13px] pr-4 py-2.5 rounded-card text-slate-400 hover:bg-slate-800 hover:text-red-400 border-l-[3px] border-transparent transition-colors cursor-pointer">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                <span class="text-sm">Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ================================================================
+         MAIN
+         ================================================================ -->
+    <div class="flex-1 flex flex-col h-screen overflow-hidden">
+
+        <header class="h-16 flex-shrink-0 bg-white border-b border-slate-200 flex items-center px-6">
+            <div>
+                <h1 class="text-base font-semibold text-slate-900">Settings</h1>
+                <p class="text-xs text-slate-400 mt-0.5">Platform-level configuration. Write access requires super admin role.</p>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+
+            <!-- Super-admin notice -->
+            <div id="readonlyBanner" class="hidden items-center gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-card text-sm text-amber-800">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                You are viewing settings in read-only mode. Only super admins can save changes.
+            </div>
+
+            <!-- ── MY ACCOUNT — change your own password (no email, no super-admin) ── -->
+            <section class="bg-white border border-slate-200 rounded-card">
+                <div class="px-6 py-4 border-b border-slate-100">
+                    <h2 class="text-sm font-semibold text-slate-900">My Account</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Change your own sign-in password. Any admin can do this — no email, no super-admin needed.</p>
+                </div>
+                <div class="px-6 py-5">
+                    <p class="text-xs text-slate-500 mb-4">Signed in as <span id="myAccountEmail" class="font-medium text-slate-800">—</span></p>
+                    <div id="pwMsg" class="hidden rounded-card p-3 mb-4 text-sm"></div>
+                    <div class="grid gap-3 sm:grid-cols-3 max-w-2xl">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1.5">Current password</label>
+                            <input id="pw_current" type="password" autocomplete="current-password" class="field" placeholder="••••••••" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1.5">New password (min 8)</label>
+                            <input id="pw_new" type="password" autocomplete="new-password" class="field" placeholder="••••••••" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1.5">Confirm new</label>
+                            <input id="pw_confirm" type="password" autocomplete="new-password" class="field" placeholder="••••••••" />
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 pb-5 flex justify-end">
+                    <button onclick="changeMyPassword()" class="save-btn">Change Password</button>
+                </div>
+            </section>
+
+            <!-- ── PLATFORM ─────────────────────────────────────────── -->
+            <section class="bg-white border border-slate-200 rounded-card">
+                <div class="px-6 py-4 border-b border-slate-100">
+                    <h2 class="text-sm font-semibold text-slate-900">Platform</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Core identity and defaults shown across the platform.</p>
+                </div>
+                <div class="px-6 py-5 grid grid-cols-2 gap-x-8 gap-y-5">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1.5">Platform Name</label>
+                        <input id="s_platform_name" type="text" class="field" placeholder="STORIXX" />
+                        <p class="text-[11px] text-slate-400 mt-1">Shown in the browser tab and email headers.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1.5">Default Currency</label>
+                        <input id="s_default_currency" type="text" maxlength="10" class="field" placeholder="PKR" />
+                        <p class="text-[11px] text-slate-400 mt-1">Currency code used on invoices and reports.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1.5">Default Trial Days</label>
+                        <input id="s_default_trial_days" type="number" min="0" max="365" class="field" placeholder="14" />
+                        <p class="text-[11px] text-slate-400 mt-1">Applied when creating a new subscription without specifying trial days.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1.5">Timezone</label>
+                        <input id="s_timezone" type="text" class="field" placeholder="Asia/Karachi" />
+                        <p class="text-[11px] text-slate-400 mt-1">Default timezone for date display and scheduled tasks.</p>
+                    </div>
+                </div>
+                <div class="px-6 pb-5 flex justify-end">
+                    <button onclick="saveSection('platform')" class="save-btn">Save Platform Settings</button>
+                </div>
+            </section>
+
+            <!-- ── EMAIL / SMTP ─────────────────────────────────────── -->
+            <section class="bg-white border border-slate-200 rounded-card">
+                <div class="px-6 py-4 border-b border-slate-100">
+                    <h2 class="text-sm font-semibold text-slate-900">Email (SMTP)</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Sends all password-reset codes &amp; account-recovery mail. Values saved here <strong>override the server's <code>.env</code></strong> immediately — no restart. Leave a field blank to keep the <code>.env</code> value. Rotate an expiring SMTP key by pasting the new one here.</p>
+                </div>
+                <div class="px-6 py-5 grid grid-cols-2 gap-x-8 gap-y-5">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1.5">SMTP Host</label>
+                        <input id="s_smtp_host" type="text" class="field" placeholder="smtp.gmail.com" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1.5">SMTP Port</label>
+                        <input id="s_smtp_port" type="number" min="1" max="65535" class="field" placeholder="587" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1.5">SMTP Username</label>
+                        <input id="s_smtp_username" type="text" autocomplete="off" class="field" placeholder="user@example.com" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1.5">SMTP Password</label>
+                        <div class="relative">
+                            <input id="s_smtp_password" type="password" autocomplete="new-password" class="field pr-10" placeholder="••••••••" />
+                            <button type="button" onclick="togglePassword('s_smtp_password', this)"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1.5">From Email</label>
+                        <input id="s_smtp_from_email" type="email" class="field" placeholder="noreply@yourcompany.com" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1.5">From Name</label>
+                        <input id="s_smtp_from_name" type="text" class="field" placeholder="STORIXX" />
+                    </div>
+                </div>
+                <div class="px-6 pb-5 flex items-center justify-between">
+                    <button onclick="testEmail()" class="h-9 px-4 border border-slate-200 rounded-card text-sm text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                        Send Test Email
+                    </button>
+                    <button onclick="saveSection('email')" class="save-btn">Save Email Settings</button>
+                </div>
+            </section>
+
+            <!-- ── AUTHENTICATION ───────────────────────────────────── -->
+            <section class="bg-white border border-slate-200 rounded-card">
+                <div class="px-6 py-4 border-b border-slate-100">
+                    <h2 class="text-sm font-semibold text-slate-900">Authentication</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Controls login security for platform admin accounts.</p>
+                </div>
+                <div class="px-6 py-5 grid grid-cols-2 gap-x-8 gap-y-5">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1.5">Max Login Attempts</label>
+                        <input id="s_max_login_attempts" type="number" min="1" max="20" class="field" placeholder="5" />
+                        <p class="text-[11px] text-slate-400 mt-1">Failed attempts before the account is temporarily locked.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1.5">Session Timeout (hours)</label>
+                        <input id="s_session_timeout_hours" type="number" min="1" max="720" class="field" placeholder="8" />
+                        <p class="text-[11px] text-slate-400 mt-1">Platform admin JWT lifetime.</p>
+                    </div>
+                </div>
+                <div class="px-6 pb-5 flex justify-end">
+                    <button onclick="saveSection('auth')" class="save-btn">Save Auth Settings</button>
+                </div>
+            </section>
+
+            <!-- ── NOTIFICATIONS ────────────────────────────────────── -->
+            <section class="bg-white border border-slate-200 rounded-card">
+                <div class="px-6 py-4 border-b border-slate-100">
+                    <h2 class="text-sm font-semibold text-slate-900">Notifications</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Control what alerts are sent to platform admins.</p>
+                </div>
+                <div class="px-6 py-5">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-700">Enable Notifications</p>
+                            <p class="text-[12px] text-slate-400 mt-0.5">When enabled, platform admins receive alerts for subscription expirations, failed logins, and sync errors.</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer ml-6 flex-shrink-0">
+                            <input id="s_notifications_enabled" type="checkbox" class="sr-only peer" />
+                            <div class="w-10 h-6 bg-slate-200 rounded-full peer peer-checked:bg-blue-600 transition-colors"></div>
+                            <div class="absolute left-[2px] top-[2px] w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4"></div>
+                        </label>
+                    </div>
+                </div>
+                <div class="px-6 pb-5 flex justify-end">
+                    <button onclick="saveSection('notifications')" class="save-btn">Save Notification Settings</button>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="hidden fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 border rounded-card shadow-lg max-w-xs">
+        <span id="toastIcon" class="flex-shrink-0 text-sm font-bold"></span>
+        <span id="toastText" class="text-sm"></span>
+    </div>
+
+    <!-- ================================================================
+         STYLE UTILITIES (kept inline because this is page-specific CSS)
+         ================================================================ -->
+    <style>
+        .field {
+            width: 100%;
+            height: 2.5rem;
+            padding: 0 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            outline: none;
+            transition: box-shadow 0.15s;
+        }
+        .field:focus { box-shadow: 0 0 0 2px #3b82f6; border-color: transparent; }
+        .save-btn {
+            height: 2.25rem;
+            padding: 0 1.25rem;
+            background: #2563eb;
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .save-btn:hover { background: #1d4ed8; }
+    </style>
+
+    <!-- ================================================================
+         SCRIPT
+         ================================================================ -->
+    <script>
+        'use strict';
+
+        let _settings = {};
+        let _isSuperAdmin = false;
+        let toastTimer = null;
+
+        // ── Auth ─────────────────────────────────────────────────────────
+
+        function logout() {
+            localStorage.removeItem('platform_token');
+            window.location.href = '/platform/login.html';
+        }
+
+        async function apiFetch(path, options = {}) {
+            const token = localStorage.getItem('platform_token');
+            if (!token) { logout(); return; }
+            const res = await fetch(path, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    ...(options.headers || {}),
+                },
+            });
+            if (res.status === 401) { logout(); return; }
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.detail || `HTTP ${res.status}`);
+            }
+            return res.status === 204 ? null : res.json();
+        }
+
+        // ── Populate fields ───────────────────────────────────────────────
+
+        function populateFields(s) {
+            _settings = s;
+
+            const set = (id, key) => {
+                const el = document.getElementById(id);
+                if (el) el.value = s[key] ?? '';
+            };
+
+            set('s_platform_name',       'platform_name');
+            set('s_default_currency',    'default_currency');
+            set('s_default_trial_days',  'default_trial_days');
+            set('s_timezone',            'timezone');
+            set('s_smtp_host',           'smtp_host');
+            set('s_smtp_port',           'smtp_port');
+            set('s_smtp_username',       'smtp_username');
+            set('s_smtp_from_email',     'smtp_from_email');
+            set('s_smtp_from_name',      'smtp_from_name');
+            set('s_max_login_attempts',  'max_login_attempts');
+            set('s_session_timeout_hours','session_timeout_hours');
+
+            // Password: never pre-fill — leave blank, empty = don't change
+            document.getElementById('s_smtp_password').value = '';
+
+            // Notifications toggle
+            const notif = document.getElementById('s_notifications_enabled');
+            notif.checked = (s['notifications_enabled'] ?? 'true') === 'true';
+        }
+
+        // ── Save sections ─────────────────────────────────────────────────
+
+        const SECTION_KEYS = {
+            platform:      ['platform_name', 'default_currency', 'default_trial_days', 'timezone'],
+            email:         ['smtp_host', 'smtp_port', 'smtp_username', 'smtp_password',
+                            'smtp_from_email', 'smtp_from_name'],
+            auth:          ['max_login_attempts', 'session_timeout_hours'],
+            notifications: ['notifications_enabled'],
+        };
+
+        function collectValues(section) {
+            const fieldMap = {
+                platform_name:          's_platform_name',
+                default_currency:       's_default_currency',
+                default_trial_days:     's_default_trial_days',
+                timezone:               's_timezone',
+                smtp_host:              's_smtp_host',
+                smtp_port:              's_smtp_port',
+                smtp_username:          's_smtp_username',
+                smtp_password:          's_smtp_password',
+                smtp_from_email:        's_smtp_from_email',
+                smtp_from_name:         's_smtp_from_name',
+                max_login_attempts:     's_max_login_attempts',
+                session_timeout_hours:  's_session_timeout_hours',
+            };
+
+            const result = {};
+            for (const key of SECTION_KEYS[section] || []) {
+                if (key === 'notifications_enabled') {
+                    result[key] = document.getElementById('s_notifications_enabled').checked ? 'true' : 'false';
+                } else if (key === 'smtp_password') {
+                    const val = document.getElementById('s_smtp_password').value;
+                    if (val) result[key] = val;   // only send if user typed something
+                } else {
+                    const id  = fieldMap[key];
+                    const val = document.getElementById(id)?.value ?? '';
+                    result[key] = val;
+                }
+            }
+            return result;
+        }
+
+        async function saveSection(section) {
+            const updates = collectValues(section);
+            try {
+                const saved = await apiFetch('/api/platform/settings', {
+                    method: 'PATCH',
+                    body: JSON.stringify(updates),
+                });
+                populateFields(saved);
+                showToast('success', 'Settings saved.');
+            } catch (e) {
+                showToast('error', e.message);
+            }
+        }
+
+        // ── Helpers ───────────────────────────────────────────────────────
+
+        function togglePassword(id, btn) {
+            const el = document.getElementById(id);
+            if (el.type === 'password') {
+                el.type = 'text';
+                btn.querySelector('svg').innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>`;
+            } else {
+                el.type = 'password';
+                btn.querySelector('svg').innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>`;
+            }
+        }
+
+        async function testEmail() {
+            showToast('info', 'Sending test email…');
+            try {
+                const r = await apiFetch('/api/platform/settings/test-email', { method: 'POST' });
+                showToast('success', r?.message || 'Test email sent.');
+            } catch (e) {
+                showToast('error', e.message || 'Test email failed.');
+            }
+        }
+
+        function showToast(type, message) {
+            const toast = document.getElementById('toast');
+            const icon  = document.getElementById('toastIcon');
+            const text  = document.getElementById('toastText');
+            const colors = { success: 'border-green-200 bg-green-50', error: 'border-red-200 bg-red-50', info: 'border-blue-200 bg-blue-50' };
+            const textC  = { success: 'text-green-800', error: 'text-red-800', info: 'text-blue-800' };
+            const icons  = { success: '✓', error: '✕', info: 'ℹ' };
+            toast.className = `fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 border rounded-card shadow-lg max-w-xs ${colors[type]}`;
+            icon.className  = `flex-shrink-0 text-sm font-bold ${textC[type]}`;
+            icon.textContent  = icons[type];
+            text.className    = `text-sm ${textC[type]}`;
+            text.textContent  = message;
+            toast.classList.remove('hidden');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toast.classList.add('hidden'), 4000);
+        }
+
+        // ── Init ─────────────────────────────────────────────────────────
+
+        // ── My Account — change own password (POST /api/platform/auth/change-password) ──
+        function pwMsg(kind, txt) {
+            const el = document.getElementById('pwMsg');
+            el.textContent = txt;
+            el.className = 'rounded-card p-3 mb-4 text-sm ' +
+                (kind === 'ok' ? 'bg-green-50 border border-green-200 text-green-700'
+                               : 'bg-red-50 border border-red-200 text-red-700');
+            el.classList.remove('hidden');
+        }
+        async function changeMyPassword() {
+            const cur = document.getElementById('pw_current').value;
+            const nw  = document.getElementById('pw_new').value;
+            const cf  = document.getElementById('pw_confirm').value;
+            if (!cur || !nw) { pwMsg('err', 'Enter your current and new password.'); return; }
+            if (nw.length < 8) { pwMsg('err', 'New password must be at least 8 characters.'); return; }
+            if (nw !== cf) { pwMsg('err', 'The new passwords do not match.'); return; }
+            try {
+                await apiFetch('/api/platform/auth/change-password', {
+                    method: 'POST',
+                    body: JSON.stringify({ current_password: cur, new_password: nw }),
+                });
+                document.getElementById('pw_current').value = '';
+                document.getElementById('pw_new').value = '';
+                document.getElementById('pw_confirm').value = '';
+                pwMsg('ok', 'Password changed. Use it next time you sign in.');
+            } catch (e) {
+                pwMsg('err', e.message || 'Could not change the password.');
+            }
+        }
+
+        async function init() {
+            // Check role
+            try {
+                const me = await apiFetch('/api/platform/auth/me');
+                // /api/platform/auth/me returns PlatformAdminResponse → { is_super, email }
+                _isSuperAdmin = me?.is_super === true;
+                document.getElementById('myAccountEmail').textContent = me?.email || '—';
+                if (!_isSuperAdmin) {
+                    document.getElementById('readonlyBanner').classList.replace('hidden', 'flex');
+                    // Disable the config save buttons — but NOT the "Change Password" button,
+                    // which every admin (owner / manager / viewer) is allowed to use on their own account.
+                    document.querySelectorAll('.save-btn, button[onclick="testEmail()"]')
+                        .forEach(b => {
+                            if (b.getAttribute('onclick') === 'changeMyPassword()') return;
+                            b.disabled = true; b.classList.add('opacity-40', 'cursor-not-allowed');
+                        });
+                }
+            } catch (_) { /* non-fatal */ }
+
+            try {
+                const s = await apiFetch('/api/platform/settings');
+                if (s) populateFields(s);
+            } catch (e) {
+                showToast('error', `Failed to load settings: ${e.message}`);
+            }
+        }
+
+        init();
+    </script>
+
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>

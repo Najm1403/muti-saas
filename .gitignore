@@ -1,0 +1,60 @@
+# ── Repo-wide ignores (per-app .gitignore files add more) ────────────────
+
+# Secrets — NEVER commit
+**/.env
+**/.env.*
+!**/.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+**/site-packages/
+
+# Backend runtime data (created on the server, must persist across deploys)
+apps/backend_fastfood/media/
+*.log
+
+# Flutter / Dart build output and unused generated host projects
+apps/*/build/
+apps/*/.dart_tool/
+apps/*/.flutter-plugins*
+apps/flutter_app_fastfood/ios/
+apps/flutter_app_fastfood/linux/
+apps/flutter_app_fastfood/macos/
+# Windows and Android host projects are committed because they contain custom
+# runner, signing, icon, permission, and printer configuration.
+apps/flutter_app_fastfood/windows/flutter/ephemeral/
+# Compiled Windows installer output (the .iss script IS committed, its output is not)
+apps/flutter_app_fastfood/installer/dist/
+
+# Flutter signing — NEVER commit
+apps/flutter_app_fastfood/android/key.properties
+**/*.jks
+**/*.keystore
+
+# project-brain local index / model / venv (tooling, not app source)
+project-brain/.venv/
+project-brain/data/index/
+project-brain/models/
+
+# IDE / OS
+.idea/
+.claude/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Dart/Flutter tooling cache (analysis server, telemetry) — not app source
+.tool-state/
+
+# Keep .vscode (shared launch configs) — comment the next line to ignore it
+# .vscode/

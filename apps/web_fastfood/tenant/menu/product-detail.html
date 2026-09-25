@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../../shared/safe-text.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Product Detail - Tenant Admin</title>
+    <!-- STORIXX favicon / app icons -->
+    <link rel="icon" href="/assets/favicon.ico?v=3" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png?v=3" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/assets/site.webmanifest?v=3" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="stylesheet" href="/shared/tailwind.css?v=1" />
+    <link rel="stylesheet" href="/shared/responsive.css" />
+    <style>
+        .line-clamp-2 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex">
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     SIDEBAR — note: all links use absolute /tenant/ paths (subdirectory)
+════════════════════════════════════════════════════════════════════════ -->
+<aside class="w-64 flex-shrink-0 h-screen bg-white border-r border-slate-200 flex flex-col overflow-y-auto fixed left-0 top-0 z-30">
+
+    <!-- Brand / Tenant -->
+    <div class="h-16 flex items-center px-5 border-b border-slate-200 flex-shrink-0">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span class="text-white text-sm font-bold select-none">T</span>
+            </div>
+            <div>
+                <p class="text-slate-900 text-sm font-semibold leading-none" id="sidebarTenantName">Loading…</p>
+                <p class="text-indigo-600 text-[11px] leading-none mt-0.5 font-medium" id="sidebarTenantCode">—</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nav -->
+    <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+
+        <!-- Overview -->
+        <a href="/tenant/dashboard.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            Overview
+        </a>
+
+        <!-- Menu — ACTIVE -->
+        <a href="/tenant/menu.html" class="bg-indigo-50 text-indigo-700 font-medium rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+            Menu
+        </a>
+
+        <!-- Variant Options -->
+        <a href="/tenant/variant-options.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+            Variant Options
+        </a>
+
+        <!-- Add-on Groups -->
+        <a href="/tenant/addon-groups.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+            Add-on Groups
+        </a>
+
+        <!-- Promotions -->
+        <a href="/tenant/promotions.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg>
+            Promotions
+        </a>
+
+        <!-- Deals -->
+        <a href="/tenant/deals.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+            Deals
+        </a>
+
+        <!-- Branches -->
+        <a href="/tenant/branches.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            Branches
+        </a>
+
+        <a href="/tenant/preparation-stations.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z"/></svg>
+            Kitchen Stations
+        </a>
+
+        <!-- Devices -->
+        <a href="/tenant/devices.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+            Devices
+        </a>
+
+        <!-- Users -->
+        <a href="/tenant/users.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+            Users
+        </a>
+
+        <!-- Roles -->
+        <a href="/tenant/roles.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            Roles
+        </a>
+
+        <!-- Activity -->
+        <a href="/tenant/activity.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Activity
+        </a>
+
+        <!-- Inventory -->
+            <a href="/tenant/expenses.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-6 4h6m-6 4h4M5 3h14a2 2 0 012 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 012-2z"/></svg>
+                Expenses
+            </a>
+            <a href="/tenant/employees.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+                Employees
+            </a>
+            <a href="/tenant/salaries.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Salaries
+            </a>
+        <a href="/tenant/inventory.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            Inventory
+        </a>
+
+        <!-- Subscription -->
+        <a href="/tenant/subscription.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            Subscription
+        </a>
+
+        <!-- Settings -->
+        <a href="/tenant/settings.html" class="text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Settings
+        </a>
+
+    </nav>
+
+    <!-- User footer -->
+    <div class="border-t border-slate-200 p-4 flex-shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                <span class="text-indigo-700 text-sm font-semibold" id="userInitial">?</span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-slate-900 truncate" id="sidebarUserName">—</p>
+                <p class="text-xs text-slate-500 truncate" id="sidebarUserRoles">—</p>
+            </div>
+            <button onclick="logout()" title="Logout" class="text-slate-400 hover:text-slate-600 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            </button>
+        </div>
+    </div>
+</aside>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════════════════════════════════════ -->
+<main class="ml-64 flex-1 min-h-screen overflow-y-auto">
+
+    <!-- Page header with breadcrumb -->
+    <div class="h-16 flex items-center px-6 bg-white border-b border-slate-200 gap-3">
+        <a href="/tenant/menu.html" class="flex items-center gap-1.5 text-sm text-slate-500 hover:text-indigo-600 transition-colors font-medium">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            Back to Menu
+        </a>
+        <span class="text-slate-300">/</span>
+        <span class="text-sm text-slate-700 font-medium" id="breadcrumbProductName">Product Detail</span>
+        <div id="pageSpinner" class="ml-auto">
+            <svg class="w-5 h-5 animate-spin text-indigo-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+        </div>
+    </div>
+
+    <!-- No product selected state -->
+    <div id="noProductState" class="hidden flex flex-col items-center justify-center py-24 text-center px-6">
+        <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
+            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+        </div>
+        <p class="text-slate-700 font-medium">No product selected</p>
+        <p class="text-slate-400 text-sm mt-1">
+            <a href="/tenant/menu.html" class="text-indigo-600 hover:underline">Go back to Menu</a> and select a product.
+        </p>
+    </div>
+
+    <!-- Main content (shown after load) -->
+    <div id="mainContent" class="hidden max-w-4xl mx-auto px-6 py-6 space-y-6">
+
+        <!-- Product Info Card -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <div class="flex items-start justify-between gap-4 mb-4">
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 group">
+                        <h2 id="prodNameDisplay" class="text-xl font-bold text-slate-900 truncate"></h2>
+                        <button onclick="startEditName()" id="editNameBtn"
+                            class="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-indigo-600 p-1 rounded">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                        </button>
+                    </div>
+                    <input id="prodNameInput" type="text"
+                        class="hidden w-full border border-indigo-400 rounded-lg px-3 py-1.5 text-lg font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 mt-1"
+                        onblur="saveNameInline()" onkeydown="handleNameKey(event)" />
+                    <span id="prodCodeBadge" class="inline-block mt-2 font-mono text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded"></span>
+                    <span id="componentTypeBadge" class="hidden inline-block mt-2 ml-1 text-xs bg-violet-50 text-violet-700 border border-violet-200 px-2 py-1 rounded">Inventory component</span>
+                    <div class="mt-4" id="prodDescField">
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Description <span class="text-slate-400">(optional)</span></label>
+                        <textarea id="prodDescription" rows="3" placeholder="Brief product description..."
+                            oninput="markDirty()"
+                            class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
+                    </div>
+                </div>
+                <div class="flex flex-col items-start gap-2 flex-shrink-0">
+                    <label id="prodActiveControl" class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="prodActiveToggle" onchange="markDirty()"
+                            class="w-4 h-4 rounded accent-indigo-600 cursor-pointer" />
+                        <span class="text-sm text-slate-600 font-medium">Active</span>
+                    </label>
+                    <span id="productTrackableStatus" class="text-xs font-medium rounded-full px-2 py-1 bg-slate-100 text-slate-600">Not trackable</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div id="prodPriceField">
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Price</label>
+                    <input id="prodBasePrice" type="number" step="0.01" min="0" placeholder="0.00"
+                        oninput="markDirty()"
+                        class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+                <div id="prodSkuField" class="hidden">
+                    <label class="block text-xs font-medium text-slate-600 mb-1">SKU <span class="text-slate-400">(optional)</span></label>
+                    <input id="prodSku" type="text" placeholder="e.g. LAPTOP-14-BLK" oninput="markDirty()"
+                        class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+                <div id="prodWarrantyField" class="hidden">
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Warranty <span class="text-slate-400">(optional)</span></label>
+                    <input id="prodWarranty" type="text" placeholder="e.g. 1 year" oninput="markDirty()"
+                        class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+            </div>
+
+            <div id="saveProductBar" class="hidden flex items-center gap-3 pt-4 border-t border-slate-100">
+                <button onclick="saveProductChanges()"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    Save Changes
+                </button>
+                <button onclick="discardProductChanges()"
+                    class="border border-slate-300 text-slate-600 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    Discard
+                </button>
+                <span class="text-xs text-amber-600 font-medium">Unsaved changes</span>
+            </div>
+        </div>
+
+        <div id="componentProductNotice" class="hidden bg-violet-50 rounded-xl border border-violet-200 p-5">
+            <h3 class="text-violet-900 font-semibold text-sm">Shared, independently sellable component</h3>
+            <p class="text-xs text-violet-800 mt-1">
+                This SKU has one shared stock pool. It can be sold by itself or selected from a configurable parent product.
+                Component choices and add-ons are configured on the parent product, so they are intentionally unavailable here.
+            </p>
+            <p id="componentSourceLabel" class="text-xs text-violet-700 font-medium mt-2"></p>
+            <a href="/tenant/inventory.html" class="inline-block mt-3 text-xs font-semibold text-indigo-700 hover:underline">Manage stock in Inventory →</a>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             VARIANT SELECTIONS — single-select, shared groups from the
+             Variant Options library. Structurally separate from Add-ons
+             below (spec A1/D4). Every value resolves straight to that
+             option's own shared stock (set once in the Variant Options
+             library) — automatically shared with every other product that
+             also attaches this group, no per-product linking, and no
+             combination Variant is ever generated for it. Checking a value
+             includes it on this product's POS listing; leaving a group
+             fully unchecked keeps it off this product entirely.
+             ═══════════════════════════════════════════════════════════ -->
+        <div id="variantGroupsSection" class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-1">
+                <h3 class="text-slate-900 font-semibold text-base">Variant Selections</h3>
+                <button onclick="saveComponentGroups()" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg px-3 py-1.5 text-sm font-medium">Save</button>
+            </div>
+            <p class="text-xs text-slate-500 mb-4">Groups attached to this product's <a href="/tenant/menu.html" class="text-indigo-600 hover:underline">category</a> (marked <span class="text-indigo-600 font-medium">From category</span>) are pre-checked automatically — adjust which values apply here if this product doesn't offer all of them. Every other shared group from the <a href="/tenant/variant-options.html" class="text-indigo-600 hover:underline">Variant Options</a> library also appears as its own column for a one-off addition on just this product. Check the values this product actually offers, then Save — each draws from its own shared stock and is picked by the cashier at sale time. A column left fully unchecked stays off this product. Priced, per-value combinations (e.g. Colors) are set up in the Add Product form instead — see Stock below for their current stock.</p>
+            <div id="variantGroupsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"></div>
+            <div id="variantGroupsEmpty" class="hidden text-sm text-slate-400 text-center py-6">No Variant Selections exist yet — create one in the <a href="/tenant/variant-options.html" class="text-indigo-600 hover:underline">Variant Options</a> library, then it will appear here.</div>
+            <div id="manageGroupPanelHost" class="mt-4"></div>
+        </div>
+
+        <!-- This product's own stock. For a plain product (no colors), this
+             is just the base zero-option Variant's own per-branch stock. For
+             a product with priced Colors (set up in the Add Product form,
+             never here), this instead shows each color's own stock plus a
+             combined overall count — actual stock adjustments still happen
+             on the Inventory page, this is a summary. -->
+        <div id="defaultVariantStockSection" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <h3 class="text-slate-900 font-semibold text-base mb-1">Overall Stock</h3>
+            <p id="stockSectionHint" class="text-xs text-slate-500 mb-4">Current stock for this product across its assigned branches.</p>
+            <div id="untrackedBanner" class="hidden mb-4 flex items-center justify-between gap-3 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3">
+                <p id="untrackedBannerText" class="text-xs text-amber-800"></p>
+                <button onclick="openEnableTracking()" class="flex-shrink-0 px-3 py-1.5 text-xs font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700">Set opening stock</button>
+            </div>
+            <div id="stockSectionBody"></div>
+        </div>
+
+        <!-- Specifications — repeatable key/value rows, gated by
+             template.config.product_fields.specs (spec Part B / G2). -->
+        <div id="specsSection" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <h3 class="text-slate-900 font-semibold text-base mb-1">Specifications</h3>
+            <p class="text-xs text-slate-500 mb-4">Optional key/value details shown on the product (e.g. "Screen Size" — "6.1 inch"). Never required.</p>
+            <div id="specsList" class="space-y-2 mb-3"></div>
+            <div class="flex gap-2">
+                <input id="newSpecKey" type="text" placeholder="Key, e.g. Screen Size" class="flex-1 border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm" />
+                <input id="newSpecValue" type="text" placeholder="Value, e.g. 6.1 inch" class="flex-1 border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm" />
+                <button onclick="addSpec()" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg px-3 py-1.5 text-sm font-medium">Add</button>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             ADD-ONS — multi-select, price-delta only. Never touches
+             variant generation (spec A1/D4) — visually and structurally
+             separate from the section above.
+             ═══════════════════════════════════════════════════════════ -->
+        <div id="addonGroupsSection" class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-1">
+                <h3 class="text-slate-900 font-semibold text-base">Add-ons</h3>
+                <button onclick="openAttachAddonModal()" class="text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    Attach Add-on Group
+                </button>
+            </div>
+            <p class="text-xs text-slate-500 mb-4">Multi-select extras with a price delta (e.g. Toppings) — never generate new Variant rows. Shared across products in the <a href="/tenant/addon-groups.html" class="text-indigo-600 hover:underline">Add-on Groups</a> library.</p>
+            <div id="addonGroupsList" class="space-y-3"></div>
+            <div id="addonGroupsEmpty" class="hidden text-sm text-slate-400 text-center py-6">No Add-on Groups attached.</div>
+        </div>
+
+    </div>
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     MODAL — attach an existing Variant Option Group / Add-on Group, or
+     create a new one in the shared library and attach it in one step.
+════════════════════════════════════════════════════════════════════════ -->
+<div id="attachModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+    <div class="absolute inset-0 bg-slate-900/40" onclick="closeAttachModal()"></div>
+    <div class="relative bg-white rounded-xl shadow-xl w-full max-w-md z-10 flex flex-col max-h-[85vh]">
+        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
+            <h3 class="text-sm font-semibold text-slate-900" id="attachModalTitle">Attach Group</h3>
+            <button onclick="closeAttachModal()" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        </div>
+        <div class="px-5 py-4 overflow-y-auto space-y-4">
+            <div>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Existing groups</p>
+                <div id="attachExistingList" class="space-y-1.5 max-h-48 overflow-y-auto"></div>
+                <p id="attachExistingEmpty" class="hidden text-xs text-slate-400">Nothing left to attach — every library group is already on this product, or the library is empty. Create one in <a id="attachEmptyLibraryLink" href="/tenant/variant-options.html" class="text-indigo-600 hover:underline">the library</a>.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     MODAL — set opening stock for every currently-untracked Variant on this
+     product at once (one visit, not one per variant). Opening stock is
+     required for every assigned active branch exactly once (server-enforced
+     per variant); this is the only place in the dashboard that flips an
+     untracked Variant to tracked — see
+     loadDefaultVariantStock()/renderUntrackedBanner()/openEnableTracking().
+════════════════════════════════════════════════════════════════════════ -->
+<div id="enableTrackingModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+    <div class="absolute inset-0 bg-slate-900/40" onclick="closeEnableTracking()"></div>
+    <div class="relative bg-white rounded-xl shadow-xl w-full max-w-2xl z-10 flex flex-col max-h-[85vh]">
+        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
+            <h3 class="text-sm font-semibold text-slate-900">Set opening stock</h3>
+            <button onclick="closeEnableTracking()" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        </div>
+        <div class="px-5 py-4 overflow-y-auto overflow-x-auto space-y-3">
+            <p class="text-xs text-slate-500">Enter the current stock on hand for every item and branch below. This becomes each item's starting balance — future changes happen on the Inventory page.</p>
+            <table class="w-full text-sm border-collapse">
+                <thead id="enableTrackingHead"></thead>
+                <tbody id="enableTrackingBody"></tbody>
+            </table>
+        </div>
+        <div class="px-5 py-3 border-t border-slate-200 flex justify-end gap-2 flex-shrink-0">
+            <button onclick="closeEnableTracking()" class="px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900">Cancel</button>
+            <button id="enableTrackingSubmit" onclick="submitEnableTracking()" class="px-3 py-1.5 text-xs font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700">Start tracking</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════════════════════════════════════════ -->
+<script>
+// ── Auth helpers ─────────────────────────────────────────────────────────
+const BASE = '/api/v1';
+function getToken() { return localStorage.getItem('tenant_token'); }
+async function apiFetch(path, opts = {}) {
+    const res = await fetch(BASE + path, {
+        ...opts,
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken(), ...(opts.headers || {}) }
+    });
+    if (res.status === 401) { localStorage.removeItem('tenant_token'); location.href = '/tenant/login.html'; throw new Error('Unauthorized'); }
+    if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.detail || 'Request failed'); }
+    if (res.status === 204) return null;
+    return res.json();
+}
+function logout() { localStorage.removeItem('tenant_token'); localStorage.removeItem('tenant_me'); location.href = '/tenant/login.html'; }
+function showToast(msg, type = 'success') {
+    const t = document.createElement('div');
+    t.className = `fixed bottom-4 right-4 z-50 px-4 py-3 rounded-lg text-sm font-medium shadow-lg ${type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+}
+
+// ── Sidebar init ─────────────────────────────────────────────────────────
+async function initSidebar() {
+    const token = localStorage.getItem('tenant_token');
+    if (!token) { location.href = '/tenant/login.html'; return false; }
+    try {
+        const me = await apiFetch('/auth/me'); window.SHOP_CCY = (me && me.currency) || 'Rs.';
+        localStorage.setItem('tenant_me', JSON.stringify(me));
+        document.getElementById('sidebarTenantName').textContent = me.tenant?.name || 'My Business';
+        document.getElementById('sidebarTenantCode').textContent = me.tenant?.code || '';
+        document.getElementById('sidebarUserName').textContent = me.full_name || me.username;
+        document.getElementById('userInitial').textContent = (me.full_name || me.username || '?')[0].toUpperCase();
+        document.getElementById('sidebarUserRoles').textContent = me.roles?.length ? me.roles.join(', ') : 'No roles';
+        return me;
+    } catch(e) { return false; }
+}
+
+// ── State ────────────────────────────────────────────────────────────────
+let productId = null;
+let categoryId = null;
+let product = null;
+let originalProduct = null;
+let productDirty = false;
+
+let variantGroupLibrary = [];    // every VariantOptionGroup in the business, attached or not
+let variantGroupLinks = [];      // ProductVariantOptionGroupResponse[] — the subset attached here
+let variantGroupOptions = {};    // { option_group_id: VariantOptionResponse[] }
+let defaultVariant = null;       // this product's own zero-option Variant (spec D1)
+let variantBranches = [];        // active branches this product is sold at
+let currentVariants = [];        // full Variant list from the last stock load, for the combined opening-stock modal
+let manageGroupLinkId = null;    // link currently expanded in the manage panel
+
+let addonGroupLinks = [];        // ProductAddonGroupResponse[]
+let addonGroupItems = {};        // { addon_group_id: AddonItemResponse[] }
+
+let attachMode = null;           // only 'addon-group' now — the shared modal
+                                  // is used solely for Add-on Groups; Variant
+                                  // Selections attach/restrict inline in their grid.
+
+let productSpecs = [];           // ProductSpecResponse[]
+// Optional fields (sku / specs / warranty / description) are shown or
+// hidden per the tenant's Business Template — never required (spec G2).
+// Fails open (all shown) if the config can't be loaded.
+let productFields = { sku: true, specs: true, warranty: true, description: true };
+// Whether the tenant's Business Template mandates inventory tracking on
+// every variant (spec D6) — when true, the Track Inventory checkbox is
+// forced on and locked, matching the server-side enforcement.
+let trackingForcedOn = false;
+// Business types that sell one Product priced with delta Add-ons only
+// (e.g. Fast Food) turn Variant Option Groups off entirely (spec D-config
+// variants.enabled) — hides the Variant Selections section here, matching
+// the "Attach Group" gating in menu.html.
+let variantsEnabled = true;
+// Mirror of the above for the opposite case (spec D-config addons.enabled) —
+// business types that price everything via Variant Options (e.g. Laptops:
+// RAM, Storage) can turn Add-on Groups off entirely.
+let addonsEnabled = true;
+
+function untrackConfirmMessage() {
+    return 'Turning off inventory tracking for this variant means:\n\n'
+        + '• Stock quantity will no longer be counted for it.\n'
+        + '• Sales of it will never be blocked by low or zero stock.\n'
+        + '• Its existing stock count stays in history but stops being enforced.\n\n'
+        + 'Turn off tracking?';
+}
+
+function applyProductFieldGating() {
+    const isComponent = product && product.is_inventory_component === true;
+    document.getElementById('prodDescField').classList.toggle('hidden', productFields.description === false);
+    document.getElementById('prodSkuField').classList.toggle('hidden', !productFields.sku);
+    document.getElementById('prodWarrantyField').classList.toggle('hidden', !productFields.warranty);
+    document.getElementById('specsSection').classList.toggle('hidden', !productFields.specs);
+    document.getElementById('variantGroupsSection').classList.toggle('hidden', !variantsEnabled || isComponent);
+    document.getElementById('addonGroupsSection').classList.toggle('hidden', !addonsEnabled || isComponent);
+    document.getElementById('componentProductNotice').classList.toggle('hidden', !isComponent);
+}
+
+// ── Utils ────────────────────────────────────────────────────────────────
+function escHtml(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s) {
+    return String(s ?? '').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function money(n) {
+    return `${window.SHOP_CCY || 'Rs.'} ${parseFloat(n || 0).toFixed(2)}`;
+}
+
+// ── Page init ────────────────────────────────────────────────────────────
+async function init() {
+    await initSidebar();
+
+    const params = new URLSearchParams(location.search);
+    productId = params.get('product_id');
+    categoryId = params.get('category_id');
+
+    if (!productId) {
+        document.getElementById('pageSpinner').classList.add('hidden');
+        document.getElementById('noProductState').classList.remove('hidden');
+        return;
+    }
+
+    try {
+        const config = await apiFetch('/business/template-config').catch(() => null);
+        if (config && config.product_fields) productFields = config.product_fields;
+        trackingForcedOn = !!(config && config.inventory && config.inventory.tracking_forced_on);
+        if (config && config.variants && config.variants.enabled === false) variantsEnabled = false;
+        if (config && config.addons && config.addons.enabled === false) addonsEnabled = false;
+        applyProductFieldGating();
+
+        product = await apiFetch(`/products/${productId}`);
+        originalProduct = { ...product };
+        applyProductFieldGating();
+        populateProductCard();
+        const tasks = [loadVariantBranches()];
+        if (!product.is_inventory_component && variantsEnabled) tasks.push(loadVariantGroups());
+        if (!product.is_inventory_component && addonsEnabled) tasks.push(loadAddonGroups());
+        if (productFields.specs) tasks.push(loadSpecs());
+        await Promise.all(tasks);
+        await loadDefaultVariantStock();
+        document.getElementById('breadcrumbProductName').textContent = product.name;
+        document.getElementById('mainContent').classList.remove('hidden');
+        // Landed here right after turning tracking on for an existing
+        // product in the Edit Product drawer (menu.html) — open the
+        // combined opening-stock modal immediately instead of leaving the
+        // admin to notice and click the banner themselves.
+        if (params.get('prompt_tracking') === '1') {
+            openEnableTracking();
+        }
+    } catch(e) {
+        showToast('Failed to load product: ' + e.message, 'error');
+    } finally {
+        document.getElementById('pageSpinner').classList.add('hidden');
+    }
+}
+
+// ── Product Card ─────────────────────────────────────────────────────────
+function populateProductCard() {
+    document.getElementById('prodNameDisplay').textContent = product.name;
+    document.getElementById('prodNameInput').value = product.name;
+    document.getElementById('prodCodeBadge').textContent = product.product_code;
+    document.getElementById('componentTypeBadge').classList.toggle('hidden', !product.is_inventory_component);
+    document.getElementById('componentSourceLabel').textContent = product.is_inventory_component
+        ? `Component group: ${product.component_group_name || '—'} · Value: ${product.component_option_name || product.name}`
+        : '';
+    document.getElementById('prodDescription').value = product.description || '';
+    document.getElementById('prodSku').value = product.sku || '';
+    document.getElementById('prodWarranty').value = product.warranty || '';
+    document.getElementById('prodActiveToggle').checked = product.is_active;
+    document.getElementById('prodActiveControl').classList.toggle('hidden', product.is_inventory_component);
+    const status = document.getElementById('productTrackableStatus');
+    status.textContent = product.allow_inventory_tracking ? 'Trackable' : 'Not trackable';
+    status.className = `text-xs font-medium rounded-full px-2 py-1 ${product.allow_inventory_tracking ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-600'}`;
+
+    // Price is only directly editable while the product has no real priced
+    // combination Variants (e.g. Colors) — a Specification-usage group
+    // attached with zero combinations yet, or an Inventory Component group,
+    // both leave the base product's own price fully editable. Once real
+    // combinations exist, each one's price was set on its color SKU when
+    // the product was created.
+    const hasCombinations = product.has_combination_variants === true;
+    document.getElementById('prodPriceField').classList.toggle('hidden', hasCombinations);
+    document.getElementById('prodBasePrice').value = product.price ?? '';
+
+    productDirty = false;
+    document.getElementById('saveProductBar').classList.add('hidden');
+}
+
+function markDirty() {
+    productDirty = true;
+    document.getElementById('saveProductBar').classList.remove('hidden');
+}
+
+function discardProductChanges() {
+    product = { ...originalProduct };
+    populateProductCard();
+}
+
+async function saveProductChanges() {
+    const hasCombinations = product.has_combination_variants === true;
+    const body = {
+        name: document.getElementById('prodNameInput').classList.contains('hidden')
+            ? document.getElementById('prodNameDisplay').textContent
+            : document.getElementById('prodNameInput').value.trim(),
+        description: document.getElementById('prodDescription').value.trim() || undefined,
+        is_active: document.getElementById('prodActiveToggle').checked,
+    };
+    // Only send sku/warranty when their field is actually shown — a hidden
+    // field must never silently clear a value set under a different template.
+    if (productFields.sku) body.sku = document.getElementById('prodSku').value.trim() || null;
+    if (productFields.warranty) body.warranty = document.getElementById('prodWarranty').value.trim() || null;
+    if (!body.name) { showToast('Product name is required', 'error'); return; }
+    let newPrice = null;
+    if (!hasCombinations) {
+        newPrice = parseFloat(document.getElementById('prodBasePrice').value);
+        if (isNaN(newPrice) || newPrice < 0) { showToast('Valid price required', 'error'); return; }
+    }
+    try {
+        const updated = await apiFetch(`/products/${productId}`, { method: 'PATCH', body: JSON.stringify(body) });
+        product = { ...product, ...updated };
+        if (!hasCombinations && product.default_variant_id && newPrice !== originalProduct.price) {
+            await apiFetch(`/variants/${product.default_variant_id}`, { method: 'PATCH', body: JSON.stringify({ sale_price: newPrice }) });
+            product.price = newPrice;
+        }
+        originalProduct = { ...product };
+        populateProductCard();
+        document.getElementById('breadcrumbProductName').textContent = product.name;
+        showToast('Product saved');
+        await loadDefaultVariantStock();
+    } catch(e) { showToast('Failed: ' + e.message, 'error'); }
+}
+
+// Inline name edit
+function startEditName() {
+    document.getElementById('prodNameDisplay').classList.add('hidden');
+    document.getElementById('editNameBtn').classList.add('hidden');
+    const inp = document.getElementById('prodNameInput');
+    inp.classList.remove('hidden');
+    inp.value = document.getElementById('prodNameDisplay').textContent;
+    inp.focus();
+    inp.select();
+}
+function saveNameInline() {
+    const inp = document.getElementById('prodNameInput');
+    const val = inp.value.trim();
+    if (val) {
+        document.getElementById('prodNameDisplay').textContent = val;
+        markDirty();
+    }
+    inp.classList.add('hidden');
+    document.getElementById('prodNameDisplay').classList.remove('hidden');
+    document.getElementById('editNameBtn').classList.remove('hidden');
+}
+function handleNameKey(e) {
+    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('prodNameInput').blur(); }
+    if (e.key === 'Escape') {
+        document.getElementById('prodNameInput').value = document.getElementById('prodNameDisplay').textContent;
+        document.getElementById('prodNameInput').blur();
+    }
+}
+
+// ── Specifications — repeatable key/value rows (spec Part B / G2) ────────
+async function loadSpecs() {
+    productSpecs = await apiFetch(`/products/${productId}/specs`);
+    renderSpecs();
+}
+
+function renderSpecs() {
+    document.getElementById('specsList').innerHTML = productSpecs.map(s => `
+        <div class="flex items-center gap-2 text-sm bg-slate-50 rounded-lg px-3 py-2">
+            <span class="font-medium text-slate-700 w-1/3 truncate">${escHtml(s.spec_key)}</span>
+            <span class="flex-1 text-slate-600 truncate">${escHtml(s.spec_value)}</span>
+            <button onclick="deleteSpec('${escapeJSAttribute(s.id)}')" class="text-slate-400 hover:text-red-600 flex-shrink-0">&times;</button>
+        </div>`).join('') || '<p class="text-xs text-slate-400">No specs yet.</p>';
+}
+
+async function addSpec() {
+    const keyInput = document.getElementById('newSpecKey');
+    const valueInput = document.getElementById('newSpecValue');
+    const spec_key = keyInput.value.trim();
+    const spec_value = valueInput.value.trim();
+    if (!spec_key || !spec_value) { showToast('Enter both a key and a value.', 'error'); return; }
+    try {
+        const spec = await apiFetch(`/products/${productId}/specs`, {
+            method: 'POST', body: JSON.stringify({ spec_key, spec_value, sort_order: productSpecs.length })
+        });
+        productSpecs.push(spec);
+        keyInput.value = ''; valueInput.value = '';
+        renderSpecs();
+    } catch (e) { showToast('Failed: ' + e.message, 'error'); }
+}
+
+async function deleteSpec(specId) {
+    try {
+        await apiFetch(`/products/${productId}/specs/${specId}`, { method: 'DELETE' });
+        productSpecs = productSpecs.filter(s => s.id !== specId);
+        renderSpecs();
+    } catch (e) { showToast('Failed: ' + e.message, 'error'); }
+}
+
+// ── Branches this product is actually sold at (for stock inputs) ─────────
+async function loadVariantBranches() {
+    const [branches, assignment] = await Promise.all([
+        apiFetch(`/branches/`),
+        apiFetch(`/products/${encodeURIComponent(productId)}/branches`)
+    ]);
+    const selected = new Set((assignment.branches || []).map(b => String(b.id)));
+    variantBranches = branches.filter(b => b.is_active !== false &&
+        (assignment.all_branches || selected.has(String(b.id))));
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// VARIANT SELECTIONS (shared inventory components; never generate host-product SKUs)
+// ══════════════════════════════════════════════════════════════════════
+
+async function loadVariantGroups() {
+    const [library, links] = await Promise.all([
+        apiFetch('/variant-option-groups/'),
+        apiFetch(`/products/${productId}/variant-option-groups`),
+    ]);
+    variantGroupLibrary = library;
+    variantGroupLinks = links;
+    const results = await Promise.allSettled(variantGroupLibrary.map(g => apiFetch(`/variant-options/?option_group_id=${g.id}`)));
+    variantGroupOptions = {};
+    results.forEach((r, i) => { variantGroupOptions[variantGroupLibrary[i].id] = r.status === 'fulfilled' ? r.value : []; });
+    renderVariantGroups();
+}
+
+// One checkbox column per group in the whole shared library — RAM, Storage,
+// Size, ... — all visible at once, attached to this product or not, so
+// there's no separate "Attach Group" step before the checkboxes show up.
+// A group not yet attached here starts fully UNCHECKED (nothing included
+// until the admin actively opts it in); an attached, unrestricted group
+// starts fully CHECKED (matches today's "no restriction = everything
+// allowed" meaning). Checking anything in a column and hitting Save is
+// simultaneously how a group gets attached AND how it's restricted —
+// unchecking every box in an already-attached column detaches it.
+function renderVariantGroups() {
+    const grid = document.getElementById('variantGroupsGrid');
+    const empty = document.getElementById('variantGroupsEmpty');
+    const linkByGroup = {};
+    variantGroupLinks.forEach(l => { linkByGroup[l.option_group_id] = l; });
+    // Priced Variant groups (usage_type='specification', e.g. Colors) are
+    // managed in their own dedicated section below instead — this grid is
+    // Inventory Component only.
+    const columns = variantGroupLibrary.filter(g => (linkByGroup[g.id]?.usage_type || 'inventory_component') !== 'specification');
+    if (!columns.length) {
+        grid.innerHTML = '';
+        empty.classList.remove('hidden');
+        renderManageGroupHost();
+        return;
+    }
+    empty.classList.add('hidden');
+
+    grid.innerHTML = columns.map(g => {
+        const link = linkByGroup[g.id] || null;
+        const options = variantGroupOptions[g.id] || [];
+        const allowedSet = new Set(((link && link.allowed_option_ids) || []).map(String));
+        const restricted = link && allowedSet.size > 0;
+        // Attached: checked reflects the real restriction (or "all" when
+        // unrestricted). Not attached: nothing pre-checked.
+        const isChecked = (o) => !!o.component_product_id && (link ? (!restricted || allowedSet.has(String(o.id))) : false);
+        const isRequired = link ? link.is_required : true;
+        return `<div class="border border-slate-200 rounded-lg p-3 min-w-0 ${link ? 'bg-white' : 'bg-slate-50'}" data-group-id="${escAttr(g.id)}" data-link-id="${link ? escAttr(link.id) : ''}">
+            <div class="flex items-center justify-between gap-1 mb-1.5">
+                <p class="text-xs font-semibold text-slate-700 truncate" title="${escAttr(g.name)}">${escHtml(g.name)}</p>
+                ${link ? `<button type="button" onclick="toggleManageGroup('${escapeJSAttribute(link.id)}')" title="More settings (min/max selections, default value)" class="text-slate-400 hover:text-indigo-600 flex-shrink-0">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </button>` : ''}
+            </div>
+            <div class="flex items-center gap-2 mb-2 flex-wrap">
+                ${link && link.source_category_id ? '<span class="text-[9px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0" title="Attached from this product\'s category — uncheck everything here to remove it for just this product">From category</span>' : ''}
+                <label class="flex items-center gap-1 text-[10px] text-slate-500 flex-shrink-0">
+                    <input type="checkbox" class="vg-required w-3 h-3 accent-indigo-600" ${isRequired ? 'checked' : ''} /> Required
+                </label>
+            </div>
+            <div class="space-y-1.5">
+                ${options.map(o => `<label class="flex items-center gap-1.5 text-xs text-slate-700">
+                    <input type="checkbox" value="${escAttr(o.id)}" class="vg-option w-3.5 h-3.5 accent-indigo-600 flex-shrink-0" ${isChecked(o) ? 'checked' : ''} ${o.component_product_id ? '' : 'disabled title="Set up inventory for this value first"'} />
+                    <span class="truncate">${escHtml(o.name)}</span>
+                    ${!o.component_product_id ? '<span class="text-amber-500 flex-shrink-0" title="Not yet tracked as inventory — set it up in the Variant Options library">●</span>' : ''}
+                </label>`).join('') || `<p class="text-xs text-slate-400">No values yet — add some in the <a href="/tenant/variant-options.html" class="text-indigo-600 hover:underline">library</a></p>`}
+            </div>
+        </div>`;
+    }).join('');
+    renderManageGroupHost();
+}
+
+// Reads every column's Required/checked-options state and reconciles it
+// against the server in one Save action: attaches a not-yet-attached group
+// the moment something in its column is checked, updates an already
+// attached one's rules + allowed options, and detaches one whose column
+// ends up with nothing checked at all. usage_type is only ever sent when
+// creating a brand-new attachment (always 'inventory_component' — the only
+// mode this UI offers) — an already-attached link's usage_type is left
+// alone, so a pre-existing legacy Specification attachment never gets
+// silently flipped by an unrelated Save (the server blocks that while real
+// combination Variants exist).
+async function saveComponentGroups() {
+    const columns = [...document.querySelectorAll('#variantGroupsGrid [data-group-id]')];
+    try {
+        for (const col of columns) {
+            const groupId = col.dataset.groupId;
+            const linkId = col.dataset.linkId || null;
+            const isRequired = col.querySelector('.vg-required').checked;
+            const boxes = [...col.querySelectorAll('.vg-option')];
+            const checked = boxes.filter(b => b.checked).map(b => b.value);
+
+            if (!linkId) {
+                if (checked.length === 0) continue; // still not offered — nothing to do
+                const link = await apiFetch(`/products/${productId}/variant-option-groups`, {
+                    method: 'POST', body: JSON.stringify({ option_group_id: groupId, is_required: isRequired, usage_type: 'inventory_component' }),
+                });
+                if (boxes.length && checked.length < boxes.length) {
+                    await apiFetch(`/products/${productId}/variant-option-groups/${link.id}/allowed-options`, {
+                        method: 'PUT', body: JSON.stringify({ variant_option_ids: checked }),
+                    });
+                }
+            } else if (checked.length === 0) {
+                await apiFetch(`/products/${productId}/variant-option-groups/${linkId}`, { method: 'DELETE' });
+            } else {
+                await apiFetch(`/products/${productId}/variant-option-groups/${linkId}`, {
+                    method: 'PATCH', body: JSON.stringify({ is_required: isRequired }),
+                });
+                const variant_option_ids = boxes.length && checked.length === boxes.length ? [] : checked;
+                await apiFetch(`/products/${productId}/variant-option-groups/${linkId}/allowed-options`, {
+                    method: 'PUT', body: JSON.stringify({ variant_option_ids }),
+                });
+            }
+        }
+        await reloadAfterVariantStructureChange();
+        showToast('Variant Selections saved');
+    } catch (e) { showToast('Failed: ' + e.message, 'error'); }
+}
+
+// Secondary, less-common settings for an already-attached group — Required
+// and Usage Type live directly on the group's column in the main grid now,
+// so this panel only covers min/max selection counts and the default value
+// (rendered once, below the whole grid, for whichever link is expanded).
+function renderManageGroupPanel(link, options) {
+    return `<div class="border border-slate-200 rounded-lg p-4 bg-slate-50" id="manage-${escAttr(link.id)}">
+        <div class="flex items-center justify-between mb-3">
+            <p class="text-xs font-semibold text-slate-700">More settings — ${escHtml(link.name)}</p>
+            <button onclick="toggleManageGroup('${escapeJSAttribute(link.id)}')" class="text-slate-400 hover:text-slate-600 text-xs">Close</button>
+        </div>
+        <div class="grid grid-cols-2 gap-3 max-w-md">
+            <div>
+                <label class="block text-[11px] text-slate-500 mb-1">Min selections</label>
+                <input id="mg-min-${escAttr(link.id)}" type="number" min="0" value="${link.min_selections}" class="w-full border border-slate-300 rounded px-2 py-1 text-xs" />
+            </div>
+            <div>
+                <label class="block text-[11px] text-slate-500 mb-1">Max selections</label>
+                <input id="mg-max-${escAttr(link.id)}" type="number" min="1" value="${link.max_selections}" class="w-full border border-slate-300 rounded px-2 py-1 text-xs" />
+            </div>
+            <div class="col-span-2">
+                <label class="block text-[11px] text-slate-500 mb-1">Default value <span class="text-slate-400">(optional)</span></label>
+                <select id="mg-default-${escAttr(link.id)}" class="w-full border border-slate-300 rounded px-2 py-1 text-xs">
+                    <option value="">— none —</option>
+                    ${options.map(o => `<option value="${escAttr(o.id)}" ${String(link.default_option_id) === String(o.id) ? 'selected' : ''}>${escHtml(o.name)}</option>`).join('')}
+                </select>
+            </div>
+        </div>
+        <button onclick="saveManageGroup('${escapeJSAttribute(link.id)}')" class="mt-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg px-3 py-1.5 text-xs font-medium">Save</button>
+    </div>`;
+}
+
+function renderManageGroupHost() {
+    const host = document.getElementById('manageGroupPanelHost');
+    if (!manageGroupLinkId) { host.innerHTML = ''; return; }
+    const link = variantGroupLinks.find(l => l.id === manageGroupLinkId);
+    if (!link) { host.innerHTML = ''; return; }
+    host.innerHTML = renderManageGroupPanel(link, variantGroupOptions[link.option_group_id] || []);
+}
+
+function toggleManageGroup(linkId) {
+    manageGroupLinkId = manageGroupLinkId === linkId ? null : linkId;
+    renderManageGroupHost();
+}
+
+async function saveManageGroup(linkId) {
+    const defaultId = document.getElementById(`mg-default-${linkId}`).value || null;
+    try {
+        await apiFetch(`/products/${productId}/variant-option-groups/${linkId}`, {
+            method: 'PATCH', body: JSON.stringify({
+                min_selections: parseInt(document.getElementById(`mg-min-${linkId}`).value, 10) || 0,
+                max_selections: parseInt(document.getElementById(`mg-max-${linkId}`).value, 10) || 1,
+                default_option_id: defaultId,
+            }),
+        });
+        manageGroupLinkId = null;
+        await reloadAfterVariantStructureChange();
+        showToast('Variant Selection updated');
+    } catch (e) { showToast('Failed: ' + e.message, 'error'); }
+}
+
+async function reloadAfterVariantStructureChange() {
+    product = await apiFetch(`/products/${productId}`);
+    originalProduct = { ...product };
+    populateProductCard();
+    await loadVariantGroups();
+    await loadDefaultVariantStock();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// STOCK — read-only current balances for the product's default/color
+// Variants. Opening stock is captured in Add Product; every later change
+// happens on the Inventory page.
+// ══════════════════════════════════════════════════════════════════════
+
+// Looks up a color/option's display name from the shared Variant Options
+// library data already loaded by loadVariantGroups() (variantGroupOptions),
+// since GET /variants doesn't itself return a human-readable variant_name.
+function optionNameById(optionId) {
+    for (const groupId in variantGroupOptions) {
+        const found = (variantGroupOptions[groupId] || []).find(o => String(o.id) === String(optionId));
+        if (found) return found.name;
+    }
+    return null;
+}
+
+async function loadDefaultVariantStock() {
+    const section = document.getElementById('defaultVariantStockSection');
+    const hint = document.getElementById('stockSectionHint');
+    if (!product.default_variant_id) { section.classList.add('hidden'); defaultVariant = null; currentVariants = []; return; }
+    const variants = await apiFetch(`/variants?product_id=${encodeURIComponent(productId)}`);
+    currentVariants = variants;
+    section.classList.remove('hidden');
+    if (product.has_combination_variants) {
+        defaultVariant = null;
+        hint.textContent = 'Combined stock across all colors and branches, with every color shown separately below.';
+        renderColorStockSummary(variants.filter(v => !v.is_default));
+    } else {
+        defaultVariant = variants.find(v => v.is_default) || variants[0] || null;
+        if (!defaultVariant) { section.classList.add('hidden'); return; }
+        hint.textContent = 'Current stock across all assigned branches.';
+        renderDefaultVariantStock();
+    }
+    renderUntrackedBanner();
+}
+
+// The variants actually shown/managed on this page — a combination
+// (colored) product hides its own placeholder default Variant, exactly like
+// renderColorStockSummary()'s own `variants.filter(v => !v.is_default)`.
+function trackableVariants() {
+    return product.has_combination_variants
+        ? currentVariants.filter(v => !v.is_default)
+        : currentVariants;
+}
+
+// One page-level call to action instead of a per-variant "Enable tracking"
+// button — turning tracking on for a product with several colors/sizes used
+// to mean N separate visits to this modal; now it's always at most one.
+function renderUntrackedBanner() {
+    const banner = document.getElementById('untrackedBanner');
+    const untracked = product.allow_inventory_tracking
+        ? trackableVariants().filter(v => !v.tracks_inventory)
+        : [];
+    if (!untracked.length) { banner.classList.add('hidden'); return; }
+    document.getElementById('untrackedBannerText').textContent =
+        `${untracked.length} item${untracked.length === 1 ? '' : 's'} not yet tracked.`;
+    banner.classList.remove('hidden');
+}
+
+function stockTotal(stock) {
+    return Object.values(stock || {}).reduce((sum, value) => sum + Number(value || 0), 0);
+}
+
+function colorVariantName(variant) {
+    const resolved = variant.variant_name && variant.variant_name !== 'Default variant'
+        ? variant.variant_name.split(' + ').map(part => part.replace(/^[^:]+:\s*/, '')).join(' / ')
+        : null;
+    return resolved || optionNameById((variant.option_value_ids || [])[0]) || 'Color';
+}
+
+function renderColorStockSummary(colorVariants) {
+    const body = document.getElementById('stockSectionBody');
+    const overall = colorVariants
+        .filter(v => v.tracks_inventory)
+        .reduce((sum, v) => sum + stockTotal(v.stock_by_branch), 0);
+    const rows = colorVariants.map(v => {
+        const name = colorVariantName(v);
+        const stock = v.stock_by_branch || {};
+        const total = stockTotal(stock);
+        const branches = variantBranches.map(branch => `
+            <div class="rounded-lg bg-slate-50 border border-slate-100 px-3 py-2">
+                <p class="text-[11px] text-slate-500">${escHtml(branch.name)}</p>
+                <p class="text-sm font-semibold text-slate-900">${escHtml(stock[branch.id] ?? 0)}</p>
+            </div>`).join('');
+        return `<div data-color-stock-row class="rounded-lg border border-slate-200 p-3">
+            <div class="flex items-center justify-between gap-3 mb-2">
+                <span class="text-sm font-medium text-slate-800">${escHtml(name)}</span>
+                ${v.tracks_inventory
+                    ? `<span class="text-sm font-semibold text-slate-900">Total: ${escHtml(total)}</span>`
+                    : trackingActionHtml(v.id)}
+            </div>
+            ${v.tracks_inventory ? `<div class="grid grid-cols-2 sm:grid-cols-3 gap-2">${branches || '<span class="text-xs text-slate-400">No assigned branches</span>'}</div>` : ''}
+        </div>`;
+    }).join('') || '<p class="text-sm text-slate-400">No color stock is available.</p>';
+    body.innerHTML = `<div class="rounded-lg bg-indigo-50 border border-indigo-100 px-4 py-3 mb-3">
+        <p class="text-xs font-medium text-indigo-600">Overall stock</p>
+        <p data-overall-stock class="text-2xl font-bold text-indigo-900">${escHtml(overall)}</p>
+        <p class="text-[11px] text-indigo-600">all colors and branches</p>
+    </div><div class="space-y-2">${rows}</div>`;
+}
+
+function renderDefaultVariantStock() {
+    const v = defaultVariant;
+    const body = document.getElementById('stockSectionBody');
+    if (!v) { body.innerHTML = ''; return; }
+    body.innerHTML = renderDefaultVariantStockCell();
+}
+
+// Shown in place of stock wherever an untracked Variant's row would render.
+// No per-row action any more — the page-level "Set opening stock" banner
+// (renderUntrackedBanner()) handles every untracked variant on this product
+// at once, so there's only ever one thing to click, not one per variant.
+function trackingActionHtml(variantId) {
+    if (!product.allow_inventory_tracking) {
+        return '<span class="text-xs text-slate-400" title="Enable inventory tracking for this product in Edit Product first">Not trackable</span>';
+    }
+    return '<span class="text-xs text-slate-400">Not tracked</span>';
+}
+
+function renderDefaultVariantStockCell() {
+    const v = defaultVariant;
+    if (!v.tracks_inventory) return `<div class="flex items-center justify-between"><span class="text-xs text-slate-400">Not tracked</span>${trackingActionHtml(v.id)}</div>`;
+    const stock = v.stock_by_branch || {};
+    const overall = stockTotal(stock);
+    return `<div class="rounded-lg bg-indigo-50 border border-indigo-100 px-4 py-3 mb-3"><p class="text-xs font-medium text-indigo-600">Overall stock</p><p data-overall-stock class="text-2xl font-bold text-indigo-900">${overall}</p><p class="text-[11px] text-indigo-600">all assigned branches</p></div><div class="space-y-1">${variantBranches.map(b => `
+        <div class="flex items-center justify-between gap-2 text-xs rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
+            <span class="text-slate-500">${escHtml(b.name)} (${escHtml(b.branch_code)})</span>
+            <span class="font-semibold text-slate-900">${escHtml(stock[b.id] ?? 0)}</span>
+        </div>`).join('') || '<span class="text-slate-400">No branches</span>'}</div><p class="mt-3 text-xs text-slate-500">Use Inventory to adjust stock.</p>`;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ADD-ONS (multi-select, price delta only — never touches variants)
+// ══════════════════════════════════════════════════════════════════════
+
+async function loadAddonGroups() {
+    addonGroupLinks = await apiFetch(`/products/${productId}/addon-groups`);
+    const results = await Promise.allSettled(addonGroupLinks.map(l => apiFetch(`/addon-items/?addon_group_id=${l.addon_group_id}`)));
+    addonGroupItems = {};
+    results.forEach((r, i) => { addonGroupItems[addonGroupLinks[i].addon_group_id] = r.status === 'fulfilled' ? r.value : []; });
+    renderAddonGroups();
+}
+
+function renderAddonGroups() {
+    const list = document.getElementById('addonGroupsList');
+    const empty = document.getElementById('addonGroupsEmpty');
+    if (!addonGroupLinks.length) { list.innerHTML = ''; empty.classList.remove('hidden'); return; }
+    empty.classList.add('hidden');
+    list.innerHTML = addonGroupLinks.map(link => {
+        const items = addonGroupItems[link.addon_group_id] || [];
+        const limit = link.selection_type === 'single' ? 'pick one' : (link.max_select ? `up to ${link.max_select}` : 'any number');
+        return `<div class="border border-slate-200 rounded-lg p-3">
+            <div class="flex items-center justify-between mb-2">
+                <div>
+                    <span class="text-sm font-medium text-slate-800">${escHtml(link.name)}</span>
+                    <span class="ml-2 text-[10px] font-medium text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded-full">${escHtml(limit)}</span>
+                </div>
+                <button onclick="detachAddonGroup('${escapeJSAttribute(link.id)}')" title="Detach from this product" class="text-xs text-red-500 hover:text-red-700">Detach</button>
+            </div>
+            <div class="space-y-1">
+                ${items.map(i => `<div class="flex items-center justify-between text-xs bg-slate-50 rounded-lg px-2.5 py-1.5">
+                    <span>${escHtml(i.name)} ${i.default_selected ? '<span class="text-slate-400">(default on)</span>' : ''}</span>
+                    <span class="font-medium text-slate-700">+${money(i.price_delta)}</span>
+                </div>`).join('') || '<p class="text-xs text-slate-400">No items yet — add some in the <a href="/tenant/addon-groups.html" class="text-indigo-600 hover:underline">Add-on Groups</a> library</p>'}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+async function openAttachAddonModal() {
+    attachMode = 'addon-group';
+    document.getElementById('attachModalTitle').textContent = 'Attach Add-on Group';
+    document.getElementById('attachEmptyLibraryLink').href = '/tenant/addon-groups.html';
+    const library = await apiFetch('/addon-groups/');
+    const attachedIds = new Set(addonGroupLinks.map(l => l.addon_group_id));
+    const available = library.filter(g => !attachedIds.has(g.id));
+    const listEl = document.getElementById('attachExistingList');
+    const emptyEl = document.getElementById('attachExistingEmpty');
+    if (!available.length) { listEl.innerHTML = ''; emptyEl.classList.remove('hidden'); }
+    else {
+        emptyEl.classList.add('hidden');
+        listEl.innerHTML = available.map(g => `<button onclick="attachExistingAddon('${escapeJSAttribute(g.id)}')" class="w-full text-left px-3 py-2 rounded-lg border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 text-sm">${escHtml(g.name)}</button>`).join('');
+    }
+    document.getElementById('attachModal').classList.remove('hidden');
+}
+
+async function attachExistingAddon(addonGroupId) {
+    try {
+        await apiFetch(`/products/${productId}/addon-groups`, { method: 'POST', body: JSON.stringify({ addon_group_id: addonGroupId }) });
+        closeAttachModal();
+        await loadAddonGroups();
+        showToast('Add-on Group attached');
+    } catch (e) { showToast('Failed: ' + e.message, 'error'); }
+}
+
+async function detachAddonGroup(linkId) {
+    if (!window.confirm('Detach this Add-on Group from the product?')) return;
+    try {
+        await apiFetch(`/products/${productId}/addon-groups/${linkId}`, { method: 'DELETE' });
+        await loadAddonGroups();
+        showToast('Detached');
+    } catch (e) { showToast('Failed: ' + e.message, 'error'); }
+}
+
+// ── Shared attach modal ─────────────────────────────────────────────────
+function closeAttachModal() {
+    document.getElementById('attachModal').classList.add('hidden');
+    attachMode = null;
+}
+
+// ── Set opening stock for every currently-untracked Variant at once ───────
+// Server (VariantService.set_tracking, called once per variant below)
+// requires opening stock for every active assigned branch, exactly once —
+// see _validated_branch_opening(). This used to be one variant per visit;
+// now one visit covers every untracked variant on the product.
+let enableTrackingVariants = [];
+
+function openEnableTracking() {
+    enableTrackingVariants = trackableVariants().filter(v => !v.tracks_inventory);
+    const head = document.getElementById('enableTrackingHead');
+    const body = document.getElementById('enableTrackingBody');
+    if (!enableTrackingVariants.length) { closeEnableTracking(); return; }
+    if (!variantBranches.length) {
+        head.innerHTML = '';
+        body.innerHTML = '<tr><td class="text-xs text-red-500 py-2">This product has no assigned active branches — assign a branch before setting opening stock.</td></tr>';
+        document.getElementById('enableTrackingModal').classList.remove('hidden');
+        return;
+    }
+    head.innerHTML = `<tr>
+        <th class="text-left text-xs font-medium text-slate-500 pb-2 pr-3">Item</th>
+        ${variantBranches.map(b => `<th class="text-right text-xs font-medium text-slate-500 pb-2 px-2">${escHtml(b.name)}</th>`).join('')}
+    </tr>`;
+    body.innerHTML = enableTrackingVariants.map(v => `
+        <tr data-variant-id="${escapeJSAttribute(v.id)}">
+            <td class="text-sm text-slate-800 py-1.5 pr-3">${escHtml(v.is_default ? product.name : colorVariantName(v))}</td>
+            ${variantBranches.map(b => `
+                <td class="py-1.5 px-2">
+                    <input type="number" min="0" step="1" value="0"
+                        data-variant-id="${escapeJSAttribute(v.id)}" data-branch-id="${escapeJSAttribute(b.id)}"
+                        class="enable-tracking-qty w-20 border border-slate-200 rounded-lg px-2 py-1 text-right text-sm" />
+                </td>`).join('')}
+        </tr>`).join('');
+    document.getElementById('enableTrackingModal').classList.remove('hidden');
+}
+
+function closeEnableTracking() {
+    document.getElementById('enableTrackingModal').classList.add('hidden');
+    enableTrackingVariants = [];
+}
+
+async function submitEnableTracking() {
+    if (!enableTrackingVariants.length || !variantBranches.length) return;
+    // variantId -> { branchId: qty }
+    const stockByVariant = {};
+    for (const v of enableTrackingVariants) stockByVariant[v.id] = {};
+    for (const input of document.querySelectorAll('.enable-tracking-qty')) {
+        const qty = Number(input.value);
+        if (!Number.isInteger(qty) || qty < 0) {
+            showToast('Opening stock must be a non-negative whole number.', 'error');
+            return;
+        }
+        stockByVariant[input.dataset.variantId][input.dataset.branchId] = qty;
+    }
+    const btn = document.getElementById('enableTrackingSubmit');
+    btn.disabled = true;
+    try {
+        // Sequential, not Promise.all — a partial failure (e.g. the 3rd of 5
+        // items) must be reportable as "N of M done", not an all-or-nothing
+        // Promise.all rejection that leaves the admin unsure what landed.
+        let done = 0;
+        for (const v of enableTrackingVariants) {
+            await apiFetch(`/variants/${v.id}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ tracks_inventory: true, opening_stock_by_branch: stockByVariant[v.id] }),
+            });
+            done++;
+        }
+        closeEnableTracking();
+        await loadDefaultVariantStock();
+        showToast(`Stock tracking enabled for ${done} item${done === 1 ? '' : 's'}.`);
+    } catch (e) {
+        await loadDefaultVariantStock();
+        showToast(e.message || 'Could not set opening stock for every item — already-set items were saved; retry the rest.', 'error');
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+// ── Boot ─────────────────────────────────────────────────────────────────
+init();
+</script>
+    <script src="/shared/responsive.js" defer></script>
+</body>
+</html>
