@@ -599,7 +599,41 @@ backend before distributing new clients wherever possible.
 
 ## 8. Rollback and recovery
 
-### Code-only rollback
+### 8.0 Pushing is not deploying
+
+This repo has no CI/CD (no `.github/workflows`). `git push` only updates
+GitHub — it never touches the VPS by itself. The VPS only changes when
+someone manually SSHes in and runs the release steps in §7. So "something
+went wrong" can mean two different things, with two different fixes:
+
+- Wrong on GitHub only (not deployed yet, or you just want the remote clean) — fix it there with a revert (below); the VPS is unaffected either way.
+- Wrong on the live VPS (already deployed and broken) — go straight to
+  §8.1/§8.2 below; the GitHub side doesn't need touching to recover
+  production.
+
+**Before you push a release**, anchor a known-good point so you always have
+something exact to come back to:
+
+```bash
+git log --oneline -1                      # note this SHA, or:
+git tag pre-release-$(date +%Y%m%d) HEAD  # tag it
+```
+
+**To undo a push** (before or independent of deploying it), prefer `revert`
+over rewriting history — it adds a new commit instead of erasing the old
+one, so it's safe even if someone else already pulled:
+
+```bash
+git log --oneline              # find the commit SHA to undo
+git revert <bad-commit-sha>    # creates a new commit that undoes it
+git push
+```
+
+`git reset --hard` + force-push rewrites history instead and is riskier —
+only do that if you're certain nothing else depends on the commits removed,
+and never on a shared branch without warning collaborators.
+
+### 8.1 Code-only rollback (on the VPS)
 
 Use this only when no incompatible migration or new-version data write occurred:
 
@@ -612,7 +646,15 @@ sudo systemctl restart multi-saas
 curl -fsS https://YOUR.DOMAIN/health
 ```
 
-### Migration or data rollback
+Dashboard-only changes (HTML/CSS/JS under `apps/web_fastfood`, no backend
+Python, no migration) are the lowest-risk case of this: skip the pip
+install and `systemctl restart` entirely — `git checkout` alone is enough,
+since nginx serves those files straight from the checkout on every request.
+A hard refresh (Ctrl+Shift+R) clears any client-side cache, though
+`/tenant/` pages are already served with `Cache-Control: no-store`, so it's
+rarely even needed.
+
+### 8.2 Migration or data rollback
 
 Do not run `alembic downgrade -1` blindly. A downgrade may delete columns or
 data and old code may not understand rows written by the new release. Stop the

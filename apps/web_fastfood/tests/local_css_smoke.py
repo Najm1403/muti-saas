@@ -63,7 +63,12 @@ if bundle.is_file():
         browser = playwright.chromium.launch(channel="msedge", headless=True)
         for area, expected_width, mark_selector, expected_mark_size in (
             ("platform", 440, "img[alt='STORIXX']", 64),
-            ("tenant", 384, ".w-12 svg", 24),
+            # tenant login is a left/right split (brand panel + form panel),
+            # not a single centered card — "width" here checks the brand
+            # panel is exactly half the 1280px test viewport (md:w-1/2), and
+            # the mark is the md:w-28/h-28 (112px) logo image, not the old
+            # inline SVG mark this page used before the redesign.
+            ("tenant", 640, "img[alt='STORIXX']", 112),
         ):
             page = browser.new_page(viewport={"width": 1280, "height": 800})
             page.route("**/*", serve_local)
