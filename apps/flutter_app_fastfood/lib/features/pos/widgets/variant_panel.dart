@@ -22,6 +22,7 @@
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
@@ -168,6 +169,7 @@ class VariantContent extends ConsumerStatefulWidget {
 class _VariantContentState extends ConsumerState<VariantContent> {
   bool _adding = false;
   bool _addonsSeeded = false;
+  final ScrollController _scrollController = ScrollController();
 
   ProductsTableData get product => widget.product;
   List<VariantOptionGroupsTableData> get groups => widget.groups;
@@ -180,6 +182,45 @@ class _VariantContentState extends ConsumerState<VariantContent> {
     if (oldWidget.product.id != widget.product.id) {
       _addonsSeeded = false;
     }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  // Desktop/web has no touch-drag scrollbar grip visible by default, so the
+  // options list was only reachable by dragging the thin scrollbar itself —
+  // Up/Down now scroll it directly, matching the quantity/addon steppers'
+  // existing keyboard-friendliness on this screen.
+  KeyEventResult _handleKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+    if (!_scrollController.hasClients) return KeyEventResult.ignored;
+    const step = 72.0;
+    if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+      final target = (_scrollController.offset + step)
+          .clamp(0.0, _scrollController.position.maxScrollExtent);
+      _scrollController.animateTo(
+        target,
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+      );
+      return KeyEventResult.handled;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+      final target = (_scrollController.offset - step)
+          .clamp(0.0, _scrollController.position.maxScrollExtent);
+      _scrollController.animateTo(
+        target,
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+      );
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
   }
 
   void _seedDefaultAddons(PosState pos) {
@@ -275,119 +316,128 @@ class _VariantContentState extends ConsumerState<VariantContent> {
     final lineTotal =
         unitPrice == null ? null : unitPrice * Decimal.fromInt(pos.quantity);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _PanelHeader(product: product, price: basePrice),
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            children: [
-              if (specGroups.isNotEmpty) ...[
-                const _StepLabel('Step 3 — Variant'),
-                const SizedBox(height: 4),
-                for (var i = 0; i < specGroups.length; i++) ...[
-                  if (i > 0) const Divider(height: 1, color: PosTheme.divider),
-                  _VariantGroupSection(
-                    group: specGroups[i],
-                    selectedId: pos.selectedVariantOptions[specGroups[i].id],
-                  ),
+    return Focus(
+      autofocus: true,
+      onKeyEvent: _handleKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _PanelHeader(product: product, price: basePrice),
+          Expanded(
+            child: ListView(
+              controller: _scrollController,
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              children: [
+                if (specGroups.isNotEmpty) ...[
+                  const _StepLabel('Step 3 — Variant'),
+                  const SizedBox(height: 4),
+                  for (var i = 0; i < specGroups.length; i++) ...[
+                    if (i > 0)
+                      const Divider(height: 1, color: PosTheme.divider),
+                    _VariantGroupSection(
+                      group: specGroups[i],
+                      selectedId: pos.selectedVariantOptions[specGroups[i].id],
+                    ),
+                  ],
                 ],
-              ],
-              if (componentGroups.isNotEmpty) ...[
-                if (specGroups.isNotEmpty) const SizedBox(height: 8),
-                const _StepLabel('Components'),
-                const SizedBox(height: 4),
-                for (var i = 0; i < componentGroups.length; i++) ...[
-                  if (i > 0) const Divider(height: 1, color: PosTheme.divider),
-                  _ComponentGroupSection(
-                    group: componentGroups[i],
-                    selectedId: pos.selectedComponents[componentGroups[i].id],
-                  ),
+                if (componentGroups.isNotEmpty) ...[
+                  if (specGroups.isNotEmpty) const SizedBox(height: 8),
+                  const _StepLabel('Components'),
+                  const SizedBox(height: 4),
+                  for (var i = 0; i < componentGroups.length; i++) ...[
+                    if (i > 0)
+                      const Divider(height: 1, color: PosTheme.divider),
+                    _ComponentGroupSection(
+                      group: componentGroups[i],
+                      selectedId: pos.selectedComponents[componentGroups[i].id],
+                    ),
+                  ],
                 ],
-              ],
-              if (addonGroups.isNotEmpty) ...[
-                if (specGroups.isNotEmpty || componentGroups.isNotEmpty)
-                  const SizedBox(height: 8),
-                const _StepLabel('Add-ons'),
-                const SizedBox(height: 4),
-                for (var i = 0; i < addonGroups.length; i++) ...[
-                  if (i > 0) const Divider(height: 1, color: PosTheme.divider),
-                  _AddonGroupSection(
-                    group: addonGroups[i],
-                    selectedIds:
-                        pos.selectedAddons[addonGroups[i].id] ?? const {},
-                  ),
+                if (addonGroups.isNotEmpty) ...[
+                  if (specGroups.isNotEmpty || componentGroups.isNotEmpty)
+                    const SizedBox(height: 8),
+                  const _StepLabel('Add-ons'),
+                  const SizedBox(height: 4),
+                  for (var i = 0; i < addonGroups.length; i++) ...[
+                    if (i > 0)
+                      const Divider(height: 1, color: PosTheme.divider),
+                    _AddonGroupSection(
+                      group: addonGroups[i],
+                      selectedIds:
+                          pos.selectedAddons[addonGroups[i].id] ?? const {},
+                    ),
+                  ],
                 ],
-              ],
-              if (specGroups.isEmpty &&
-                  componentGroups.isEmpty &&
-                  addonGroups.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24),
-                  child: Center(
-                    child: Text(
-                      'No options — ready to add',
-                      style: TextStyle(color: PosTheme.textMuted, fontSize: 13),
+                if (specGroups.isEmpty &&
+                    componentGroups.isEmpty &&
+                    addonGroups.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: Text(
+                        'No options — ready to add',
+                        style:
+                            TextStyle(color: PosTheme.textMuted, fontSize: 13),
+                      ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
-        ),
 
-        // Quantity stepper row.
-        const Padding(
-          padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
-          child: _StepLabel('Step 4 — Quantity'),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
-          child: _QuantityStepper(
-            quantity: pos.quantity,
-            onDecrement: posNotifier.decrementQty,
-            onIncrement: posNotifier.incrementQty,
+          // Quantity stepper row.
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: _StepLabel('Step 4 — Quantity'),
           ),
-        ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+            child: _QuantityStepper(
+              quantity: pos.quantity,
+              onDecrement: posNotifier.decrementQty,
+              onIncrement: posNotifier.incrementQty,
+            ),
+          ),
 
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-          child: _LineTotalBox(
-            unitPrice: unitPrice,
-            quantity: pos.quantity,
-            lineTotal: lineTotal,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: _LineTotalBox(
+              unitPrice: unitPrice,
+              quantity: pos.quantity,
+              lineTotal: lineTotal,
+            ),
           ),
-        ),
 
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
-          child: FutureBuilder<AddToCartStatus>(
-            future: _evaluateStatus(resolvedVariant, selectionComplete,
-                pos.quantity, componentVariantByOptionId.values.toList()),
-            builder: (context, snapshot) {
-              final status = snapshot.data;
-              final enabled =
-                  snapshot.connectionState == ConnectionState.done &&
-                      status != null &&
-                      !status.blocked &&
-                      !_adding;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _StatusLine(status: status),
-                  const SizedBox(height: 12),
-                  _AddToCartButton(
-                    enabled: enabled,
-                    onTap: enabled
-                        ? () => _addToCart(resolvedVariant!, pos)
-                        : null,
-                  ),
-                ],
-              );
-            },
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
+            child: FutureBuilder<AddToCartStatus>(
+              future: _evaluateStatus(resolvedVariant, selectionComplete,
+                  pos.quantity, componentVariantByOptionId.values.toList()),
+              builder: (context, snapshot) {
+                final status = snapshot.data;
+                final enabled =
+                    snapshot.connectionState == ConnectionState.done &&
+                        status != null &&
+                        !status.blocked &&
+                        !_adding;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _StatusLine(status: status),
+                    const SizedBox(height: 12),
+                    _AddToCartButton(
+                      enabled: enabled,
+                      onTap: enabled
+                          ? () => _addToCart(resolvedVariant!, pos)
+                          : null,
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

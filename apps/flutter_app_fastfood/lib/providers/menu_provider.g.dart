@@ -1667,6 +1667,153 @@ final activeDealsProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef ActiveDealsRef = AutoDisposeFutureProviderRef<List<DealsTableData>>;
+String _$dealItemsForDealHash() => r'6309441387a416dc24582ea6b40c21f75fc51e90';
+
+/// The product/category slots belonging to [dealId], ordered by sort_order.
+///
+/// Copied from [dealItemsForDeal].
+@ProviderFor(dealItemsForDeal)
+const dealItemsForDealProvider = DealItemsForDealFamily();
+
+/// The product/category slots belonging to [dealId], ordered by sort_order.
+///
+/// Copied from [dealItemsForDeal].
+class DealItemsForDealFamily
+    extends Family<AsyncValue<List<DealItemsTableData>>> {
+  /// The product/category slots belonging to [dealId], ordered by sort_order.
+  ///
+  /// Copied from [dealItemsForDeal].
+  const DealItemsForDealFamily();
+
+  /// The product/category slots belonging to [dealId], ordered by sort_order.
+  ///
+  /// Copied from [dealItemsForDeal].
+  DealItemsForDealProvider call(
+    String dealId,
+  ) {
+    return DealItemsForDealProvider(
+      dealId,
+    );
+  }
+
+  @override
+  DealItemsForDealProvider getProviderOverride(
+    covariant DealItemsForDealProvider provider,
+  ) {
+    return call(
+      provider.dealId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'dealItemsForDealProvider';
+}
+
+/// The product/category slots belonging to [dealId], ordered by sort_order.
+///
+/// Copied from [dealItemsForDeal].
+class DealItemsForDealProvider
+    extends AutoDisposeFutureProvider<List<DealItemsTableData>> {
+  /// The product/category slots belonging to [dealId], ordered by sort_order.
+  ///
+  /// Copied from [dealItemsForDeal].
+  DealItemsForDealProvider(
+    String dealId,
+  ) : this._internal(
+          (ref) => dealItemsForDeal(
+            ref as DealItemsForDealRef,
+            dealId,
+          ),
+          from: dealItemsForDealProvider,
+          name: r'dealItemsForDealProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$dealItemsForDealHash,
+          dependencies: DealItemsForDealFamily._dependencies,
+          allTransitiveDependencies:
+              DealItemsForDealFamily._allTransitiveDependencies,
+          dealId: dealId,
+        );
+
+  DealItemsForDealProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.dealId,
+  }) : super.internal();
+
+  final String dealId;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<DealItemsTableData>> Function(DealItemsForDealRef provider)
+        create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: DealItemsForDealProvider._internal(
+        (ref) => create(ref as DealItemsForDealRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        dealId: dealId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<List<DealItemsTableData>> createElement() {
+    return _DealItemsForDealProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is DealItemsForDealProvider && other.dealId == dealId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, dealId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin DealItemsForDealRef
+    on AutoDisposeFutureProviderRef<List<DealItemsTableData>> {
+  /// The parameter `dealId` of this provider.
+  String get dealId;
+}
+
+class _DealItemsForDealProviderElement
+    extends AutoDisposeFutureProviderElement<List<DealItemsTableData>>
+    with DealItemsForDealRef {
+  _DealItemsForDealProviderElement(super.provider);
+
+  @override
+  String get dealId => (origin as DealItemsForDealProvider).dealId;
+}
+
 String _$activePromotionsHash() => r'36c92046b24d69303e2943ebaeb94e2f34e395da';
 
 /// Active promotions (both automatic and code-triggered).

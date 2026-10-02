@@ -332,11 +332,39 @@ let deals = [];
 let selectedDealId = null;
 let editingId = null;
 let cachedBranches = [];
+let cachedCategories = [];
+let cachedProductsByCategory = {};
 
 async function loadCachedBranches() {
     if (cachedBranches.length) return cachedBranches;
     cachedBranches = await api(`/branches/`);
     return cachedBranches;
+}
+
+async function loadCachedCategories() {
+    if (cachedCategories.length) return cachedCategories;
+    cachedCategories = await api(`/categories/?limit=200`);
+    return cachedCategories;
+}
+
+async function loadProductsForCategory(categoryId) {
+    if (cachedProductsByCategory[categoryId]) return cachedProductsByCategory[categoryId];
+    const products = await api(`/products/?category_id=${categoryId}`);
+    cachedProductsByCategory[categoryId] = products;
+    return products;
+}
+
+function categoryName(categoryId) {
+    const c = cachedCategories.find(x => x.id === categoryId);
+    return c ? c.name : null;
+}
+
+function productName(productId) {
+    for (const list of Object.values(cachedProductsByCategory)) {
+        const p = list.find(x => x.id === productId);
+        if (p) return p.name;
+    }
+    return null;
 }
 
 function toggleBranchPicker(checked) {
@@ -430,9 +458,13 @@ function renderDetailPanel(deal) {
 
     const itemsHtml = (deal.items || []).length === 0
         ? `<tr><td colspan="5" class="px-4 py-6 text-center text-slate-400 text-sm">No items yet.</td></tr>`
-        : (deal.items || []).map(item => `
+        : (deal.items || []).map(item => {
+            const label = item.product_id
+                ? (productName(item.product_id) || `${item.product_id.slice(0, 8)}…`)
+                : (categoryName(item.category_id) || `${(item.category_id || '—').slice(0, 8)}…`);
+            return `
             <tr class="hover:bg-slate-50 text-sm">
-                <td class="px-4 py-2.5 font-mono text-xs text-slate-500">${(item.product_id || item.category_id || '—').slice(0, 8)}…</td>
+                <td class="px-4 py-2.5 text-slate-700 text-xs">${escapeHTML(label)}</td>
                 <td class="px-4 py-2.5 text-slate-500 text-xs">${item.product_id ? 'Product' : 'Category'}</td>
                 <td class="px-4 py-2.5 text-slate-700">${item.quantity}</td>
                 <td class="px-4 py-2.5">
@@ -442,7 +474,8 @@ function renderDetailPanel(deal) {
                     <button onclick="removeItem('${escapeJSAttribute(deal.id)}', '${escapeJSAttribute(item.id)}')" class="text-red-400 hover:text-red-600 transition-colors text-xs">Remove</button>
                 </td>
             </tr>
-        `).join('');
+        `;
+        }).join('');
 
     document.getElementById('detailPanel').innerHTML = `
         <div class="flex-1 overflow-y-auto p-6">
@@ -549,14 +582,18 @@ function renderDetailPanel(deal) {
                 <div id="addItemError" class="hidden bg-red-50 border border-red-200 text-red-700 rounded p-2 text-xs"></div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs text-slate-500 mb-1">Product ID <span class="text-slate-400">(UUID)</span></label>
-                        <input id="newProductId" type="text" placeholder="product UUID"
-                            class="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 font-mono placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
+                        <label class="block text-xs text-slate-500 mb-1">Category</label>
+                        <select id="newCategorySelect" onchange="onAddItemCategoryChange()"
+                            class="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                            <option value="">— Select category —</option>
+                        </select>
                     </div>
                     <div>
-                        <label class="block text-xs text-slate-500 mb-1">Category ID <span class="text-slate-400">(UUID)</span></label>
-                        <input id="newCategoryId" type="text" placeholder="category UUID"
-                            class="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 font-mono placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
+                        <label class="block text-xs text-slate-500 mb-1">Product</label>
+                        <select id="newProductSelect" disabled
+                            class="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-slate-50 disabled:text-slate-400">
+                            <option value="">— Select category first —</option>
+                        </select>
                     </div>
                 </div>
                 <div class="grid grid-cols-3 gap-3">
@@ -659,14 +696,34 @@ async function saveDealBranches(dealId) {
     }
 }
 
-function openAddItem(dealId) {
+async function openAddItem(dealId) {
     document.getElementById('addItemForm').classList.remove('hidden');
-    document.getElementById('newProductId').value = '';
-    document.getElementById('newCategoryId').value = '';
     document.getElementById('newQty').value = '1';
     document.getElementById('newSortOrder').value = '0';
     document.getElementById('newIsFree').checked = false;
     document.getElementById('addItemError').classList.add('hidden');
+
+    const categories = await loadCachedCategories();
+    document.getElementById('newCategorySelect').innerHTML = '<option value="">— Select category —</option>' +
+        categories.map(c => `<option value="${c.id}">${escapeHTML(c.name)}</option>`).join('');
+    document.getElementById('newProductSelect').innerHTML = '<option value="">— Select category first —</option>';
+    document.getElementById('newProductSelect').disabled = true;
+}
+
+async function onAddItemCategoryChange() {
+    const categoryId = document.getElementById('newCategorySelect').value;
+    const productSelect = document.getElementById('newProductSelect');
+    if (!categoryId) {
+        productSelect.innerHTML = '<option value="">— Select category first —</option>';
+        productSelect.disabled = true;
+        return;
+    }
+    productSelect.disabled = true;
+    productSelect.innerHTML = '<option value="">Loading…</option>';
+    const products = await loadProductsForCategory(categoryId);
+    productSelect.innerHTML = '<option value="">Whole category (any product)</option>' +
+        products.map(p => `<option value="${p.id}">${escapeHTML(p.name)}</option>`).join('');
+    productSelect.disabled = false;
 }
 
 function closeAddItem() {
@@ -674,12 +731,12 @@ function closeAddItem() {
 }
 
 async function submitAddItem(dealId) {
-    const productId = document.getElementById('newProductId').value.trim() || null;
-    const categoryId = document.getElementById('newCategoryId').value.trim() || null;
+    const categoryId = document.getElementById('newCategorySelect').value || null;
+    const productId = document.getElementById('newProductSelect').value || null;
     const qty = parseInt(document.getElementById('newQty').value) || 1;
 
     if (!productId && !categoryId) {
-        document.getElementById('addItemError').textContent = 'Provide a product ID or category ID.';
+        document.getElementById('addItemError').textContent = 'Select a category (and optionally a product).';
         document.getElementById('addItemError').classList.remove('hidden');
         return;
     }

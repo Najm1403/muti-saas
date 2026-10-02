@@ -121,8 +121,12 @@ async def test_refunded_sale_counted_in_summary(db, H):
     svc = TenantReportService(db)
     summary = await svc.get_summary(H["tenant_a"].id, None, None, branch.id)
     assert summary.refunded_sales == 1
-    # A fully-refunded sale contributes nothing to revenue.
+    # A fully-refunded sale contributes nothing to net revenue...
     assert summary.total_revenue == Decimal("0.00")
+    # ...but its original amount still counts toward gross sales — refund
+    # detail belongs in the dedicated Refunds report, not hidden by zeroing
+    # the headline "how much did we sell" figure.
+    assert summary.gross_sales == Decimal("15.00")
 
 
 @pytest.mark.asyncio

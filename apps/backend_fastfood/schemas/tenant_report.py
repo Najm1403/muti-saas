@@ -23,6 +23,12 @@ class SalesSummary(APIBaseSchema):
     completed_sales: int
     cancelled_sales: int
     refunded_sales: int
+    # Gross dollar total of every sale in range, regardless of status — a
+    # refunded/cancelled sale's original amount still counts here. This is
+    # the headline "how much did we sell" figure; total_revenue below is the
+    # net figure after subtracting refunds, and refund/cancellation detail
+    # lives in the dedicated Refunds report, not blended into either number.
+    gross_sales: Decimal
     total_revenue: Decimal
     total_discount: Decimal
     total_tax: Decimal

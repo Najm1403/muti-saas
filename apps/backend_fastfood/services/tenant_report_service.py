@@ -151,6 +151,10 @@ class TenantReportService:
                     case((Sale.status == _REFUNDED, Sale.id))
                 ).label("refunded_sales"),
                 func.coalesce(
+                    func.sum(Sale.total),
+                    Decimal("0.00"),
+                ).label("gross_sales"),
+                func.coalesce(
                     func.sum(revenue_expr),
                     Decimal("0.00"),
                 ).label("total_revenue"),
@@ -185,6 +189,7 @@ class TenantReportService:
             completed_sales=completed,
             cancelled_sales=row.cancelled_sales or 0,
             refunded_sales=row.refunded_sales or 0,
+            gross_sales=Decimal(str(row.gross_sales or "0.00")),
             total_revenue=total_revenue,
             total_discount=Decimal(str(row.total_discount or "0.00")),
             total_tax=Decimal(str(row.total_tax or "0.00")),

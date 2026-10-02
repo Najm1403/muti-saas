@@ -17,6 +17,8 @@ import '../../../providers/currency_provider.dart';
 import '../../../providers/menu_provider.dart';
 import '../pos_state.dart';
 import '../pos_theme.dart';
+import 'category_rail.dart' show dealsCategoryId;
+import 'deal_builder_sheet.dart';
 
 /// 2-column product card grid for the currently selected category.
 ///
@@ -46,6 +48,10 @@ class ProductGrid extends ConsumerWidget {
         icon: Icons.category_outlined,
         message: 'Select a category to browse products',
       );
+    }
+
+    if (!isSearching && selectedCategoryId == dealsCategoryId) {
+      return const _DealGrid();
     }
 
     final productsAsync = isSearching
@@ -97,6 +103,120 @@ class ProductGrid extends ConsumerWidget {
           },
         );
       },
+    );
+  }
+}
+
+// ── Deal grid — shown instead of the product grid when the "Deals" pseudo-
+// category (category_rail.dart's dealsCategoryId) is selected ──────────────
+
+class _DealGrid extends ConsumerWidget {
+  const _DealGrid();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final dealsAsync = ref.watch(activeDealsProvider);
+    return dealsAsync.when(
+      loading: () => const _LoadingGrid(),
+      error: (e, _) => const _EmptyPrompt(
+        icon: Icons.error_outline,
+        message: 'Could not load deals',
+      ),
+      data: (deals) {
+        if (deals.isEmpty) {
+          return const _EmptyPrompt(
+            icon: Icons.local_offer_outlined,
+            message: 'No active deals right now',
+          );
+        }
+        return GridView.builder(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 220,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 0.92,
+          ),
+          itemCount: deals.length,
+          itemBuilder: (context, index) => _DealCard(deal: deals[index]),
+        );
+      },
+    );
+  }
+}
+
+class _DealCard extends ConsumerWidget {
+  final DealsTableData deal;
+  const _DealCard({required this.deal});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final money = ref.watch(moneyProvider);
+    final fixedPrice =
+        deal.fixedPrice == null ? null : Decimal.tryParse(deal.fixedPrice!);
+    final priceLabel = fixedPrice != null
+        ? money(fixedPrice)
+        : (deal.discountValue != null && deal.discountType != null
+            ? (deal.discountType == 'percent'
+                ? '${deal.discountValue}% off'
+                : '${money(Decimal.tryParse(deal.discountValue!) ?? Decimal.zero)} off')
+            : 'Special offer');
+
+    return GestureDetector(
+      onTap: () => showDealBuilderSheet(context, deal),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: PosTheme.tileRadius,
+          border: Border.all(color: PosTheme.divider),
+          boxShadow: PosTheme.shadowSm,
+        ),
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(18),
+                child: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [PosTheme.accentLight, PosTheme.neutral200],
+                    ),
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.local_offer,
+                        size: 36, color: PosTheme.accent),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              deal.name,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 13,
+                height: 1.2,
+                fontWeight: FontWeight.w600,
+                color: PosTheme.text,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              priceLabel,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: PosTheme.accent,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -127,6 +127,14 @@ Future<TaxRatesTableData?> defaultTaxRate(DefaultTaxRateRef ref) =>
 Future<List<DealsTableData>> activeDeals(ActiveDealsRef ref) =>
     ref.watch(menuRepositoryProvider).activeDeals();
 
+/// The product/category slots belonging to [dealId], ordered by sort_order.
+@riverpod
+Future<List<DealItemsTableData>> dealItemsForDeal(
+  DealItemsForDealRef ref,
+  String dealId,
+) =>
+    ref.watch(menuRepositoryProvider).dealItems(dealId);
+
 /// Active promotions (both automatic and code-triggered).
 @riverpod
 Future<List<PromotionsTableData>> activePromotions(ActivePromotionsRef ref) =>

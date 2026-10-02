@@ -131,6 +131,8 @@ Start the backend locally first, then build with the API URL reachable from the 
 
 ```powershell
 flutter run -d windows --dart-define=API_URL=http://127.0.0.1:8000
+where for production do 
+flutter build windows --release --dart-define=API_URL=https://api.apkaysoftware.com
 ```
 
 Do not use localhost for a distributable release. After development and testing succeed,

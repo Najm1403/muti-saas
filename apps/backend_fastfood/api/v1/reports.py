@@ -598,6 +598,7 @@ async def get_report_pdf(
 
     flowables: list = [
         kpi_row([
+            ("GROSS SALES", f"{currency} {summary.gross_sales:.2f}"),
             ("TOTAL SALES", str(summary.total_sales)),
             ("REVENUE", f"{currency} {summary.total_revenue:.2f}"),
             ("AVG ORDER VALUE", f"{currency} {summary.avg_order_value:.2f}"),

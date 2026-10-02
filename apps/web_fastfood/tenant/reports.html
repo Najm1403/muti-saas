@@ -288,7 +288,7 @@
         <div id="sectionSummary" class="hidden">
             <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Total Sales</p>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Gross Sales</p>
                     <p class="text-2xl font-bold text-slate-900 mt-2" id="cTotalSales">—</p>
                     <p class="text-xs text-slate-400 mt-1" id="cCompletedSales">—</p>
                 </div>
@@ -908,8 +908,8 @@ async function runReport() {
 
 function renderSummary(s) {
     if (!s) { hide('sectionSummary'); return; }
-    document.getElementById('cTotalSales').textContent = s.total_sales || 0;
-    document.getElementById('cCompletedSales').textContent = `${s.completed_sales} completed · ${s.refunded_sales || 0} refunded`;
+    document.getElementById('cTotalSales').textContent = fmt(s.gross_sales);
+    document.getElementById('cCompletedSales').textContent = `${s.total_sales} transactions · ${s.refunded_sales || 0} refunded`;
     document.getElementById('cRevenue').textContent = fmt(s.total_revenue);
     document.getElementById('cDiscount').textContent = `Discount: ${fmt(s.total_discount)}`;
     document.getElementById('cAvgOrder').textContent = fmt(s.avg_order_value);
